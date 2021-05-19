@@ -1,0 +1,8 @@
+*.class
+*.log
+/target/
+*.iml
+/.idea/
+.directory
+/docker/jwtHeader
+/docker/jwtSecret
