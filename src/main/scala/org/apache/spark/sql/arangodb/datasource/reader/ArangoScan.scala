@@ -3,9 +3,10 @@ package org.apache.spark.sql.arangodb.datasource.reader
 import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ReadMode}
 import org.apache.spark.sql.arangodb.util.ArangoClient
 import org.apache.spark.sql.connector.read.{Batch, InputPartition, PartitionReaderFactory, Scan}
+import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType
 
-class ArangoScan(schema: StructType, options: ArangoOptions) extends Scan with Batch {
+class ArangoScan(schema: StructType, filters: Array[Filter], options: ArangoOptions) extends Scan with Batch {
 
   override def readSchema(): StructType = schema
 
@@ -16,7 +17,7 @@ class ArangoScan(schema: StructType, options: ArangoOptions) extends Scan with B
     case ReadMode.Collection => planCollectionPartitions().asInstanceOf[Array[InputPartition]]
   }
 
-  override def createReaderFactory(): PartitionReaderFactory = new ArangoPartitionReaderFactory(schema, options)
+  override def createReaderFactory(): PartitionReaderFactory = new ArangoPartitionReaderFactory(schema, filters, options)
 
   private def planCollectionPartitions() =
     ArangoClient.getCollectionShardIds(options)

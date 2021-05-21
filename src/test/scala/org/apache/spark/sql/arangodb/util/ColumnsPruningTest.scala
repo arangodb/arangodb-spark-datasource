@@ -18,7 +18,7 @@ class ColumnsPruningTest {
       )))
     ))
 
-    val res = ArangoClient.generateColumnsFilter(schema, "d")
+    val res = PushdownUtils.generateColumnsFilter(schema, "d")
     assertThat(res).isEqualTo(
       """
         |{

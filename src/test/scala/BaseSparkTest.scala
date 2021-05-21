@@ -31,15 +31,15 @@ class BaseSparkTest {
     .options(options + ("collection" -> "users"))
     .schema(new StructType(
       Array(
-        StructField("likes", ArrayType(StringType)),
-        StructField("birthday", DateType),
-        StructField("gender", StringType),
+        StructField("likes", ArrayType(StringType, containsNull = false)),
+        StructField("birthday", DateType, nullable = true),
+        StructField("gender", StringType, nullable = false),
         StructField("name", StructType(
           Array(
-            StructField("first", StringType),
-            StructField("last", StringType),
+            StructField("first", StringType, nullable = true),
+            StructField("last", StringType, nullable = false),
           )
-        ))
+        ), nullable = true)
       )
     ))
     .load()

@@ -6,17 +6,18 @@ import org.apache.spark.sql.arangodb.util.ArangoClient
 import org.apache.spark.sql.arangodb.util.mapping.ArangoParser
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read.PartitionReader
+import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types._
 
 
-class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition, schema: StructType, opts: ArangoOptions)
+class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition, schema: StructType, filters: Array[Filter], opts: ArangoOptions)
   extends PartitionReader[InternalRow] {
 
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
   private val parser = ArangoParser.of(options.readOptions.contentType, schema)
   private lazy val client = ArangoClient(options)
-  private lazy val iterator = client.readCollectionPartition(inputPartition.shardId, schema)
+  private lazy val iterator = client.readCollectionPartition(inputPartition.shardId, schema, filters)
 
   private var current: VPackSlice = _
 

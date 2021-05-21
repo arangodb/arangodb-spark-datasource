@@ -8,7 +8,8 @@ import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.datasource.ArangoOptions
-import org.apache.spark.sql.types.{StructField, StructType}
+import org.apache.spark.sql.sources.Filter
+import org.apache.spark.sql.types.StructType
 
 import java.util
 import scala.collection.JavaConverters.mapAsJavaMapConverter
@@ -24,10 +25,13 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  def readCollectionPartition(shardId: String, requiredSchema: StructType): ArangoCursor[VPackSlice] = arangoDB
+  def readCollectionPartition(shardId: String, requiredSchema: StructType, filters: Array[Filter]): ArangoCursor[VPackSlice] = arangoDB
     .db(options.readOptions.db)
     .query(
-      s"FOR d IN @@col RETURN ${ArangoClient.generateColumnsFilter(requiredSchema, "d")}",
+      s"""
+         |FOR d IN @@col
+         |FILTER ${PushdownUtils.generateFilterClause(PushdownUtils.generateRowFilters(filters, requiredSchema))}
+         |RETURN ${PushdownUtils.generateColumnsFilter(requiredSchema, "d")}""".stripMargin,
       Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
       new AqlQueryOptions()
         //        .ttl()
@@ -99,21 +103,6 @@ object ArangoClient {
     val shardIds: Array[String] = client.util(Serializer.CUSTOM).deserialize(res.getBody.get("shards"), classOf[Array[String]])
     client.shutdown()
     shardIds
-  }
-
-  private[util] def generateColumnsFilter(schema: StructType, documentVariable: String): String =
-    doGenerateColumnsFilter(schema, s"`$documentVariable`.")
-
-  private def doGenerateColumnsFilter(schema: StructType, ctx: String): String = "{" +
-    schema.fields.map(generateFieldFilter(_, ctx)).mkString(",") + "}"
-
-  private def generateFieldFilter(field: StructField, ctx: String): String = {
-    val fieldName = s"`${field.name}`"
-    val value = s"$ctx$fieldName"
-    s"$fieldName:" + (field.dataType match {
-      case s: StructType => doGenerateColumnsFilter(s, s"$value.")
-      case _ => value
-    })
   }
 
 }
