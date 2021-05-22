@@ -3,6 +3,8 @@ package org.apache.spark.sql.arangodb.util
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
 import org.apache.spark.sql.types.{DateType, StructField, StructType}
 
+import scala.annotation.tailrec
+
 object PushdownUtils {
 
   private[util] def generateColumnsFilter(schema: StructType, documentVariable: String): String =
@@ -53,19 +55,33 @@ object PushdownUtils {
         PushableFilter(and, s"(${parts(0)} AND ${parts(1)})", supp)
       }
 
-    // TODO:
-    case filter: EqualTo => schema(filter.attribute).dataType match {
-      case _: DateType => PushableFilter(null, null, FilterSupport.NONE)
-      case _ => PushableFilter(
-        filter,
-        s"""
-           |`$documentVariable`.`${filter.attribute}` == "${filter.value}"
-           |""".stripMargin,
-        FilterSupport.FULL
-      )
+    // TODO: check support foreach field dataType
+    case filter: EqualTo => {
+      // FIXME: don't split quoted parts, according to the doc {@link org.apache.spark.sql.sources.EqualTo}:
+      //        `dots` are used as separators for nested columns. If any part of the names contains `dots`,
+      //         it is quoted to avoid confusion.
+      val fieldNameParts = filter.attribute.split('.')
+      val schemaField = getStructField(fieldNameParts.tail, schema(fieldNameParts.head))
+      val escapedFieldNameParts = fieldNameParts.map(v => s"`$v`").mkString(".")
+      schemaField.dataType match {
+        case _: DateType => PushableFilter(null, null, FilterSupport.NONE)
+        case _ => PushableFilter(
+          filter,
+          s"""
+             |`$documentVariable`.$escapedFieldNameParts == "${filter.value}"
+             |""".stripMargin,
+          FilterSupport.FULL
+        )
+      }
     }
 
     case _ => PushableFilter(null, null, FilterSupport.NONE)
+  }
+
+  @tailrec
+  private[util] def getStructField(fieldNameParts: Array[String], fieldSchema: StructField): StructField = fieldNameParts match {
+    case Array() => fieldSchema
+    case _ => getStructField(fieldNameParts.tail, fieldSchema.dataType.asInstanceOf[StructType](fieldNameParts.head))
   }
 
 }
