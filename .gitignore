@@ -1,6 +1,7 @@
 *.class
 *.log
 /target/
+**/target/
 *.iml
 /.idea/
 .directory

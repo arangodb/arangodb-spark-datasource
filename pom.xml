@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
+    <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>ArangoDB Spark Connector</description>
@@ -19,25 +20,51 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <scala.version>2.12.13</scala.version>
-        <scala.compat.version>2.12</scala.compat.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>spark-2.4</id>
+            <properties>
+                <spark.version>2.4.8</spark.version>
+                <scala.version>2.11.12</scala.version>
+                <scala.compat.version>2.11</scala.compat.version>
+            </properties>
+            <modules>
+                <module>arangodb-spark-datasource-2.4</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>spark-3.1</id>
+            <properties>
+                <spark.version>3.1.1</spark.version>
+                <scala.version>2.12.13</scala.version>
+                <scala.compat.version>2.12</scala.compat.version>
+            </properties>
+            <modules>
+                <module>arangodb-spark-datasource-3.1</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.12</artifactId>
-            <version>3.1.1</version>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.12</artifactId>
-            <version>3.1.1</version>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
@@ -51,8 +78,9 @@
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_2.12</artifactId>
+            <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
         </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.assertj</groupId>
@@ -101,18 +129,13 @@
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
-                <artifactId>scala-library</artifactId>
-                <version>2.12.13</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
                 <artifactId>scala-reflect</artifactId>
-                <version>2.12.13</version>
+                <version>${scala.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-compiler</artifactId>
-                <version>2.12.13</version>
+                <version>${scala.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
