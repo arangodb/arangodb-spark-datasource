@@ -31,6 +31,16 @@ object PushdownUtils {
     filters.map(generateRowFilter(_, schema, documentVariable))
 
   def generateRowFilter(filter: Filter, schema: StructType, documentVariable: String = "d"): PushableFilter = filter match {
+
+    /*
+     * +---------++---------+---------+------+
+     * |   OR    ||  FULL   | PARTIAL | NONE |
+     * +---------++---------+---------+------+
+     * | FULL    || FULL    | PARTIAL | NONE |
+     * | PARTIAL || PARTIAL | PARTIAL | NONE |
+     * | NONE    || NONE    | NONE    | NONE |
+     * +---------++---------+---------+------+
+     */
     case or: Or =>
       val parts = Seq(
         generateRowFilter(or.left, schema, documentVariable),
@@ -43,6 +53,15 @@ object PushdownUtils {
         PushableFilter(or, s"(${parts(0)} OR ${parts(1)})", supp)
       }
 
+    /*
+     * +---------++---------+---------+---------+
+     * |   AND   ||  FULL   | PARTIAL |  NONE   |
+     * +---------++---------+---------+---------+
+     * | FULL    || FULL    | PARTIAL | PARTIAL |
+     * | PARTIAL || PARTIAL | PARTIAL | PARTIAL |
+     * | NONE    || PARTIAL | PARTIAL | NONE    |
+     * +---------++---------+---------+---------+
+     */
     case and: And =>
       val parts = Seq(
         generateRowFilter(and.left, schema, documentVariable),
