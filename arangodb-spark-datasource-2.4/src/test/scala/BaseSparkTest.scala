@@ -11,7 +11,7 @@ import java.util.stream
 class BaseSparkTest {
 
   protected val options = Map(
-    "db" -> "sparkConnectorTest",
+    "database" -> "sparkConnectorTest",
     "user" -> "root",
     "password" -> "test",
     "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"
@@ -28,7 +28,7 @@ class BaseSparkTest {
 
   protected val usersDF: DataFrame = spark.read
     .format("org.apache.spark.sql.arangodb.datasource")
-    .options(options + ("collection" -> "users"))
+    .options(options + ("table" -> "users"))
     .schema(new StructType(
       Array(
         StructField("likes", ArrayType(StringType, containsNull = false)),
@@ -59,8 +59,8 @@ class BaseSparkTest {
 
 object BaseSparkTest {
   def provideProtocolAndContentType(): stream.Stream[Arguments] = java.util.stream.Stream.of(
-    Arguments.of("VST", "vpack"),
-    Arguments.of("HTTP", "vpack"),
-    Arguments.of("HTTP", "json")
+    Arguments.of("vst", "vpack"),
+    Arguments.of("http", "vpack"),
+    Arguments.of("http", "json")
   )
 }

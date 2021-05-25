@@ -50,11 +50,11 @@ object Main extends App {
   val usersDF = spark.read
     .format("org.apache.spark.sql.arangodb.datasource")
     .options(Map(
-      "db" -> "sparkConnectorTest",
+      "database" -> "sparkConnectorTest",
       "user" -> "root",
       "password" -> "test",
       "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529",
-      "collection" -> "users"
+      "table" -> "users"
     ))
     .schema(new StructType(
       Array(

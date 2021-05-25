@@ -30,8 +30,8 @@ object MainMorpheus extends App {
     spark.read
       .format("org.apache.spark.sql.arangodb.datasource")
       .options(Map(
-        "collection" -> collectionName,
-        "db" -> "_system",
+        "table" -> collectionName,
+        "database" -> "_system",
         "user" -> "root",
         "password" -> "test",
         "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"

@@ -23,7 +23,7 @@ import com.arangodb.ArangoDB
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.CollectionsReadOptions
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ArangoTable}
+import org.apache.spark.sql.arangodb.datasource.ArangoOptions
 import org.apache.spark.sql.catalyst.analysis.NoSuchNamespaceException
 import org.apache.spark.sql.connector.catalog._
 import org.apache.spark.sql.connector.expressions.Transform
@@ -79,11 +79,11 @@ class ArangoCatalog
   override def loadTable(ident: Identifier): Table = {
     println(s">>> loadTable($ident)")
     new ArangoTable(null, ArangoOptions(Map(
-      "db" -> "sparkConnectorTest",
+      "database" -> "sparkConnectorTest",
       "user" -> "root",
       "password" -> "test",
       "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529",
-      "collection" -> "users"
+      "table" -> "users"
     )))
   }
 

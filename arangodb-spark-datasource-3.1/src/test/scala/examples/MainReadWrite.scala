@@ -22,8 +22,8 @@ object MainReadWrite extends App {
   val personsDF = spark.read
     .format("org.apache.spark.sql.arangodb.datasource")
     .options(Map(
-      "collection" -> "persons",
-      "db" -> "_system",
+      "table" -> "persons",
+      "database" -> "_system",
       "user" -> "root",
       "password" -> "test",
       "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"
@@ -38,8 +38,8 @@ object MainReadWrite extends App {
     .format("org.apache.spark.sql.arangodb.datasource")
     .mode(SaveMode.Append)
     .options(Map(
-      "db" -> "_system",
-      "collection" -> collectionName,
+      "database" -> "_system",
+      "table" -> collectionName,
       "user" -> "root",
       "password" -> "test",
       "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"

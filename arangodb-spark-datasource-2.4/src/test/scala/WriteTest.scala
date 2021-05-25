@@ -13,7 +13,7 @@ class WriteTest extends BaseSparkTest {
 
   @BeforeEach
   def init(): Unit = {
-    db = arangoDB.db(options("db"))
+    db = arangoDB.db(options("database"))
     collection = db.collection("chessPlayers")
     if (!collection.exists()) {
       collection.create()
@@ -45,7 +45,7 @@ class WriteTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Append)
       .options(options + (
-        "collection" -> "chessPlayers",
+        "table" -> "chessPlayers",
         "protocol" -> protocol,
         "content-type" -> contentType
       ))

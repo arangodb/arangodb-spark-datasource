@@ -28,7 +28,7 @@ class ReadTest extends BaseSparkTest {
     val usersDF = spark.read
       .format("org.apache.spark.sql.arangodb.datasource")
       .options(options + (
-        "collection" -> "users",
+        "table" -> "users",
         "protocol" -> protocol,
         "content-type" -> contentType
       ))

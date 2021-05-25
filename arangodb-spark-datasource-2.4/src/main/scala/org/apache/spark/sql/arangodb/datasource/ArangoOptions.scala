@@ -21,7 +21,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.ArangoDB
-import org.apache.spark.sql.util.CaseInsensitiveStringMap
 
 import java.util
 import scala.collection.JavaConverters.mapAsScalaMapConverter
@@ -49,8 +48,8 @@ object ArangoOptions {
   val PROTOCOL = "protocol"
 
   // read/write options
-  val DB = "db"
-  val COLLECTION = "collection"
+  val DB = "database"
+  val COLLECTION = "table"
   val QUERY = "query"
   val SAMPLE_SIZE = "sample.size"
   val BATCH_SIZE = "batch.size"
@@ -60,12 +59,10 @@ object ArangoOptions {
 
   def apply(options: util.Map[String, String]): ArangoOptions = ArangoOptions(options.asScala.toMap)
 
-  def apply(options: CaseInsensitiveStringMap): ArangoOptions = ArangoOptions(options.asCaseSensitiveMap())
-
 }
 
 class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
-  private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "VST"))
+  private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "vst"))
   private val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
   private val arangoProtocol = (protocol, contentType) match {
     case (Protocol.VST, ContentType.VPack) => com.arangodb.Protocol.VST
@@ -149,8 +146,8 @@ object Protocol {
   case object HTTP extends Protocol
 
   def apply(value: String): Protocol = value match {
-    case "VST" => VST
-    case "HTTP" => HTTP
+    case "vst" => VST
+    case "http" => HTTP
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
   }
 }
