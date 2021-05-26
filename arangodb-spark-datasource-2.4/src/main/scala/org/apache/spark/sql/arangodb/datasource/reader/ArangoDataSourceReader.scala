@@ -7,6 +7,9 @@ import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, SupportsPushDownFilters, SupportsPushDownRequiredColumns}
 import org.apache.spark.sql.types.StructType
 
+import java.util
+import scala.collection.JavaConverters.seqAsJavaListConverter
+
 class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends DataSourceReader
   with SupportsPushDownFilters
   with SupportsPushDownRequiredColumns {
@@ -21,10 +24,10 @@ class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends
 
   override def readSchema(): StructType = requiredSchema
 
-  override def planInputPartitions(): Array[InputPartition[InternalRow]] = options.readOptions.readMode match {
-    case ReadMode.Query => Array(new SingletonPartition(requiredSchema, appliedFilters, options))
-    case ReadMode.Collection => planCollectionPartitions().asInstanceOf[Array[InputPartition[InternalRow]]]
-  }
+  override def planInputPartitions(): util.List[InputPartition[InternalRow]] = (options.readOptions.readMode match {
+    case ReadMode.Query => List(new SingletonPartition(requiredSchema, appliedFilters, options))
+    case ReadMode.Collection => planCollectionPartitions().toList
+  }).asInstanceOf[util.List[InputPartition[InternalRow]]]
 
   private def planCollectionPartitions() =
     ArangoClient.getCollectionShardIds(options)

@@ -35,7 +35,7 @@ class WriteTest extends BaseSparkTest {
       ("Giri", "Anish"),
       ("Mamedyarov", "Shakhriyar"),
       ("So", "Wesley"),
-      ("Radjabov", "Teimour"),
+      ("Radjabov", "Teimour")
     ).toDF("surname", "name")
       .repartition(3)
 

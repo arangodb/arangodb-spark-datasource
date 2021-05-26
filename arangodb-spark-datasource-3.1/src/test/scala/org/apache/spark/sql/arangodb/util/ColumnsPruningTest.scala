@@ -14,7 +14,7 @@ class ColumnsPruningTest {
       StructField("likes", ArrayType(StringType)),
       StructField("name", StructType(Array(
         StructField("first", StringType),
-        StructField("last", StringType),
+        StructField("last", StringType)
       )))
     ))
 

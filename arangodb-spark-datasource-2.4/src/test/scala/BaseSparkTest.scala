@@ -37,7 +37,7 @@ class BaseSparkTest {
         StructField("name", StructType(
           Array(
             StructField("first", StringType, nullable = true),
-            StructField("last", StringType, nullable = false),
+            StructField("last", StringType, nullable = false)
           )
         ), nullable = true)
       )

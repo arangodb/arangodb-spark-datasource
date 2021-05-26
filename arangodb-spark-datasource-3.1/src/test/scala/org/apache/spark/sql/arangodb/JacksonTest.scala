@@ -39,7 +39,7 @@ class JacksonTest {
       StructField("name", StructType(
         Array(
           StructField("first", StringType),
-          StructField("last", StringType),
+          StructField("last", StringType)
         )
       ))
     )

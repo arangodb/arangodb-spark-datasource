@@ -64,7 +64,7 @@ object Main extends App {
         StructField("name", StructType(
           Array(
             StructField("first", StringType),
-            StructField("last", StringType),
+            StructField("last", StringType)
           )
         ))
       )

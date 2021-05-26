@@ -36,7 +36,7 @@ object MainImdb extends App {
     "persons" -> nodes.where(col("type") === "Person").drop(col("type")),
     "movies" -> nodes.where(col("type") === "Movie").drop(col("type")),
     "directed" -> edges.where(col("$label") === "DIRECTED").drop(col("$label")),
-    "actsIn" -> edges.where(col("$label") === "ACTS_IN").drop(col("$label")),
+    "actsIn" -> edges.where(col("$label") === "ACTS_IN").drop(col("$label"))
   )
     .mapValues(dropEmptyCols)
     .mapValues(_.distinct())
