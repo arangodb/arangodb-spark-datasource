@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql.arangodb.datasource
+package org.apache.spark.sql.arangodb.util.mapping.json
 
 import com.fasterxml.jackson.core._
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.SpecializedGetters
-import org.apache.spark.sql.catalyst.json.JSONOptions
 import org.apache.spark.sql.catalyst.util.LegacyDateFormats.FAST_DATE_FORMAT
 import org.apache.spark.sql.catalyst.util._
 import org.apache.spark.sql.types._
@@ -35,7 +34,7 @@ import java.io.Writer
  * of map. An exception will be thrown if trying to write out a struct if it is initialized with
  * a `MapType`, and vice verse.
  */
-private[sql] class ArangoJacksonGenerator(
+private[sql] class JacksonGenerator(
                                            dataType: DataType,
                                            generator: JsonGenerator,
                                            options: JSONOptions) {
@@ -73,7 +72,7 @@ private[sql] class ArangoJacksonGenerator(
     case _: StructType | _: MapType => makeWriter(dataType)
     case _ => throw new UnsupportedOperationException(
       s"Initial type ${dataType.catalogString} must be " +
-        s"an ${ArrayType.simpleString}, a ${StructType.simpleString} or a ${MapType.simpleString}")
+      s"an ${ArrayType.simpleString}, a ${StructType.simpleString} or a ${MapType.simpleString}")
   }
 
   private lazy val mapElementWriter: ValueWriter = dataType match {

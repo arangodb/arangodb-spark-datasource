@@ -1,9 +1,10 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
-import org.apache.spark.sql.arangodb.datasource.{ArangoJacksonGenerator, ArangoOptions, ContentType}
+import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ContentType}
 import org.apache.spark.sql.arangodb.util.ArangoClient
 import org.apache.spark.sql.arangodb.util.mapping.ArangoGenerator
+import org.apache.spark.sql.arangodb.util.mapping.json.JacksonGenerator
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.write.{DataWriter, WriterCommitMessage}
 import org.apache.spark.sql.types.StructType
@@ -14,7 +15,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions) extends DataW
   private lazy val client = ArangoClient(options)
   private var batchCount: Int = _
   private var outVPack: ByteArrayOutputStream = _
-  private var vpackGenerator: ArangoJacksonGenerator = _
+  private var vpackGenerator: JacksonGenerator = _
 
   initBatch()
 

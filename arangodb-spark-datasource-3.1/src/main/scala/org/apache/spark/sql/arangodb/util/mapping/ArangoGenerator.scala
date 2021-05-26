@@ -2,8 +2,8 @@ package org.apache.spark.sql.arangodb.util.mapping
 
 import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
 import com.fasterxml.jackson.core.JsonFactoryBuilder
-import org.apache.spark.sql.arangodb.datasource.{ArangoJacksonGenerator, ContentType}
-import org.apache.spark.sql.catalyst.json.JSONOptions
+import org.apache.spark.sql.arangodb.datasource.ContentType
+import org.apache.spark.sql.arangodb.util.mapping.json.{JSONOptions, JacksonGenerator}
 import org.apache.spark.sql.types.{DataType, StructType}
 
 import java.io.OutputStream
@@ -12,7 +12,7 @@ abstract sealed class ArangoGenerator(
                                        schema: DataType,
                                        writer: OutputStream,
                                        options: JSONOptions)
-  extends ArangoJacksonGenerator(
+  extends JacksonGenerator(
     schema,
     options.buildJsonFactory().createGenerator(writer),
     options)

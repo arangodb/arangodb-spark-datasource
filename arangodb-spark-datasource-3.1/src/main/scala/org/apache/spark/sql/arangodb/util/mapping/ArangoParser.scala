@@ -5,8 +5,8 @@ import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
 import org.apache.spark.sql.arangodb.datasource.ContentType
+import org.apache.spark.sql.arangodb.util.mapping.json.{JSONOptions, JacksonParser}
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.json.{JSONOptions, JacksonParser}
 import org.apache.spark.sql.types.DataType
 import org.apache.spark.unsafe.types.UTF8String
 
