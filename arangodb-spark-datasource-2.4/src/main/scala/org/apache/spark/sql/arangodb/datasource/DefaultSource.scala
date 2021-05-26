@@ -2,6 +2,7 @@ package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoDataSourceReader
+import org.apache.spark.sql.arangodb.datasource.writer.ArangoDataSourceWriter
 import org.apache.spark.sql.arangodb.util.ArangoUtils
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.sources.v2.reader.DataSourceReader
@@ -30,7 +31,8 @@ class DefaultSource extends DataSourceV2 with DataSourceRegister
   override def createReader(schema: StructType, options: DataSourceOptions): DataSourceReader =
     new ArangoDataSourceReader(schema, ArangoOptions(options.asMap()))
 
-  override def createWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: DataSourceOptions): Optional[DataSourceWriter] = ???
+  override def createWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: DataSourceOptions): Optional[DataSourceWriter] =
+    Optional.of(new ArangoDataSourceWriter(writeUUID, schema, mode, ArangoOptions(options.asMap())))
 
   override def shortName(): String = "arangodb"
 
