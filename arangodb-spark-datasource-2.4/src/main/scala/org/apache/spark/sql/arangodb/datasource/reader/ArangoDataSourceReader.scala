@@ -22,17 +22,17 @@ class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends
 
   private var requiredSchema: StructType = _
 
-  override def readSchema(): StructType = requiredSchema
+  override def readSchema(): StructType = Option(requiredSchema).getOrElse(schema)
 
   override def planInputPartitions(): util.List[InputPartition[InternalRow]] = (options.readOptions.readMode match {
-    case ReadMode.Query => List(new SingletonPartition(requiredSchema, appliedFilters, options))
-    case ReadMode.Collection => planCollectionPartitions().toList
+    case ReadMode.Query => List(new SingletonPartition(readSchema(), appliedFilters, options)).asJava
+    case ReadMode.Collection => planCollectionPartitions().toList.asJava
   }).asInstanceOf[util.List[InputPartition[InternalRow]]]
 
   private def planCollectionPartitions() =
     ArangoClient.getCollectionShardIds(options)
       .zip(Stream.continually(options.driverOptions.endpoints).flatten)
-      .map(it => new ArangoCollectionPartition(it._1, it._2, requiredSchema, appliedFilters, options))
+      .map(it => new ArangoCollectionPartition(it._1, it._2, readSchema(), appliedFilters, options))
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
     appliedFilters = filters.filter(PushdownUtils.generateRowFilter(_, schema).support != FilterSupport.NONE)
