@@ -33,7 +33,7 @@ class ArangoClient(options: ArangoOptions) {
     .query(
       s"""
          |FOR d IN @@col
-         |FILTER ${PushdownUtils.generateFilterClause(PushdownUtils.generateRowFilters(filters, requiredSchema))}
+         |${PushdownUtils.generateFilterClause(PushdownUtils.generateRowFilters(filters, requiredSchema))}
          |RETURN ${PushdownUtils.generateColumnsFilter(requiredSchema, "d")}""".stripMargin,
       Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
       new AqlQueryOptions()

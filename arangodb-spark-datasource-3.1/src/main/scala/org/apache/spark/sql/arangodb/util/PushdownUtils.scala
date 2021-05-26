@@ -22,10 +22,13 @@ object PushdownUtils {
     })
   }
 
-  def generateFilterClause(filters: Array[PushableFilter]): String = filters
-    .filter(_.support != FilterSupport.NONE)
-    .map(_.aql)
-    .mkString(" AND ")
+  def generateFilterClause(filters: Array[PushableFilter]): String = filters match {
+    case Array() => ""
+    case _ => "FILTER " + filters
+      .filter(_.support != FilterSupport.NONE)
+      .map(_.aql)
+      .mkString(" AND ")
+  }
 
   def generateRowFilters(filters: Array[Filter], schema: StructType, documentVariable: String = "d"): Array[PushableFilter] =
     filters.map(generateRowFilter(_, schema, documentVariable))
