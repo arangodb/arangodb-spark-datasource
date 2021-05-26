@@ -14,7 +14,7 @@ abstract sealed class ArangoParser(
                                     schema: DataType,
                                     options: JSONOptions,
                                     recordLiteral: Array[Byte] => UTF8String)
-  extends JacksonParser(schema, options, false) {
+  extends JacksonParser(schema, options) {
   def parse(data: Array[Byte]): Iterable[InternalRow] = super.parse(
     data,
     (jsonFactory: JsonFactory, record: Array[Byte]) => jsonFactory.createParser(record),
