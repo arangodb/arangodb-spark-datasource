@@ -20,7 +20,8 @@ class ArangoCollectionPartition(
                                  val filters: Array[Filter],
                                  val options: ArangoOptions
                                ) extends InputPartition[InternalRow] {
-  override def createPartitionReader(): InputPartitionReader[InternalRow] = ???
+  override def createPartitionReader(): InputPartitionReader[InternalRow] =
+    new ArangoCollectionPartitionReader(this, schema, filters, options)
 }
 
 /**
@@ -31,5 +32,6 @@ class SingletonPartition(
                           val filters: Array[Filter],
                           val options: ArangoOptions
                         ) extends InputPartition[InternalRow] {
-  override def createPartitionReader(): InputPartitionReader[InternalRow] = ???
+  override def createPartitionReader(): InputPartitionReader[InternalRow] =
+    new ArangoQueryReader(schema, options)
 }

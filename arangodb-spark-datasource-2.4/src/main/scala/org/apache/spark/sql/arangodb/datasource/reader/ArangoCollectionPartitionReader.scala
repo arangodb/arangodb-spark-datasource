@@ -5,13 +5,17 @@ import org.apache.spark.sql.arangodb.datasource.ArangoOptions
 import org.apache.spark.sql.arangodb.util.ArangoClient
 import org.apache.spark.sql.arangodb.util.mapping.ArangoParser
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.sources.Filter
+import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
 import org.apache.spark.sql.types._
 
 
-class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition, schema: StructType, filters: Array[Filter], opts: ArangoOptions)
-  extends PartitionReader[InternalRow] {
+class ArangoCollectionPartitionReader(
+                                       inputPartition: ArangoCollectionPartition,
+                                       schema: StructType,
+                                       filters: Array[Filter],
+                                       opts: ArangoOptions)
+  extends InputPartitionReader[InternalRow] {
 
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)

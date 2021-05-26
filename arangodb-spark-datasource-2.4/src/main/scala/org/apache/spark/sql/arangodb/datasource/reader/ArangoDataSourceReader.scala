@@ -19,7 +19,7 @@ class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends
 
   private var requiredSchema: StructType = _
 
-  override def readSchema(): StructType = schema
+  override def readSchema(): StructType = requiredSchema
 
   override def planInputPartitions(): Array[InputPartition[InternalRow]] = options.readOptions.readMode match {
     case ReadMode.Query => Array(new SingletonPartition(requiredSchema, appliedFilters, options))

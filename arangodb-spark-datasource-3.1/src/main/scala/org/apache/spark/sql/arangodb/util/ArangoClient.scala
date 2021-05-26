@@ -6,6 +6,7 @@ import com.arangodb.model.AqlQueryOptions
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.datasource.ArangoOptions
 import org.apache.spark.sql.sources.Filter
@@ -19,7 +20,9 @@ class ArangoClient(options: ArangoOptions) {
   lazy val arangoDB: ArangoDB = options.driverOptions
     .builder()
     .serializer(new ArangoJack() {
-      configure(f => f.registerModule(DefaultScalaModule))
+      configure(new ArangoJack.ConfigureFunction {
+        override def configure(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
+      })
     })
     .build()
 
@@ -56,7 +59,7 @@ class ArangoClient(options: ArangoOptions) {
       "FOR d IN @@col LIMIT @size RETURN d",
       Map(
         "@col" -> options.readOptions.collection.get,
-        "size" -> options.readOptions.sampleSize,
+        "size" -> options.readOptions.sampleSize
       )
         .asInstanceOf[Map[String, AnyRef]]
         .asJava,

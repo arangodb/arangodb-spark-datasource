@@ -5,11 +5,11 @@ import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ContentType}
 import org.apache.spark.sql.arangodb.util.ArangoClient
 import org.apache.spark.sql.arangodb.util.mapping.ArangoParser
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.connector.read.PartitionReader
+import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
 import org.apache.spark.sql.types._
 
 
-class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends PartitionReader[InternalRow] {
+class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends InputPartitionReader[InternalRow] {
 
   private val parser = ArangoParser.of(options.readOptions.contentType, schema)
   private lazy val client = ArangoClient(options)
