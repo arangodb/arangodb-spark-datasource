@@ -11,6 +11,7 @@
     <modules>
         <module>arangodb-spark-commons</module>
         <module>arangodb-spark-datasource-${spark.compat.version}</module>
+        <module>integration-tests</module>
     </modules>
 
     <licenses>
