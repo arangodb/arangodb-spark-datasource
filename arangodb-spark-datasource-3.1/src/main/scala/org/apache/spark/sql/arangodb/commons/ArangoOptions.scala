@@ -18,7 +18,7 @@
  * Copyright holder is ArangoDB GmbH, Cologne, Germany
  */
 
-package org.apache.spark.sql.arangodb.datasource
+package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.ArangoDB
 

@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.connector.catalog.{Table, TableProvider}
 import org.apache.spark.sql.connector.expressions.Transform
 import org.apache.spark.sql.sources.DataSourceRegister

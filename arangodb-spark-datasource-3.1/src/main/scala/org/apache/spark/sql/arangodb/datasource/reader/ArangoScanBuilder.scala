@@ -1,7 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
-import org.apache.spark.sql.arangodb.util.{FilterSupport, PushdownUtils}
+import org.apache.spark.sql.arangodb.commons.{ArangoOptions, FilterSupport, PushdownUtils}
 import org.apache.spark.sql.connector.read.{Scan, ScanBuilder, SupportsPushDownFilters, SupportsPushDownRequiredColumns}
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType

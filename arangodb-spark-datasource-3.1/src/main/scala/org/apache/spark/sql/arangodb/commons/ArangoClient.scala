@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.util
+package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
@@ -8,7 +8,6 @@ import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType
 

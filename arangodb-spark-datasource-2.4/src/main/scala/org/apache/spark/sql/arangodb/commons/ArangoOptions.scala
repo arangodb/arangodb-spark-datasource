@@ -18,10 +18,9 @@
  * Copyright holder is ArangoDB GmbH, Cologne, Germany
  */
 
-package org.apache.spark.sql.arangodb.datasource
+package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.ArangoDB
-import org.apache.spark.sql.util.CaseInsensitiveStringMap
 
 import java.util
 import scala.collection.JavaConverters.mapAsScalaMapConverter
@@ -59,8 +58,6 @@ object ArangoOptions {
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 
   def apply(options: util.Map[String, String]): ArangoOptions = ArangoOptions(options.asScala.toMap)
-
-  def apply(options: CaseInsensitiveStringMap): ArangoOptions = ArangoOptions(options.asCaseSensitiveMap())
 
 }
 

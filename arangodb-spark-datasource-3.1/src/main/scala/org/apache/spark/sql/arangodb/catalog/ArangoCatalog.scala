@@ -23,7 +23,8 @@ import com.arangodb.ArangoDB
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.CollectionsReadOptions
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ArangoTable}
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.datasource.ArangoTable
 import org.apache.spark.sql.catalyst.analysis.NoSuchNamespaceException
 import org.apache.spark.sql.connector.catalog._
 import org.apache.spark.sql.connector.expressions.Transform

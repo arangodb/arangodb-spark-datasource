@@ -1,8 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import org.apache.spark.sql.arangodb.commons.{ArangoOptions, ArangoUtils}
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoScanBuilder
 import org.apache.spark.sql.arangodb.datasource.writer.ArangoWriterBuilder
-import org.apache.spark.sql.arangodb.util.ArangoUtils
 import org.apache.spark.sql.connector.catalog.{SupportsRead, SupportsWrite, Table, TableCapability}
 import org.apache.spark.sql.connector.read.ScanBuilder
 import org.apache.spark.sql.connector.write.{LogicalWriteInfo, WriteBuilder}

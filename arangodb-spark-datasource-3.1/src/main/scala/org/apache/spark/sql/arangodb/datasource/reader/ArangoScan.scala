@@ -1,7 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.datasource.{ArangoOptions, ReadMode}
-import org.apache.spark.sql.arangodb.util.ArangoClient
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ReadMode}
 import org.apache.spark.sql.connector.read.{Batch, InputPartition, PartitionReaderFactory, Scan}
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType

@@ -41,7 +41,7 @@ import scala.util.control.NonFatal
 class JacksonParser(
     schema: DataType,
     val options: JSONOptions,
-    allowArrayAsStructs: Boolean,
+    allowArrayAsStructs: Boolean = false,
     filters: Seq[Filter] = Seq.empty) extends Logging {
 
   import JacksonUtils._

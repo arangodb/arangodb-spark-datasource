@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.util
+package org.apache.spark.sql.arangodb.commons
 
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
 import org.apache.spark.sql.types.{DateType, StructField, StructType}
@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 
 object PushdownUtils {
 
-  private[util] def generateColumnsFilter(schema: StructType, documentVariable: String): String =
+  private[commons] def generateColumnsFilter(schema: StructType, documentVariable: String): String =
     doGenerateColumnsFilter(schema, s"`$documentVariable`.")
 
   private def doGenerateColumnsFilter(schema: StructType, ctx: String): String = "{" +
@@ -101,7 +101,7 @@ object PushdownUtils {
   }
 
   @tailrec
-  private[util] def getStructField(fieldNameParts: Array[String], fieldSchema: StructField): StructField = fieldNameParts match {
+  private[commons] def getStructField(fieldNameParts: Array[String], fieldSchema: StructField): StructField = fieldNameParts match {
     case Array() => fieldSchema
     case _ => getStructField(fieldNameParts.tail, fieldSchema.dataType.asInstanceOf[StructType](fieldNameParts.head))
   }

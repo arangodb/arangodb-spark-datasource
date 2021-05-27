@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.write.{DataWriter, DataWriterFactory}
 import org.apache.spark.sql.types.StructType

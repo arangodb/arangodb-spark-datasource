@@ -1,6 +1,6 @@
-package org.apache.spark.sql.arangodb.util
+package org.apache.spark.sql.arangodb.commons
 
-import org.apache.spark.sql.types.{ArrayType, DateType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

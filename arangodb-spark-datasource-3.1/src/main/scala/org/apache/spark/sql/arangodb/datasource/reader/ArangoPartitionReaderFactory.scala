@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read.{InputPartition, PartitionReader, PartitionReaderFactory}
 import org.apache.spark.sql.sources.Filter

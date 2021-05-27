@@ -1,8 +1,8 @@
-package org.apache.spark.sql.arangodb.util.mapping
+package org.apache.spark.sql.arangodb.commons.mapping
 
 import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
 import com.fasterxml.jackson.core.JsonFactoryBuilder
-import org.apache.spark.sql.arangodb.datasource.ContentType
+import org.apache.spark.sql.arangodb.commons.ContentType
 import org.apache.spark.sql.arangodb.util.mapping.json.{JSONOptions, JacksonGenerator}
 import org.apache.spark.sql.types.{DataType, StructType}
 

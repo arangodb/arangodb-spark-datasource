@@ -1,9 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import com.arangodb.velocypack.VPackSlice
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
-import org.apache.spark.sql.arangodb.util.ArangoClient
-import org.apache.spark.sql.arangodb.util.mapping.ArangoParser
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
+import org.apache.spark.sql.arangodb.commons.mapping.ArangoParser
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.sources.Filter

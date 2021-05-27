@@ -1,6 +1,5 @@
 import com.arangodb.ArangoDB
-import org.apache.spark.sql.arangodb.datasource.ArangoOptions
-import org.apache.spark.sql.arangodb.util.ArangoClient
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.{AfterEach, BeforeEach}
