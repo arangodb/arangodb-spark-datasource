@@ -8,6 +8,11 @@
     <name>${project.artifactId}</name>
     <description>ArangoDB Spark Connector</description>
 
+    <modules>
+        <module>arangodb-spark-commons</module>
+        <module>arangodb-spark-datasource-${spark.compat.version}</module>
+    </modules>
+
     <licenses>
         <license>
             <name>Apache License 2.0</name>
@@ -27,23 +32,19 @@
             <id>spark-2.4</id>
             <properties>
                 <spark.version>2.4.8</spark.version>
+                <spark.compat.version>2.4</spark.compat.version>
                 <scala.version>2.11.12</scala.version>
                 <scala.compat.version>2.11</scala.compat.version>
             </properties>
-            <modules>
-                <module>arangodb-spark-datasource-2.4</module>
-            </modules>
         </profile>
         <profile>
             <id>spark-3.1</id>
             <properties>
                 <spark.version>3.1.1</spark.version>
+                <spark.compat.version>3.1</spark.compat.version>
                 <scala.version>2.12.13</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
             </properties>
-            <modules>
-                <module>arangodb-spark-datasource-3.1</module>
-            </modules>
         </profile>
     </profiles>
 

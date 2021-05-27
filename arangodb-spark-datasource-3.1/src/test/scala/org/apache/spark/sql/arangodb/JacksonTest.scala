@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb
 
 import com.arangodb.velocypack.VPackParser
 import org.apache.spark.sql.arangodb.commons.ContentType
-import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoParser}
+import org.apache.spark.sql.arangodb.datasource.mapping.{ArangoGenerator, ArangoParser}
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

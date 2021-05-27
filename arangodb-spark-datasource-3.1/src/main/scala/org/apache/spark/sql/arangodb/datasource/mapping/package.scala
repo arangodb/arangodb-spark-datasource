@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.commons
+package org.apache.spark.sql.arangodb.datasource
 
 import com.fasterxml.jackson.core.JsonFactory
 import org.apache.spark.sql.arangodb.util.mapping.json.JSONOptions

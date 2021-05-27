@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.commons.mapping
+package org.apache.spark.sql.arangodb.datasource.mapping
 
 import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
 import com.arangodb.velocypack.{VPackParser, VPackSlice}

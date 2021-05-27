@@ -11,4 +11,12 @@
 
     <artifactId>arangodb-spark-datasource-2.4</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-spark-commons</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>
