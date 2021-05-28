@@ -87,6 +87,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test -->
@@ -139,16 +140,19 @@
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-reflect</artifactId>
                 <version>${scala.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-compiler</artifactId>
                 <version>${scala.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.xbean</groupId>
                 <artifactId>xbean-asm6-shaded</artifactId>
                 <version>4.10</version>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
