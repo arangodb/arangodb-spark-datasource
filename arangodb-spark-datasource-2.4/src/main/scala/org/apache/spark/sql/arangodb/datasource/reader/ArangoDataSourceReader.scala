@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, FilterSupport, PushdownUtils, ReadMode}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, FilterSupport, PushableFilter, PushdownUtils, ReadMode}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, SupportsPushDownFilters, SupportsPushDownRequiredColumns}
@@ -34,8 +34,8 @@ class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends
       .map(it => new ArangoCollectionPartition(it._1, it._2, readSchema(), appliedFilters, options))
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
-    appliedFilters = filters.filter(PushdownUtils.generateRowFilter(_, schema).support != FilterSupport.NONE)
-    toEvaluateFilters = filters.filter(PushdownUtils.generateRowFilter(_, schema).support != FilterSupport.FULL)
+    appliedFilters = filters.filter(PushableFilter(_, schema).support != FilterSupport.NONE)
+    toEvaluateFilters = filters.filter(PushableFilter(_, schema).support != FilterSupport.FULL)
     toEvaluateFilters
   }
 
