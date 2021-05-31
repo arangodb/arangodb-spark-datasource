@@ -44,7 +44,7 @@ class OrFilter(or: Or, schema: StructType) extends PushableFilter {
     else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
     else FilterSupport.PARTIAL
 
-  override def aql(documentVariable: String): String = s"(${parts(0)} OR ${parts(1)})"
+  override def aql(v: String): String = s"(${parts(0).aql(v)} OR ${parts(1).aql(v)})"
 }
 
 class AndFilter(and: And, schema: StructType) extends PushableFilter {
@@ -67,16 +67,13 @@ class AndFilter(and: And, schema: StructType) extends PushableFilter {
     else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
     else FilterSupport.PARTIAL
 
-  override def aql(documentVariable: String): String = s"(${parts(0)} AND ${parts(1)})"
+  override def aql(v: String): String = s"(${parts(0).aql(v)} AND ${parts(1).aql(v)})"
 }
 
 // TODO: check support foreach field dataType
 class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
 
-  // FIXME: don't split quoted parts, according to the doc {@link org.apache.spark.sql.sources.EqualTo}:
-  //        `dots` are used as separators for nested columns. If any part of the names contains `dots`,
-  //         it is quoted to avoid confusion.
-  private val fieldNameParts = filter.attribute.split('.')
+  private val fieldNameParts = splitAttributeNameParts(filter.attribute)
   private val schemaField = getStructField(fieldNameParts.tail, schema(fieldNameParts.head))
   private val escapedFieldNameParts = fieldNameParts.map(v => s"`$v`").mkString(".")
 

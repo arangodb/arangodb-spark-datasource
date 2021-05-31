@@ -5,13 +5,14 @@ import org.apache.spark.sql.types.{DateType, StructField, StructType}
 
 import scala.annotation.tailrec
 
+// FIXME: use documentVariable instead of "d"
 object PushdownUtils {
 
   private[commons] def generateColumnsFilter(schema: StructType, documentVariable: String): String =
     doGenerateColumnsFilter(schema, s"`$documentVariable`.")
 
-  private def doGenerateColumnsFilter(schema: StructType, ctx: String): String = "{" +
-    schema.fields.map(generateFieldFilter(_, ctx)).mkString(",") + "}"
+  private def doGenerateColumnsFilter(schema: StructType, ctx: String): String =
+    s"""{${schema.fields.map(generateFieldFilter(_, ctx)).mkString(",")}}"""
 
   private def generateFieldFilter(field: StructField, ctx: String): String = {
     val fieldName = s"`${field.name}`"
