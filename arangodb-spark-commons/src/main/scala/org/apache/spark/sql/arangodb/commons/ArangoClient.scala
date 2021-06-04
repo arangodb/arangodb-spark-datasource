@@ -27,20 +27,26 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  def readCollectionPartition(shardId: String, requiredSchema: StructType, filters: Array[Filter]): ArangoCursor[VPackSlice] = arangoDB
-    .db(options.readOptions.db)
-    .query(
+  def readCollectionPartition(shardId: String, requiredSchema: StructType, filters: Array[Filter]): ArangoCursor[VPackSlice] = {
+    val query =
       s"""
          |FOR d IN @@col
          |${PushdownUtils.generateFilterClause(PushdownUtils.generateRowFilters(filters, requiredSchema))}
-         |RETURN ${PushdownUtils.generateColumnsFilter(requiredSchema, "d")}""".stripMargin,
-      Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
-      new AqlQueryOptions()
-        //        .ttl()
-        .batchSize(options.readOptions.batchSize)
-        .stream(true)
-        .shardIds(shardId),
-      classOf[VPackSlice])
+         |RETURN ${PushdownUtils.generateColumnsFilter(requiredSchema, "d")}"""
+        .stripMargin
+        .replaceAll("\n", " ")
+
+    arangoDB
+      .db(options.readOptions.db)
+      .query(query,
+        Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
+        new AqlQueryOptions()
+          //        .ttl()
+          .batchSize(options.readOptions.batchSize)
+          .stream(true)
+          .shardIds(shardId),
+        classOf[VPackSlice])
+  }
 
   def readQuery(): ArangoCursor[VPackSlice] = arangoDB
     .db(options.readOptions.db)

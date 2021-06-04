@@ -12,6 +12,7 @@ class ReadTest extends BaseSparkTest {
     import spark.implicits._
     val litalien = usersDF
       .filter(col("name.last") === "Litalien")
+      .filter(col("birthday") === "1944-06-19")
       .as[User]
       .first()
 

@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.commons
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
-import org.apache.spark.sql.types.{DateType, StructType}
+import org.apache.spark.sql.types.{ArrayType, DateType, StructType, TimestampType}
 
 sealed trait PushableFilter {
   def support(): FilterSupport
@@ -70,7 +70,6 @@ class AndFilter(and: And, schema: StructType) extends PushableFilter {
   override def aql(v: String): String = s"(${parts(0).aql(v)} AND ${parts(1).aql(v)})"
 }
 
-// TODO: check support foreach field dataType
 class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
 
   private val fieldNameParts = splitAttributeNameParts(filter.attribute)
@@ -78,13 +77,16 @@ class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter 
   private val escapedFieldNameParts = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = schemaField.dataType match {
-    case _: DateType => FilterSupport.NONE
+    case _: ArrayType => FilterSupport.NONE
     case _ => FilterSupport.FULL
   }
 
-  override def aql(documentVariable: String): String =
-    s"""`$documentVariable`.$escapedFieldNameParts == "${filter.value}"""".stripMargin
-
+  override def aql(v: String): String =
+    schemaField.dataType match {
+      case _: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, "${filter.value}", "years", "days")"""
+      case _: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, "${filter.value}", "years", "milliseconds")"""
+      case _ => s"""`$v`.$escapedFieldNameParts == "${filter.value}""""
+    }
 }
 
 sealed trait FilterSupport
