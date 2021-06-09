@@ -14,7 +14,7 @@ class OrFilterTest {
 
   // FilterSupport.FULL
   private val f1 = EqualTo("string", "str")
-  private val pushF1 = new EqualToFilter(f1, schema: StructType)
+  private val pushF1 = PushableFilter(f1, schema)
 
   // FilterSupport.NONE
   private val f2 = EqualTo("byte", 1.toByte)

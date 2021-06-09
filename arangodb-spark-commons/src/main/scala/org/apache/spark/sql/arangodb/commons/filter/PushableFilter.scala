@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
-import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
+import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not}
 import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
 sealed trait PushableFilter {
@@ -14,6 +14,7 @@ object PushableFilter {
   def apply(filter: Filter, schema: StructType): PushableFilter = filter match {
     case and: And => new AndFilter(and, schema)
     case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
+    case not: Not => new NotFilter(not, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
 
@@ -90,4 +91,23 @@ class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter 
     case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "milliseconds")"""
     case t => s"""`$v`.$escapedFieldNameParts == ${getValue(t, filter.value)}"""
   }
+}
+
+class NotFilter(not: Not, schema: StructType) extends PushableFilter {
+  private val child = PushableFilter(not.child, schema)
+
+  /**
+   * +---------++---------+
+   * |   v     || NOT(v)  |
+   * +---------++---------+
+   * | FULL    || FULL    |
+   * | PARTIAL || NONE    |
+   * | NONE    || NONE    |
+   * +---------++---------+
+   */
+  override def support(): FilterSupport =
+    if (child.support() == FilterSupport.FULL) FilterSupport.FULL
+    else FilterSupport.NONE
+
+  override def aql(v: String): String = s"NOT (${child.aql(v)})"
 }
