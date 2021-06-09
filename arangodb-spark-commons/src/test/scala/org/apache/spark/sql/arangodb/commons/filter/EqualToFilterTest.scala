@@ -6,7 +6,7 @@ import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class PushableFilterTest {
+class EqualToFilterTest {
   private val schema = StructType(Array(
     // atomic types
     StructField("bool", BooleanType),

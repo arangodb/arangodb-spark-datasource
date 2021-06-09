@@ -16,6 +16,7 @@ object PushableFilter {
     case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
+
       override def aql(documentVariable: String): String = throw new NotImplementedError()
     }
   }
@@ -64,7 +65,10 @@ class AndFilter(and: And, schema: StructType) extends PushableFilter {
     else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
     else FilterSupport.PARTIAL
 
-  override def aql(v: String): String = s"(${parts(0).aql(v)} AND ${parts(1).aql(v)})"
+  override def aql(v: String): String = parts
+    .filter(_.support() != FilterSupport.NONE)
+    .map(_.aql(v))
+    .mkString("(", " AND ", ")")
 }
 
 /**
