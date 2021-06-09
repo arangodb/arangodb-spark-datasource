@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb
 
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types._
 
 import scala.collection.mutable.ArrayBuffer
@@ -18,11 +19,10 @@ package object commons {
          | IntegerType
          | ShortType
     => true
-    case _:
-      NullType
-    => true
     // complex types
+    case _: NullType => true
     case _ if t.isInstanceOf[ArrayType] => true
+    case _ if t.isInstanceOf[StructType] => true
     case _ => false
   }
 
@@ -48,6 +48,12 @@ package object commons {
     case _: DateType | TimestampType | StringType => s""""$v""""
     case _: BooleanType | FloatType | DoubleType | IntegerType | ShortType => v.toString
     case at: ArrayType => s"""[${v.asInstanceOf[Traversable[Any]].map(getValue(at.elementType, _)).mkString(",")}]"""
+    case _: StructType =>
+      val row = v.asInstanceOf[GenericRowWithSchema]
+      val parts = row.values.zip(row.schema).map(sf =>
+        s""""${sf._2.name}":${getValue(sf._2.dataType, sf._1)}"""
+      )
+      s"{${parts.mkString(",")}}"
   }
 
 }

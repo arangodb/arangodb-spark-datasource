@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.commons
 
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources.EqualTo
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
@@ -20,10 +21,9 @@ class PushableFilterTest {
     // complex types
     StructField("array", ArrayType(StringType)),
     StructField("null", NullType),
-
-    StructField("n.a.m.e.", StructType(Array(
-      StructField("first", StringType),
-      StructField("last", StringType)
+    StructField("struct", StructType(Array(
+      StructField("a", StringType),
+      StructField("b", IntegerType)
     )))
   ))
 
@@ -102,11 +102,25 @@ class PushableFilterTest {
   @Test
   def equalToArrayFilter(): Unit = {
     val field = "array"
-    val value = Seq("a","b","c")
+    val value = Seq("a", "b", "c")
     val filter = new EqualToFilter(EqualTo(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` == ["a","b","c"]""")
   }
 
+  @Test
+  def equalToStructFilter(): Unit = {
+    val field = "struct"
+    val value = new GenericRowWithSchema(
+      Array("str", 22),
+      StructType(Array(
+        StructField("a", StringType),
+        StructField("b", IntegerType)
+      ))
+    )
+    val filter = new EqualToFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`struct` == {"a":"str","b":22}""")
+  }
 
 }

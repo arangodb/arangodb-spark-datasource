@@ -30,7 +30,7 @@ class ReadTest extends BaseSparkTest {
       """
         |SELECT likes
         |FROM users
-        |WHERE name.last == "Litalien"
+        |WHERE name == ("Prudence" AS first, "Litalien" AS last)
         |    AND likes == ARRAY("swimming", "chess")
         |""".stripMargin)
       .first()
