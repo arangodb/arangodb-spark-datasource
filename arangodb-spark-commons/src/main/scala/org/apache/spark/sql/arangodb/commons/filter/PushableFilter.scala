@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
-import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not, IsNull}
+import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not, IsNull, IsNotNull}
 import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
 sealed trait PushableFilter {
@@ -17,6 +17,7 @@ object PushableFilter {
     case not: Not => new NotFilter(not, schema)
     case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
     case isNull: IsNull => new IsNullFilter(isNull)
+    case isNotNull: IsNotNull => new IsNotNullFilter(isNotNull)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
 
@@ -45,7 +46,9 @@ private class OrFilter(or: Or, schema: StructType) extends PushableFilter {
     else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
     else FilterSupport.PARTIAL
 
-  override def aql(v: String): String = s"(${parts(0).aql(v)} OR ${parts(1).aql(v)})"
+  override def aql(v: String): String = parts
+    .map(_.aql(v))
+    .mkString("(", " OR ", ")")
 }
 
 private class AndFilter(and: And, schema: StructType) extends PushableFilter {
@@ -122,5 +125,13 @@ private class IsNullFilter(filter: IsNull) extends PushableFilter {
 
   override def support(): FilterSupport = FilterSupport.FULL
 
-  override def aql(documentVariable: String): String = s"$escapedFieldName == null"
+  override def aql(v: String): String = s"`$v`.$escapedFieldName == null"
+}
+
+private class IsNotNullFilter(filter: IsNotNull) extends PushableFilter {
+  private val escapedFieldName = splitAttributeNameParts(filter.attribute).map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = FilterSupport.FULL
+
+  override def aql(v: String): String = s"`$v`.$escapedFieldName != null"
 }
