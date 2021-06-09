@@ -18,6 +18,9 @@ package object commons {
          | IntegerType
          | ShortType
     => true
+    case _:
+      NullType
+    => true
     // complex types
     case _ if t.isInstanceOf[ArrayType] => true
     case _ => false
@@ -41,6 +44,7 @@ package object commons {
   }
 
   private[commons] def getValue(t: AbstractDataType, v: Any): String = t match {
+    case NullType => "null"
     case _: DateType | TimestampType | StringType => s""""$v""""
     case _: BooleanType | FloatType | DoubleType | IntegerType | ShortType => v.toString
     case at: ArrayType => s"""[${v.asInstanceOf[Traversable[Any]].map(getValue(at.elementType, _)).mkString(",")}]"""

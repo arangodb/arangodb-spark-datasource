@@ -11,6 +11,7 @@ class ReadTest extends BaseSparkTest {
   def readCollection(): Unit = {
     import spark.implicits._
     val litalien = usersDF
+      .filter(col("name.first") === "Prudence")
       .filter(col("name.last") === "Litalien")
       .filter(col("birthday") === "1944-06-19")
       .as[User]
@@ -27,7 +28,10 @@ class ReadTest extends BaseSparkTest {
   def readCollectionSql(): Unit = {
     val litalien = spark.sql(
       """
-        |SELECT likes FROM users WHERE name.last == "Litalien" AND likes == ARRAY("swimming", "chess")
+        |SELECT likes
+        |FROM users
+        |WHERE name.last == "Litalien"
+        |    AND likes == ARRAY("swimming", "chess")
         |""".stripMargin)
       .first()
     assertThat(litalien.get(0)).isEqualTo(Seq("swimming", "chess"))

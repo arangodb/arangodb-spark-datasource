@@ -19,6 +19,7 @@ class PushableFilterTest {
 
     // complex types
     StructField("array", ArrayType(StringType)),
+    StructField("null", NullType),
 
     StructField("n.a.m.e.", StructType(Array(
       StructField("first", StringType),
@@ -106,5 +107,6 @@ class PushableFilterTest {
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` == ["a","b","c"]""")
   }
+
 
 }
