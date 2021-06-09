@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 
 class PushableFilterTest {
   private val schema = StructType(Array(
+    // atomic types
     StructField("bool", BooleanType),
     StructField("double", DoubleType),
     StructField("float", FloatType),
@@ -16,7 +17,9 @@ class PushableFilterTest {
     StructField("short", ShortType),
     StructField("string", StringType),
 
-    StructField("likes", ArrayType(StringType)),
+    // complex types
+    StructField("array", ArrayType(StringType)),
+
     StructField("n.a.m.e.", StructType(Array(
       StructField("first", StringType),
       StructField("last", StringType)
@@ -93,6 +96,15 @@ class PushableFilterTest {
     val filter = new EqualToFilter(EqualTo(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` == $value""")
+  }
+
+  @Test
+  def equalToArrayFilter(): Unit = {
+    val field = "array"
+    val value = Seq("a","b","c")
+    val filter = new EqualToFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` == ["a","b","c"]""")
   }
 
 }

@@ -36,6 +36,12 @@ class ArangoDataSourceReader(schema: StructType, options: ArangoOptions) extends
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
     appliedFilters = filters.filter(PushableFilter(_, schema).support != FilterSupport.NONE)
     toEvaluateFilters = filters.filter(PushableFilter(_, schema).support != FilterSupport.FULL)
+
+    println("\n--- APPLIED FILTERS:")
+    println(appliedFilters.mkString("\n"))
+    println("\n--- TO EVALUATE FILTERS:")
+    println(toEvaluateFilters.mkString("\n"))
+
     toEvaluateFilters
   }
 

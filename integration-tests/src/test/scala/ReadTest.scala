@@ -23,6 +23,16 @@ class ReadTest extends BaseSparkTest {
     assertThat(litalien.birthday).isEqualTo("1944-06-19")
   }
 
+  @Test
+  def readCollectionSql(): Unit = {
+    val litalien = spark.sql(
+      """
+        |SELECT likes FROM users WHERE name.last == "Litalien" AND likes == ARRAY("swimming", "chess")
+        |""".stripMargin)
+      .first()
+    assertThat(litalien.get(0)).isEqualTo(Seq("swimming", "chess"))
+  }
+
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def inferCollectionSchema(protocol: String, contentType: String): Unit = {

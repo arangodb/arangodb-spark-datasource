@@ -43,6 +43,8 @@ class BaseSparkTest {
     ))
     .load()
 
+  usersDF.createOrReplaceTempView("users")
+
   @BeforeEach
   def startup(): Unit = {
     client = ArangoClient(ArangoOptions(options))

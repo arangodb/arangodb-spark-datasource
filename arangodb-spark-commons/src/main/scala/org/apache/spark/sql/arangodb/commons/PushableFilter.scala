@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.commons
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
-import org.apache.spark.sql.types.{AtomicType, DateType, StructType, TimestampType}
+import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
 sealed trait PushableFilter {
   def support(): FilterSupport
@@ -80,14 +80,14 @@ class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter 
   private val escapedFieldNameParts = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
-    case t if supportedFilters.contains(t) => FilterSupport.FULL
+    case t if supportsType(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "days")"""
     case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "milliseconds")"""
-    case t: AtomicType => s"""`$v`.$escapedFieldNameParts == ${getValue(t, filter.value)}"""
+    case t => s"""`$v`.$escapedFieldNameParts == ${getValue(t, filter.value)}"""
   }
 }
 

@@ -22,6 +22,12 @@ class ArangoScanBuilder(options: ArangoOptions, tableSchema: StructType) extends
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
     appliedFilters = filters.filter(PushableFilter(_, tableSchema).support != FilterSupport.NONE)
     toEvaluateFilters = filters.filter(PushableFilter(_, tableSchema).support != FilterSupport.FULL)
+
+    println("\n--- APPLIED FILTERS:")
+    println(appliedFilters.mkString("\n"))
+    println("\n--- TO EVALUATE FILTERS:")
+    println(toEvaluateFilters.mkString("\n"))
+
     toEvaluateFilters
   }
 
