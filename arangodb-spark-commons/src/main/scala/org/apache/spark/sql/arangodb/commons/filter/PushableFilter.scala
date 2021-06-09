@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.commons
+package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
@@ -14,14 +14,11 @@ object PushableFilter {
   def apply(filter: Filter, schema: StructType): PushableFilter = filter match {
     case and: And => new AndFilter(and, schema)
     case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
-    case _ => NotSupportedFilter
+    case _ => new PushableFilter {
+      override def support(): FilterSupport = FilterSupport.NONE
+      override def aql(documentVariable: String): String = throw new NotImplementedError()
+    }
   }
-}
-
-object NotSupportedFilter extends PushableFilter {
-  override def support(): FilterSupport = FilterSupport.NONE
-
-  override def aql(documentVariable: String): String = ""
 }
 
 class OrFilter(or: Or, schema: StructType) extends PushableFilter {
@@ -89,24 +86,4 @@ class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter 
     case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "milliseconds")"""
     case t => s"""`$v`.$escapedFieldNameParts == ${getValue(t, filter.value)}"""
   }
-}
-
-sealed trait FilterSupport
-
-object FilterSupport {
-
-  /**
-   * the filter can be applied and does not need to be evaluated again after scanning
-   */
-  case object FULL extends FilterSupport
-
-  /**
-   * the filter can be partially applied and it needs to be evaluated again after scanning
-   */
-  case object PARTIAL extends FilterSupport
-
-  /**
-   * the filter cannot be applied and it needs to be evaluated again after scanning
-   */
-  case object NONE extends FilterSupport
 }

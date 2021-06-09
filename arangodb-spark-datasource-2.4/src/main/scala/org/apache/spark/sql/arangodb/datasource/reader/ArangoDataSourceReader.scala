@@ -1,6 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, FilterSupport, PushableFilter, PushdownUtils, ReadMode}
+import org.apache.spark.sql.arangodb.commons.filter.{FilterSupport, PushableFilter}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, PushdownUtils, ReadMode}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, SupportsPushDownFilters, SupportsPushDownRequiredColumns}

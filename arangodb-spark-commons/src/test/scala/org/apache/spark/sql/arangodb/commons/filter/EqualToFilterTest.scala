@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.commons
+package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.sources.EqualTo

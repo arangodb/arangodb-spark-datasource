@@ -1,32 +1,13 @@
-package org.apache.spark.sql.arangodb
+package org.apache.spark.sql.arangodb.commons
 
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types._
 
 import scala.collection.mutable.ArrayBuffer
 
-package object commons {
+package object filter {
 
-  private[commons] def supportsType(t: AbstractDataType): Boolean = t match {
-    // atomic types
-    case _:
-           DateType
-         | TimestampType
-         | StringType
-         | BooleanType
-         | FloatType
-         | DoubleType
-         | IntegerType
-         | ShortType
-    => true
-    // complex types
-    case _: NullType => true
-    case _ if t.isInstanceOf[ArrayType] => true
-    case _ if t.isInstanceOf[StructType] => true
-    case _ => false
-  }
-
-  private[commons] def splitAttributeNameParts(attribute: String): Array[String] = {
+  private[filter] def splitAttributeNameParts(attribute: String): Array[String] = {
     val parts = new ArrayBuffer[String]()
     var sb = new StringBuilder()
     var inEscapedBlock = false
@@ -43,7 +24,26 @@ package object commons {
     parts.toArray
   }
 
-  private[commons] def getValue(t: AbstractDataType, v: Any): String = t match {
+  private[filter] def supportsType(t: AbstractDataType): Boolean = t match {
+    // atomic types
+    case _:
+           DateType
+         | TimestampType
+         | StringType
+         | BooleanType
+         | FloatType
+         | DoubleType
+         | IntegerType
+         | ShortType
+    => true
+    // complex types
+    case _: NullType => true
+    case at: ArrayType => supportsType(at.elementType)
+    case st: StructType => st.forall(f => supportsType(f.dataType))
+    case _ => false
+  }
+
+  private[filter] def getValue(t: AbstractDataType, v: Any): String = t match {
     case NullType => "null"
     case _: DateType | TimestampType | StringType => s""""$v""""
     case _: BooleanType | FloatType | DoubleType | IntegerType | ShortType => v.toString

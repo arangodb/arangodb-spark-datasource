@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.commons
+package org.apache.spark.sql.arangodb.commons.filter
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest

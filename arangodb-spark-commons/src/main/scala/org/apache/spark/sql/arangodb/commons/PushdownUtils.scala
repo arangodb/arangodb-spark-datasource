@@ -1,7 +1,8 @@
 package org.apache.spark.sql.arangodb.commons
 
-import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or}
-import org.apache.spark.sql.types.{DateType, StructField, StructType}
+import org.apache.spark.sql.arangodb.commons.filter.{FilterSupport, PushableFilter}
+import org.apache.spark.sql.sources.Filter
+import org.apache.spark.sql.types.{StructField, StructType}
 
 import scala.annotation.tailrec
 
