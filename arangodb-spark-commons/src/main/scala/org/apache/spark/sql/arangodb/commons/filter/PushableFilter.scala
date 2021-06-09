@@ -4,7 +4,7 @@ import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not, IsNull, IsNotNull}
 import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
-sealed trait PushableFilter {
+sealed trait PushableFilter extends Serializable {
   def support(): FilterSupport
 
   def aql(documentVariable: String): String

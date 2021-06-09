@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 class IsNullTest {
   private val schema = StructType(Array(
     StructField("a", StructType(Array(
-      StructField("b", StringType),
+      StructField("b", StringType)
     )))
   ))
 

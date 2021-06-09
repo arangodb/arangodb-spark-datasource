@@ -8,8 +8,7 @@ import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.sources.Filter
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 
 import java.util
 import scala.collection.JavaConverters.mapAsJavaMapConverter
@@ -27,12 +26,12 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  def readCollectionPartition(shardId: String, requiredSchema: StructType, filters: Array[Filter]): ArangoCursor[VPackSlice] = {
+  def readCollectionPartition(shardId: String, ctx: PushDownCtx): ArangoCursor[VPackSlice] = {
     val query =
       s"""
          |FOR d IN @@col
-         |${PushdownUtils.generateFilterClause(PushdownUtils.generateRowFilters(filters, requiredSchema))}
-         |RETURN ${PushdownUtils.generateColumnsFilter(requiredSchema, "d")}"""
+         |${PushdownUtils.generateFilterClause(ctx.filters)}
+         |RETURN ${PushdownUtils.generateColumnsFilter(ctx.requiredSchema, "d")}"""
         .stripMargin
         .replaceAll("\n", " ")
 

@@ -1,13 +1,13 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ReadMode}
+import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.connector.read.{Batch, InputPartition, PartitionReaderFactory, Scan}
-import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types.StructType
 
-class ArangoScan(schema: StructType, filters: Array[Filter], options: ArangoOptions) extends Scan with Batch {
+class ArangoScan(ctx: PushDownCtx, options: ArangoOptions) extends Scan with Batch {
 
-  override def readSchema(): StructType = schema
+  override def readSchema(): StructType = ctx.requiredSchema
 
   override def toBatch: Batch = this
 
@@ -16,7 +16,7 @@ class ArangoScan(schema: StructType, filters: Array[Filter], options: ArangoOpti
     case ReadMode.Collection => planCollectionPartitions().asInstanceOf[Array[InputPartition]]
   }
 
-  override def createReaderFactory(): PartitionReaderFactory = new ArangoPartitionReaderFactory(schema, filters, options)
+  override def createReaderFactory(): PartitionReaderFactory = new ArangoPartitionReaderFactory(ctx, options)
 
   private def planCollectionPartitions() =
     ArangoClient.getCollectionShardIds(options)
