@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
-import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not}
+import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not, IsNull}
 import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
 sealed trait PushableFilter {
@@ -13,8 +13,10 @@ sealed trait PushableFilter {
 object PushableFilter {
   def apply(filter: Filter, schema: StructType): PushableFilter = filter match {
     case and: And => new AndFilter(and, schema)
-    case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
+    case or: Or => new OrFilter(or, schema)
     case not: Not => new NotFilter(not, schema)
+    case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
+    case isNull: IsNull => new IsNullFilter(isNull)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
 
@@ -23,7 +25,7 @@ object PushableFilter {
   }
 }
 
-class OrFilter(or: Or, schema: StructType) extends PushableFilter {
+private class OrFilter(or: Or, schema: StructType) extends PushableFilter {
   private val parts = Seq(
     PushableFilter(or.left, schema),
     PushableFilter(or.right, schema)
@@ -46,7 +48,7 @@ class OrFilter(or: Or, schema: StructType) extends PushableFilter {
   override def aql(v: String): String = s"(${parts(0).aql(v)} OR ${parts(1).aql(v)})"
 }
 
-class AndFilter(and: And, schema: StructType) extends PushableFilter {
+private class AndFilter(and: And, schema: StructType) extends PushableFilter {
   private val parts = Seq(
     PushableFilter(and.left, schema),
     PushableFilter(and.right, schema)
@@ -72,28 +74,7 @@ class AndFilter(and: And, schema: StructType) extends PushableFilter {
     .mkString("(", " AND ", ")")
 }
 
-/**
- * @note timestamps microseconds are ignored
- */
-class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
-
-  private val fieldNameParts = splitAttributeNameParts(filter.attribute)
-  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
-  private val escapedFieldNameParts = fieldNameParts.map(v => s"`$v`").mkString(".")
-
-  override def support(): FilterSupport = dataType match {
-    case t if supportsType(t) => FilterSupport.FULL
-    case _ => FilterSupport.NONE
-  }
-
-  override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "days")"""
-    case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldNameParts, ${getValue(t, filter.value)}, "years", "milliseconds")"""
-    case t => s"""`$v`.$escapedFieldNameParts == ${getValue(t, filter.value)}"""
-  }
-}
-
-class NotFilter(not: Not, schema: StructType) extends PushableFilter {
+private class NotFilter(not: Not, schema: StructType) extends PushableFilter {
   private val child = PushableFilter(not.child, schema)
 
   /**
@@ -110,4 +91,36 @@ class NotFilter(not: Not, schema: StructType) extends PushableFilter {
     else FilterSupport.NONE
 
   override def aql(v: String): String = s"NOT (${child.aql(v)})"
+}
+
+/**
+ * @note timestamps microseconds are ignored
+ */
+private class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(filter.attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case t if supportsType(t) => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = dataType match {
+    case t: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, filter.value)}, "years", "days")"""
+    case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, filter.value)}, "years", "milliseconds")"""
+    case t => s"""`$v`.$escapedFieldName == ${getValue(t, filter.value)}"""
+  }
+}
+
+/**
+ * @note matches null or missing fields
+ */
+private class IsNullFilter(filter: IsNull) extends PushableFilter {
+  private val escapedFieldName = splitAttributeNameParts(filter.attribute).map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = FilterSupport.FULL
+
+  override def aql(documentVariable: String): String = s"$escapedFieldName == null"
 }

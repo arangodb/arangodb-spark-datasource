@@ -24,42 +24,42 @@ class AndFilterTest {
 
   @Test
   def andFilterSupportFullFull(): Unit = {
-    val andFilter = new AndFilter(And(f1, f1), schema)
+    val andFilter = PushableFilter(And(f1, f1), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(andFilter.aql("d")).isEqualTo(s"""(${pushF1.aql("d")} AND ${pushF1.aql("d")})""")
   }
 
   @Test
   def andFilterSupportFullNone(): Unit = {
-    val andFilter = new AndFilter(And(f1, f2), schema)
+    val andFilter = PushableFilter(And(f1, f2), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.PARTIAL)
     assertThat(andFilter.aql("d")).isEqualTo(s"""(${pushF1.aql("d")})""")
   }
 
   @Test
   def andFilterSupportFullPartial(): Unit = {
-    val andFilter = new AndFilter(And(f1, f3), schema)
+    val andFilter = PushableFilter(And(f1, f3), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.PARTIAL)
     assertThat(andFilter.aql("d")).isEqualTo(s"""(${pushF1.aql("d")} AND (${pushF1.aql("d")}))""")
   }
 
   @Test
   def andFilterSupportPartialPartial(): Unit = {
-    val andFilter = new AndFilter(And(f3, f3), schema)
+    val andFilter = PushableFilter(And(f3, f3), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.PARTIAL)
     assertThat(andFilter.aql("d")).isEqualTo(s"""((${pushF1.aql("d")}) AND (${pushF1.aql("d")}))""")
   }
 
   @Test
   def andFilterSupportPartialNone(): Unit = {
-    val andFilter = new AndFilter(And(f3, f2), schema)
+    val andFilter = PushableFilter(And(f3, f2), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.PARTIAL)
     assertThat(andFilter.aql("d")).isEqualTo(s"""((${pushF1.aql("d")}))""")
   }
 
   @Test
   def andFilterSupportNoneNone(): Unit = {
-    val andFilter = new AndFilter(And(f2, f2), schema)
+    val andFilter = PushableFilter(And(f2, f2), schema)
     assertThat(andFilter.support()).isEqualTo(FilterSupport.NONE)
   }
 

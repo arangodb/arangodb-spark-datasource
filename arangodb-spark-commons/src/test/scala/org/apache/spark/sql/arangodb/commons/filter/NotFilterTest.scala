@@ -14,7 +14,7 @@ class NotFilterTest {
 
   // FilterSupport.FULL
   private val f1 = EqualTo("string", "str")
-  private val pushF1 = new EqualToFilter(f1, schema: StructType)
+  private val pushF1 = PushableFilter(f1, schema: StructType)
 
   // FilterSupport.NONE
   private val f2 = EqualTo("byte", 1.toByte)
@@ -24,20 +24,20 @@ class NotFilterTest {
 
   @Test
   def notFilterSupportFull(): Unit = {
-    val notFilter = new NotFilter(Not(f1), schema)
+    val notFilter = PushableFilter(Not(f1), schema)
     assertThat(notFilter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(notFilter.aql("d")).isEqualTo(s"""NOT (${pushF1.aql("d")})""")
   }
 
   @Test
   def notFilterSupportNone(): Unit = {
-    val notFilter = new NotFilter(Not(f2), schema)
+    val notFilter = PushableFilter(Not(f2), schema)
     assertThat(notFilter.support()).isEqualTo(FilterSupport.NONE)
   }
 
   @Test
   def notFilterSupportPartial(): Unit = {
-    val notFilter = new NotFilter(Not(f3), schema)
+    val notFilter = PushableFilter(Not(f3), schema)
     assertThat(notFilter.support()).isEqualTo(FilterSupport.NONE)
   }
 
