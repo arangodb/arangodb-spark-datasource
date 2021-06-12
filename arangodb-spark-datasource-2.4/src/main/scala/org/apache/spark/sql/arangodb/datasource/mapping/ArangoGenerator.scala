@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.mapping
 import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
 import com.fasterxml.jackson.core.JsonFactoryBuilder
 import org.apache.spark.sql.arangodb.commons.ContentType
-import org.apache.spark.sql.arangodb.util.mapping.json.{JSONOptions, JacksonGenerator}
+import org.apache.spark.sql.arangodb.datasource.mapping.json.{JSONOptions, JacksonGenerator}
 import org.apache.spark.sql.types.{DataType, StructType}
 
 import java.io.OutputStream

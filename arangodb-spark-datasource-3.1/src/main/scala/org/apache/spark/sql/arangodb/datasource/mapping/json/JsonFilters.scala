@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql.arangodb.util.mapping.json
+package org.apache.spark.sql.arangodb.datasource.mapping.json
 
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.{InternalRow, StructFilters}

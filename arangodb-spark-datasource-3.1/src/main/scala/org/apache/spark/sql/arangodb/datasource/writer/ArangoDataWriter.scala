@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.writer
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.arangodb.datasource.mapping.ArangoGenerator
-import org.apache.spark.sql.arangodb.util.mapping.json.JacksonGenerator
+import org.apache.spark.sql.arangodb.datasource.mapping.json.JacksonGenerator
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.connector.write.{DataWriter, WriterCommitMessage}
 import org.apache.spark.sql.types.StructType

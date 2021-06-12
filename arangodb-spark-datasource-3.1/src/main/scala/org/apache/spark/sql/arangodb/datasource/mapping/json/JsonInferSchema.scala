@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql.arangodb.util.mapping.json
+package org.apache.spark.sql.arangodb.datasource.mapping.json
 
 import com.fasterxml.jackson.core._
 import org.apache.spark.SparkException
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.arangodb.util.mapping.json.JacksonUtils.nextUntil
+import org.apache.spark.sql.arangodb.datasource.mapping.json.JacksonUtils.nextUntil
 import org.apache.spark.sql.catalyst.analysis.TypeCoercion
 import org.apache.spark.sql.catalyst.expressions.ExprUtils
 import org.apache.spark.sql.catalyst.util.LegacyDateFormats.FAST_DATE_FORMAT
