@@ -89,38 +89,6 @@ done
 
 docker exec coordinator1 arangosh --server.authentication=false --javascript.execute-string='require("org/arangodb/users").update("root", "test")'
 
-## create test db
-curl -u root:test http://172.28.3.1:8529/_api/database -d '{"name":"sparkConnectorTest"}'
-
-
-## import users sample data
-curl -u root:test http://172.28.3.1:8529/_db/sparkConnectorTest/_api/collection -d '{"name": "users", "numberOfShards": 6}'
-docker exec coordinator1 arangoimport --server.username=root --server.password=test --server.database sparkConnectorTest --file "/import/users/users.json" --type json --collection "users"
-
-## import IMDB sample data
-curl -u root:test http://172.28.3.1:8529/_db/sparkConnectorTest/_api/gharial -d '
-{
-  "name": "imdb",
-  "edgeDefinitions": [
-    {
-      "collection": "actsIn",
-      "from": ["persons"],
-      "to": ["movies"]
-    },
-    {
-      "collection": "directed",
-      "from": ["persons"],
-      "to": ["movies"]
-    }
-  ],
-  "options": {
-    "numberOfShards": 9
-  }
-}'
-
-docker exec coordinator1 arangoimport --server.username=root --server.password=test --server.database sparkConnectorTest --file "/import/imdb/persons.json" --type json --collection "persons"
-docker exec coordinator1 arangoimport --server.username=root --server.password=test --server.database sparkConnectorTest --file "/import/imdb/movies.json" --type json --collection "movies"
-docker exec coordinator1 arangoimport --server.username=root --server.password=test --server.database sparkConnectorTest --file "/import/imdb/actsIn.json" --type json --collection "actsIn"
-docker exec coordinator1 arangoimport --server.username=root --server.password=test --server.database sparkConnectorTest --file "/import/imdb/directed.json" --type json --collection "directed"
-
 echo "Done, your cluster is ready."
+
+"$LOCATION"/import_data.sh coordinator1
