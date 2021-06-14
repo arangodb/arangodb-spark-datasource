@@ -1,9 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource.mapping
 
-import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
+import com.arangodb.jackson.dataformat.velocypack.VPackFactory
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
-import com.fasterxml.jackson.core.json.JsonReadFeature
-import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
+import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
 import org.apache.spark.sql.arangodb.commons.ContentType
 import org.apache.spark.sql.arangodb.datasource.mapping.json.{JSONOptions, JacksonParser}
 import org.apache.spark.sql.catalyst.InternalRow
@@ -33,15 +32,14 @@ object ArangoParser {
 class JsonArangoParser(schema: DataType)
   extends ArangoParser(
     schema,
-    createOptions(new JsonFactoryBuilder()
-      .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS, true)
-      .build()),
+    createOptions(new JsonFactory()
+      .configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true)),
     (bytes: Array[Byte]) => UTF8String.fromBytes(bytes)
   )
 
 class VPackArangoParser(schema: DataType)
   extends ArangoParser(
     schema,
-    createOptions(new VPackFactoryBuilder().build()),
+    createOptions(new VPackFactory()),
     (bytes: Array[Byte]) => UTF8String.fromString(new VPackParser.Builder().build().toJson(new VPackSlice(bytes)))
   )

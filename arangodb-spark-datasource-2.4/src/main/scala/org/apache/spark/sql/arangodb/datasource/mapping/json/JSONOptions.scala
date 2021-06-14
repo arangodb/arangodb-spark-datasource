@@ -17,8 +17,7 @@
 
 package org.apache.spark.sql.arangodb.datasource.mapping.json
 
-import com.fasterxml.jackson.core.json.JsonReadFeature
-import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder, JsonParser}
+import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
 import org.apache.commons.lang3.time.FastDateFormat
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.catalyst.util._
@@ -115,17 +114,15 @@ private[sql] class JSONOptions(
 
   /** Build a Jackson [[JsonFactory]] using JSON options. */
   def buildJsonFactory(): JsonFactory = {
-    new JsonFactoryBuilder()
-      .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, allowComments)
-      .configure(JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES, allowUnquotedFieldNames)
-      .configure(JsonReadFeature.ALLOW_SINGLE_QUOTES, allowSingleQuotes)
-      .configure(JsonReadFeature.ALLOW_LEADING_ZEROS_FOR_NUMBERS, allowNumericLeadingZeros)
-      .configure(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS, allowNonNumericNumbers)
-      .configure(
-        JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER,
+    new JsonFactory()
+      .configure(JsonParser.Feature.ALLOW_COMMENTS, allowComments)
+      .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, allowUnquotedFieldNames)
+      .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, allowSingleQuotes)
+      .configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, allowNumericLeadingZeros)
+      .configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, allowNonNumericNumbers)
+      .configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER,
         allowBackslashEscapingAnyCharacter)
-      .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS, allowUnquotedControlChars)
-      .build()
+      .configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, allowUnquotedControlChars)
   }
 }
 

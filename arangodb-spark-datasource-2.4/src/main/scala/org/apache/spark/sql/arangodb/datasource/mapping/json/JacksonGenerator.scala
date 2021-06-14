@@ -26,6 +26,7 @@ import org.apache.spark.sql.types._
 
 import java.io.Writer
 
+
 /**
  * `JackGenerator` can only be initialized with a `StructType`, a `MapType` or an `ArrayType`.
  * Once it is initialized with `StructType`, it can be used to write out a struct or an array of
@@ -39,11 +40,11 @@ private[sql] class JacksonGenerator(
                                      options: JSONOptions) {
 
   def this(dataType: DataType,
-           writer: Writer,
-           options: JSONOptions) {
+                                     writer: Writer,
+                                     options: JSONOptions) {
     this(
       dataType,
-      options.buildJsonFactory().createGenerator(writer).setRootValueSeparator(null),
+      new JsonFactory().createGenerator(writer).setRootValueSeparator(null),
       options)
   }
 
@@ -71,7 +72,7 @@ private[sql] class JacksonGenerator(
     case _: StructType | _: MapType => makeWriter(dataType)
     case _ => throw new UnsupportedOperationException(
       s"Initial type ${dataType.catalogString} must be " +
-      s"an ${ArrayType.simpleString}, a ${StructType.simpleString} or a ${MapType.simpleString}")
+        s"an ${ArrayType.simpleString}, a ${StructType.simpleString} or a ${MapType.simpleString}")
   }
 
   private lazy val mapElementWriter: ValueWriter = dataType match {
@@ -178,7 +179,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeFields(
-      row: InternalRow, schema: StructType, fieldWriters: Seq[ValueWriter]): Unit = {
+                           row: InternalRow, schema: StructType, fieldWriters: Seq[ValueWriter]): Unit = {
     var i = 0
     while (i < row.numFields) {
       val field = schema(i)
@@ -197,7 +198,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeArrayData(
-      array: ArrayData, fieldWriter: ValueWriter): Unit = {
+                              array: ArrayData, fieldWriter: ValueWriter): Unit = {
     var i = 0
     while (i < array.numElements()) {
       if (!array.isNullAt(i)) {
@@ -210,7 +211,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeMapData(
-      map: MapData, mapType: MapType, fieldWriter: ValueWriter): Unit = {
+                            map: MapData, mapType: MapType, fieldWriter: ValueWriter): Unit = {
     val keyArray = map.keyArray()
     val valueArray = map.valueArray()
     var i = 0
