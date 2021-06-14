@@ -12,6 +12,7 @@
         <module>arangodb-spark-commons</module>
         <module>arangodb-spark-datasource-${spark.compat.version}</module>
         <module>integration-tests</module>
+        <module>demo</module>
     </modules>
 
     <licenses>
@@ -138,8 +139,8 @@
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-<!--                <version>2.12.3</version>-->
 <!--                <version>2.6.7.3</version>-->
+<!--                <version>2.12.3</version>-->
                 <version>${jackson.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
