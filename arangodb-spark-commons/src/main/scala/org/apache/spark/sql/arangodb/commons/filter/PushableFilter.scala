@@ -96,9 +96,6 @@ private class NotFilter(not: Not, schema: StructType) extends PushableFilter {
   override def aql(v: String): String = s"NOT (${child.aql(v)})"
 }
 
-/**
- * @note timestamps microseconds are ignored
- */
 private class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
 
   private val fieldNameParts = splitAttributeNameParts(filter.attribute)
@@ -106,6 +103,7 @@ private class EqualToFilter(filter: EqualTo, schema: StructType) extends Pushabl
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
     case t if supportsType(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }

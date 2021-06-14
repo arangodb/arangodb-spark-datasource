@@ -41,7 +41,7 @@ class EqualToFilterTest {
     val field = "timestamp"
     val value = "2001-01-02T15:30:45.678111Z"
     val filter = new EqualToFilter(EqualTo(field, value), schema: StructType)
-    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.support()).isEqualTo(FilterSupport.PARTIAL)
     assertThat(filter.aql("d")).isEqualTo(s"""DATE_COMPARE(`d`.`$field`, "$value", "years", "milliseconds")""")
   }
 
