@@ -17,16 +17,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        spark-version:
+          - 2.4
+          - 3.1
+        topology:
+          - single
+          - cluster
         java-version:
           - 8
         docker-img:
           - docker.io/arangodb/arangodb:3.7.11
-        topology:
-          - single
-          - cluster
-        spark-version:
-          - 2.4
-          - 3.1
 
     steps:
       - uses: actions/checkout@v2
