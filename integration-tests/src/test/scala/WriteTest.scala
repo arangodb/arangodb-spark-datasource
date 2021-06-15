@@ -1,4 +1,4 @@
-import com.arangodb.{ArangoCollection, ArangoDatabase}
+import com.arangodb.ArangoCollection
 import org.apache.spark.sql.SaveMode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -8,13 +8,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 class WriteTest extends BaseSparkTest {
 
-  protected var db: ArangoDatabase = _
-  private var collection: ArangoCollection = _
+  private val collection: ArangoCollection = db.collection("chessPlayers")
 
   @BeforeEach
   def init(): Unit = {
-    db = arangoDB.db(options("database"))
-    collection = db.collection("chessPlayers")
     if (!collection.exists()) {
       collection.create()
     }

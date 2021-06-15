@@ -54,6 +54,7 @@ object ArangoOptions {
   val SAMPLE_SIZE = "sample.size"
   val BATCH_SIZE = "batch.size"
   val CONTENT_TYPE = "content-type"
+  val TOPOLOGY = "topology"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 
@@ -100,10 +101,12 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
   val sampleSize: Int = options.get(ArangoOptions.SAMPLE_SIZE).map(_.toInt).getOrElse(1000)
   val collection: Option[String] = options.get(ArangoOptions.COLLECTION)
   val query: Option[String] = options.get(ArangoOptions.QUERY)
-  val readMode: ReadMode =
+  val readMode: ReadMode = {
     if (query.isDefined) ReadMode.Query
     else if (collection.isDefined) ReadMode.Collection
     else throw new IllegalArgumentException("Either collection or query must be defined")
+  }
+  val arangoTopology: ArangoTopology = ArangoTopology(options.getOrElse(ArangoOptions.TOPOLOGY, "cluster"))
 }
 
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
@@ -149,5 +152,19 @@ object Protocol {
     case "vst" => VST
     case "http" => HTTP
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
+  }
+}
+
+sealed trait ArangoTopology
+
+object ArangoTopology {
+  case object SINGLE extends ArangoTopology
+
+  case object CLUSTER extends ArangoTopology
+
+  def apply(value: String): ArangoTopology = value match {
+    case "single" => SINGLE
+    case "cluster" => CLUSTER
+    case _ => throw new IllegalArgumentException(s"${ArangoOptions.TOPOLOGY}: $value")
   }
 }

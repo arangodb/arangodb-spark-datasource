@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# exit when any command fails
+set -e
+
 CONTAINER_NAME=$1
 
 ## create test db

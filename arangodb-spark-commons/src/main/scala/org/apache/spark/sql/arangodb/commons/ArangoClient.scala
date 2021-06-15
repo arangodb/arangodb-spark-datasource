@@ -101,15 +101,17 @@ object ArangoClient {
 
   def apply(options: ArangoOptions): ArangoClient = new ArangoClient(options)
 
-  def getCollectionShardIds(options: ArangoOptions): Array[String] = {
-    val client = ArangoClient(options).arangoDB
-    val res = client.execute(new Request(
-      options.readOptions.db,
-      RequestType.GET,
-      s"/_api/collection/${options.readOptions.collection.get}/shards"))
-    val shardIds: Array[String] = client.util(Serializer.CUSTOM).deserialize(res.getBody.get("shards"), classOf[Array[String]])
-    client.shutdown()
-    shardIds
+  def getCollectionShardIds(options: ArangoOptions): Array[String] = options.readOptions.arangoTopology match {
+    case ArangoTopology.SINGLE => Array("")
+    case ArangoTopology.CLUSTER =>
+      val client = ArangoClient(options).arangoDB
+      val res = client.execute(new Request(
+        options.readOptions.db,
+        RequestType.GET,
+        s"/_api/collection/${options.readOptions.collection.get}/shards"))
+      val shardIds: Array[String] = client.util(Serializer.CUSTOM).deserialize(res.getBody.get("shards"), classOf[Array[String]])
+      client.shutdown()
+      shardIds
   }
 
 }
