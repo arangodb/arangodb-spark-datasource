@@ -14,6 +14,9 @@
 - `isNull`
 - `isNotNull`
 - `greaterThan`
+- `greaterThanOrEqualFilter`
+- `lessThan`
+- `lessThanOrEqualFilter`
 
 ## Supported Spark Datatypes
 

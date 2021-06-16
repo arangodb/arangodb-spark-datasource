@@ -22,6 +22,8 @@ object PushableFilter {
     case f: IsNotNull             => new IsNotNullFilter(f.attribute)
     case f: GreaterThan           => new GreaterThanFilter(f.attribute, f.value, schema)
     case f: GreaterThanOrEqual    => new GreaterThanOrEqualFilter(f.attribute, f.value, schema)
+    case f: LessThan              => new LessThanFilter(f.attribute, f.value, schema)
+    case f: LessThanOrEqual       => new LessThanOrEqualFilter(f.attribute, f.value, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
       override def aql(documentVariable: String): String = throw new NotImplementedError()
@@ -145,6 +147,44 @@ private class GreaterThanOrEqualFilter(attribute: String, value: Any, schema: St
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
     case t => s"""`$v`.$escapedFieldName >= ${getValue(t, value)}"""
+  }
+}
+
+private class LessThanFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
+    case t if supportsType(t) => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = dataType match {
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < ${getValue(t, value)}"""
+    case t => s"""`$v`.$escapedFieldName < ${getValue(t, value)}"""
+  }
+}
+
+private class LessThanOrEqualFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
+    case t if supportsType(t) => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = dataType match {
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}"""
+    case t => s"""`$v`.$escapedFieldName <= ${getValue(t, value)}"""
   }
 }
 
