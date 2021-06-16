@@ -42,7 +42,7 @@ class GreaterThanFilterTest {
     val value = "2001-01-02T15:30:45.678111Z"
     val filter = PushableFilter(GreaterThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.PARTIAL)
-    assertThat(filter.aql("d")).isEqualTo(s"""DATE_TIMESTAMP(`d`.`$field`) > $value""")
+    assertThat(filter.aql("d")).isEqualTo(s"""DATE_TIMESTAMP(`d`.`$field`) >= $value""") // microseconds are ignored in AQL
   }
 
   @Test

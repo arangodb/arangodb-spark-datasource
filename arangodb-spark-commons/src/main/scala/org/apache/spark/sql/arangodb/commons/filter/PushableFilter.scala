@@ -126,7 +126,7 @@ private class GreaterThanFilter(attribute: String, value: Any, schema: StructTyp
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}""" // microseconds are ignored in AQL
     case t => s"""`$v`.$escapedFieldName > ${getValue(t, value)}"""
   }
 }
@@ -164,7 +164,7 @@ private class LessThanFilter(attribute: String, value: Any, schema: StructType) 
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}""" // microseconds are ignored in AQL
     case t => s"""`$v`.$escapedFieldName < ${getValue(t, value)}"""
   }
 }
