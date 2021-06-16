@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
+import org.apache.spark.sql.types.{DateType, StringType, StructType, TimestampType}
 
 sealed trait PushableFilter extends Serializable {
   def support(): FilterSupport
@@ -24,6 +24,7 @@ object PushableFilter {
     case f: GreaterThanOrEqual    => new GreaterThanOrEqualFilter(f.attribute, f.value, schema)
     case f: LessThan              => new LessThanFilter(f.attribute, f.value, schema)
     case f: LessThanOrEqual       => new LessThanOrEqualFilter(f.attribute, f.value, schema)
+    case f: StringStartsWith      => new StringStartsWithFilter(f.attribute, f.value, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
       override def aql(documentVariable: String): String = throw new NotImplementedError()
@@ -208,4 +209,19 @@ private class IsNotNullFilter(attribute: String) extends PushableFilter {
   override def support(): FilterSupport = FilterSupport.FULL
 
   override def aql(v: String): String = s"`$v`.$escapedFieldName != null"
+}
+
+
+private class StringStartsWithFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case _: StringType => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = s"""STARTS_WITH(`$v`.$escapedFieldName, ${getValue(dataType, value)})"""
 }
