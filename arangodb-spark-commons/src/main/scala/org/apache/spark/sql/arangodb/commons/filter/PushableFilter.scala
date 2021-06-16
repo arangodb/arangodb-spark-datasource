@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
-import org.apache.spark.sql.sources.{And, EqualTo, Filter, Or, Not, IsNull, IsNotNull}
+import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.{DateType, StructType, TimestampType}
 
 sealed trait PushableFilter extends Serializable {
@@ -15,7 +15,8 @@ object PushableFilter {
     case and: And => new AndFilter(and, schema)
     case or: Or => new OrFilter(or, schema)
     case not: Not => new NotFilter(not, schema)
-    case equalTo: EqualTo => new EqualToFilter(equalTo, schema)
+    case equalTo: EqualTo => new EqualToFilter(equalTo.attribute, equalTo.value, schema)
+    case equalNullSafe: EqualNullSafe => new EqualToFilter(equalNullSafe.attribute, equalNullSafe.value, schema)
     case isNull: IsNull => new IsNullFilter(isNull)
     case isNotNull: IsNotNull => new IsNotNullFilter(isNotNull)
     case _ => new PushableFilter {
@@ -96,9 +97,9 @@ private class NotFilter(not: Not, schema: StructType) extends PushableFilter {
   override def aql(v: String): String = s"NOT (${child.aql(v)})"
 }
 
-private class EqualToFilter(filter: EqualTo, schema: StructType) extends PushableFilter {
+private class EqualToFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
 
-  private val fieldNameParts = splitAttributeNameParts(filter.attribute)
+  private val fieldNameParts = splitAttributeNameParts(attribute)
   private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
@@ -109,9 +110,9 @@ private class EqualToFilter(filter: EqualTo, schema: StructType) extends Pushabl
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, filter.value)}, "years", "days")"""
-    case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, filter.value)}, "years", "milliseconds")"""
-    case t => s"""`$v`.$escapedFieldName == ${getValue(t, filter.value)}"""
+    case t: DateType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, value)}, "years", "days")"""
+    case t: TimestampType => s"""DATE_COMPARE(`$v`.$escapedFieldName, ${getValue(t, value)}, "years", "milliseconds")"""
+    case t => s"""`$v`.$escapedFieldName == ${getValue(t, value)}"""
   }
 }
 

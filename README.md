@@ -10,6 +10,7 @@
 - `or`
 - `not`
 - `equalTo`
+- `equalNullSafe`  
 - `isNull`
 - `isNotNull`
 
