@@ -13,14 +13,15 @@ sealed trait PushableFilter extends Serializable {
 object PushableFilter {
   def apply(filter: Filter, schema: StructType): PushableFilter = filter match {
     // @formatter:off
-    case f: And           => new AndFilter(apply(f.left, schema), apply(f.right, schema))
-    case f: Or            => new OrFilter(apply(f.left, schema), apply(f.right, schema))
-    case f: Not           => new NotFilter(apply(f.child, schema))
-    case f: EqualTo       => new EqualToFilter(f.attribute, f.value, schema)
-    case f: EqualNullSafe => new EqualToFilter(f.attribute, f.value, schema)
-    case f: IsNull        => new IsNullFilter(f.attribute)
-    case f: IsNotNull     => new IsNotNullFilter(f.attribute)
-    case f: GreaterThan   => new GreaterThanFilter(f.attribute, f.value, schema)
+    case f: And                   => new AndFilter(apply(f.left, schema), apply(f.right, schema))
+    case f: Or                    => new OrFilter(apply(f.left, schema), apply(f.right, schema))
+    case f: Not                   => new NotFilter(apply(f.child, schema))
+    case f: EqualTo               => new EqualToFilter(f.attribute, f.value, schema)
+    case f: EqualNullSafe         => new EqualToFilter(f.attribute, f.value, schema)
+    case f: IsNull                => new IsNullFilter(f.attribute)
+    case f: IsNotNull             => new IsNotNullFilter(f.attribute)
+    case f: GreaterThan           => new GreaterThanFilter(f.attribute, f.value, schema)
+    case f: GreaterThanOrEqual    => new GreaterThanOrEqualFilter(f.attribute, f.value, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
       override def aql(documentVariable: String): String = throw new NotImplementedError()
@@ -125,6 +126,25 @@ private class GreaterThanFilter(attribute: String, value: Any, schema: StructTyp
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > ${getValue(t, value)}"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > ${getValue(t, value)}"""
     case t => s"""`$v`.$escapedFieldName > ${getValue(t, value)}"""
+  }
+}
+
+private class GreaterThanOrEqualFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
+    case t if supportsType(t) => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = dataType match {
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
+    case t => s"""`$v`.$escapedFieldName >= ${getValue(t, value)}"""
   }
 }
 
