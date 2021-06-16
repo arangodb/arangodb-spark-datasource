@@ -109,7 +109,7 @@ private class EqualToFilter(attribute: String, value: Any, schema: StructType) e
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == ${getValue(t, value)}"""
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == ${getValue(t, value)}"""
     case t => s"""`$v`.$escapedFieldName == ${getValue(t, value)}"""
   }
