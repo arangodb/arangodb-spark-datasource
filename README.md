@@ -13,6 +13,7 @@
 - `equalNullSafe`  
 - `isNull`
 - `isNotNull`
+- `greaterThan`
 
 ## Supported Spark Datatypes
 
