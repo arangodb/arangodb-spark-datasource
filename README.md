@@ -17,6 +17,8 @@
 - `greaterThanOrEqualFilter`
 - `lessThan`
 - `lessThanOrEqualFilter`
+- `stringStartsWithFilter`
+- `stringEndsWithFilter`
 
 ## Supported Spark Datatypes
 
