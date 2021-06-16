@@ -26,6 +26,7 @@ object PushableFilter {
     case f: LessThanOrEqual       => new LessThanOrEqualFilter(f.attribute, f.value, schema)
     case f: StringStartsWith      => new StringStartsWithFilter(f.attribute, f.value, schema)
     case f: StringEndsWith        => new StringEndsWithFilter(f.attribute, f.value, schema)
+    case f: StringContains        => new StringContainsFilter(f.attribute, f.value, schema)
     case _ => new PushableFilter {
       override def support(): FilterSupport = FilterSupport.NONE
       override def aql(documentVariable: String): String = throw new NotImplementedError()
@@ -240,4 +241,19 @@ private class StringEndsWithFilter(attribute: String, value: Any, schema: Struct
   }
 
   override def aql(v: String): String = s"""STARTS_WITH(REVERSE(`$v`.$escapedFieldName), REVERSE(${getValue(dataType, value)}))"""
+}
+
+
+private class StringContainsFilter(attribute: String, value: Any, schema: StructType) extends PushableFilter {
+
+  private val fieldNameParts = splitAttributeNameParts(attribute)
+  private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
+  private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
+
+  override def support(): FilterSupport = dataType match {
+    case _: StringType => FilterSupport.FULL
+    case _ => FilterSupport.NONE
+  }
+
+  override def aql(v: String): String = s"""CONTAINS(`$v`.$escapedFieldName, ${getValue(dataType, value)})"""
 }
