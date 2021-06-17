@@ -20,6 +20,7 @@
 - `stringStartsWithFilter`
 - `stringEndsWithFilter`
 - `stringContainsFilter`
+- `inFilter`
 
 ## Supported Spark Datatypes
 
