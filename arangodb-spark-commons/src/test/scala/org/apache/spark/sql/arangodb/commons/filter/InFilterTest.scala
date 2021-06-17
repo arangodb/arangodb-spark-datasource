@@ -13,6 +13,7 @@ class InFilterTest {
     StructField("double", DoubleType),
     StructField("float", FloatType),
     StructField("integer", IntegerType),
+    StructField("long", LongType),
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
@@ -101,6 +102,16 @@ class InFilterTest {
   def inIntegerFilter(): Unit = {
     val field = "integer"
     val values: Array[Any] = Array(22, 33, 44)
+    val filter = PushableFilter(In(field, values), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d"))
+      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+  }
+
+  @Test
+  def inLongFilter(): Unit = {
+    val field = "long"
+    val values: Array[Any] = Array(22L, 33L, 44L)
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))

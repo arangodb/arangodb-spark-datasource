@@ -13,6 +13,7 @@ class LessThanFilterTest {
     StructField("double", DoubleType),
     StructField("float", FloatType),
     StructField("integer", IntegerType),
+    StructField("long", LongType),
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
@@ -85,6 +86,15 @@ class LessThanFilterTest {
   def lessThanIntegerFilter(): Unit = {
     val field = "integer"
     val value = 22
+    val filter = PushableFilter(LessThan(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` < $value""")
+  }
+
+  @Test
+  def lessThanLongFilter(): Unit = {
+    val field = "long"
+    val value = 22L
     val filter = PushableFilter(LessThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` < $value""")

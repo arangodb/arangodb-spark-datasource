@@ -13,6 +13,7 @@ class GreaterThanOrEqualFilterTest {
     StructField("double", DoubleType),
     StructField("float", FloatType),
     StructField("integer", IntegerType),
+    StructField("long", LongType),
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
@@ -83,8 +84,8 @@ class GreaterThanOrEqualFilterTest {
 
   @Test
   def greaterThanOrEqualIntegerFilter(): Unit = {
-    val field = "integer"
-    val value = 22
+    val field = "long"
+    val value = 22L
     val filter = PushableFilter(GreaterThanOrEqual(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` >= $value""")

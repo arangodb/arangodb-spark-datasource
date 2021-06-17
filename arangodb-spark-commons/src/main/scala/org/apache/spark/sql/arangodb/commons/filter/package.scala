@@ -34,6 +34,7 @@ package object filter {
          | FloatType
          | DoubleType
          | IntegerType
+         | LongType
          | ShortType
     => true
     // complex types
@@ -46,7 +47,7 @@ package object filter {
   private[filter] def getValue(t: AbstractDataType, v: Any): String = t match {
     case NullType => "null"
     case _: DateType | StringType => s""""$v""""
-    case _: TimestampType | BooleanType | FloatType | DoubleType | IntegerType | ShortType => v.toString
+    case _: TimestampType | BooleanType | FloatType | DoubleType | IntegerType | LongType | ShortType => v.toString
     case at: ArrayType => s"""[${v.asInstanceOf[Traversable[Any]].map(getValue(at.elementType, _)).mkString(",")}]"""
     case _: StructType =>
       val row = v.asInstanceOf[GenericRowWithSchema]
