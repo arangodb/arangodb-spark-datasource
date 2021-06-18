@@ -1,62 +1,100 @@
 import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.{ArangoDB, ArangoDatabase}
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.provider.Arguments
 
-import java.util.stream
+import java.sql.Date
+import java.time.LocalDate
+import java.util
+import java.util.{Collections, stream}
 
 class BaseSparkTest {
+
+  protected val arangoDB: ArangoDB = BaseSparkTest.arangoDB
+  protected val db: ArangoDatabase = BaseSparkTest.db
+
+  protected val spark: SparkSession = BaseSparkTest.spark
+  protected val options: Map[String, String] = BaseSparkTest.options
+  protected val usersDF: DataFrame = BaseSparkTest.usersDF
+
+  @AfterEach
+  def shutdown(): Unit = {
+    arangoDB.shutdown()
+  }
+
+}
+
+object BaseSparkTest {
+
+  def provideProtocolAndContentType(): stream.Stream[Arguments] = java.util.stream.Stream.of(
+    Arguments.of("vst", "vpack"),
+    Arguments.of("http", "vpack"),
+    Arguments.of("http", "json")
+  )
 
   private val database = "sparkConnectorTest"
   private val user = "root"
   private val password = "test"
   private val endpoints = "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"
   private val singleEndpoint = endpoints.split(',').head
-  protected val arangoDB: ArangoDB = new ArangoDB.Builder()
+  private val arangoDB: ArangoDB = new ArangoDB.Builder()
     .user(user)
     .password(password)
     .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
     .serializer(new ArangoJack() {
       configure(new ArangoJack.ConfigureFunction {
-        override def configure(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
+        override def configure(mapper: ObjectMapper): Unit = mapper
+          .registerModule(DefaultScalaModule)
+          .registerModule(new SimpleModule()
+            .addSerializer(classOf[Date], new JsonSerializer[Date] {
+              override def serialize(value: Date, gen: JsonGenerator, serializers: SerializerProvider): Unit =
+                gen.writeString(value.toString)
+            })
+            .addSerializer(classOf[LocalDate], new JsonSerializer[LocalDate] {
+              override def serialize(value: LocalDate, gen: JsonGenerator, serializers: SerializerProvider): Unit =
+                gen.writeString(value.toString)
+            })
+          )
       })
     })
     .build()
-  protected val db: ArangoDatabase = arangoDB.db(database)
+  private val db: ArangoDatabase = arangoDB.db(database)
   private val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
-  protected val options = Map(
+  private val options = Map(
     "database" -> database,
     "user" -> user,
     "password" -> password,
     "endpoints" -> {
-      isSingle match {
-        case true => singleEndpoint
-        case false => endpoints
+      if (isSingle) {
+        singleEndpoint
+      } else {
+        endpoints
       }
     },
     "topology" -> {
-      isSingle match {
-        case true => "single"
-        case false => "cluster"
+      if (isSingle) {
+        "single"
+      } else {
+        "cluster"
       }
     }
   )
 
-  protected val spark: SparkSession = SparkSession.builder()
+  private val spark: SparkSession = SparkSession.builder()
     .appName("ArangoDBSparkTest")
     .master("local[*]")
     .config("spark.driver.host", "127.0.0.1")
     .getOrCreate()
 
-  protected val usersDF: DataFrame = spark.read
-    .format("org.apache.spark.sql.arangodb.datasource")
-    .options(options + ("table" -> "users"))
-    .schema(new StructType(
+  private val usersDF: DataFrame = createDF("users", Collections.emptySet(),
+    new StructType(
       Array(
         StructField("likes", ArrayType(StringType, containsNull = false)),
         StructField("birthday", DateType, nullable = true),
@@ -68,22 +106,31 @@ class BaseSparkTest {
           )
         ), nullable = true)
       )
-    ))
-    .load()
+    ), dropExisting = false
+  )
 
-  usersDF.createOrReplaceTempView("users")
+  def createDF(name: String, docs: util.Collection[Any], schema: StructType, dropExisting: Boolean = true): DataFrame = {
+    val col = db.collection(name)
+    if (col.exists()) {
+      if(dropExisting){
+        col.drop()
+        col.create()
+      }
+    } else {
+      col.create()
+    }
+    col.insertDocuments(docs)
 
-  @AfterEach
-  def shutdown(): Unit = {
-    arangoDB.shutdown()
+    val df = spark.read
+      .format("org.apache.spark.sql.arangodb.datasource")
+      .options(options + ("table" -> name))
+      .schema(schema)
+      .load()
+    df.createOrReplaceTempView(name)
+    df
   }
 
-}
-
-object BaseSparkTest {
-  def provideProtocolAndContentType(): stream.Stream[Arguments] = java.util.stream.Stream.of(
-    Arguments.of("vst", "vpack"),
-    Arguments.of("http", "vpack"),
-    Arguments.of("http", "json")
-  )
+  def dropTable(name: String): Unit = {
+    db.collection(name).drop()
+  }
 }

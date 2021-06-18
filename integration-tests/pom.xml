@@ -16,11 +16,13 @@
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-datasource-${spark.compat.version}</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-commons</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

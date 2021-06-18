@@ -248,7 +248,7 @@ class JacksonParser(
           }
 
         case VALUE_NUMBER_INT =>
-          parser.getLongValue * 1000000L
+          parser.getLongValue * 1000L
       }
 
     case DateType =>
