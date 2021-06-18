@@ -111,7 +111,7 @@ private class EqualToFilter(attribute: String, value: Any, schema: StructType) e
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(${getValue(t, value)})"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == ${getValue(t, value)}"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(${getValue(t, value)})"""
     case t => s"""`$v`.$escapedFieldName == ${getValue(t, value)}"""
   }
 }
@@ -129,8 +129,8 @@ private class GreaterThanFilter(attribute: String, value: Any, schema: StructTyp
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}""" // microseconds are ignored in AQL
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > DATE_TIMESTAMP(${getValue(t, value)})"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})""" // microseconds are ignored in AQL
     case t => s"""`$v`.$escapedFieldName > ${getValue(t, value)}"""
   }
 }
@@ -148,8 +148,8 @@ private class GreaterThanOrEqualFilter(attribute: String, value: Any, schema: St
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= ${getValue(t, value)}"""
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})"""
     case t => s"""`$v`.$escapedFieldName >= ${getValue(t, value)}"""
   }
 }
@@ -167,8 +167,8 @@ private class LessThanFilter(attribute: String, value: Any, schema: StructType) 
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}""" // microseconds are ignored in AQL
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < DATE_TIMESTAMP(${getValue(t, value)})"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})""" // microseconds are ignored in AQL
     case t => s"""`$v`.$escapedFieldName < ${getValue(t, value)}"""
   }
 }
@@ -186,8 +186,8 @@ private class LessThanOrEqualFilter(attribute: String, value: Any, schema: Struc
   }
 
   override def aql(v: String): String = dataType match {
-    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}"""
-    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= ${getValue(t, value)}"""
+    case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})"""
+    case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})"""
     case t => s"""`$v`.$escapedFieldName <= ${getValue(t, value)}"""
   }
 }
@@ -266,7 +266,10 @@ private class InFilter(attribute: String, values: Array[Any], schema: StructType
   private val dataType = getStructField(fieldNameParts.tail, schema(fieldNameParts.head)).dataType
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
-  override def support(): FilterSupport = FilterSupport.FULL
+  override def support(): FilterSupport = dataType match {
+    case _: DateType | TimestampType => FilterSupport.NONE
+    case _ => FilterSupport.FULL
+  }
 
   override def aql(v: String): String =
     s"""POSITION([${values.map(getValue(dataType, _)).mkString(",")}], `$v`.$escapedFieldName)"""

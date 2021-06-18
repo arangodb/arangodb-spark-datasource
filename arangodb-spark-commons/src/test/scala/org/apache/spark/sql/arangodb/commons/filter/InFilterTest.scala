@@ -48,9 +48,7 @@ class InFilterTest {
       "2001-01-02T15:30:45.678111Z"
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
-    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
   }
 
   @Test
@@ -62,10 +60,7 @@ class InFilterTest {
       "2001-01-02"
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
-    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    val escapedValues = values.map(v => s""""$v"""")
-    assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${escapedValues.mkString(",")}], `d`.`$field`)""")
+    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
   }
 
   @Test
