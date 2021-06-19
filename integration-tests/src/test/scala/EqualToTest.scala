@@ -18,6 +18,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -28,6 +35,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -38,6 +52,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -48,6 +69,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -58,6 +86,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -68,6 +103,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = "$value"
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -78,6 +120,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = "$value"
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -88,6 +137,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = "$value"
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -98,6 +154,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
   @Test
@@ -108,6 +171,13 @@ class EqualToTest extends BaseSparkTest {
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
     assertThat(res).hasSize(1)
     assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = "$value"
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
 }
