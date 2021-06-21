@@ -272,10 +272,14 @@ private class InFilter(attribute: String, values: Array[Any], schema: StructType
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
-    case _: DateType | TimestampType => FilterSupport.NONE
-    case _ => FilterSupport.FULL
+    case _: DateType => FilterSupport.FULL
+    case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case _ => FilterSupport.NONE
   }
 
-  override def aql(v: String): String =
-    s"""POSITION([${values.map(getValue(dataType, _)).mkString(",")}], `$v`.$escapedFieldName)"""
+  override def aql(v: String): String = dataType match {
+    case _: TimestampType | DateType => s"""LENGTH([${values.map(getValue(dataType, _)).mkString(",")}][* FILTER DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(CURRENT)]) > 0"""
+    case _ => s"""LENGTH([${values.map(getValue(dataType, _)).mkString(",")}][* FILTER `$v`.$escapedFieldName == CURRENT]) > 0"""
+  }
 }

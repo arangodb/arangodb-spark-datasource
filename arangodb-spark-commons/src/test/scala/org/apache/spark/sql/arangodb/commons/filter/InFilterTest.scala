@@ -36,7 +36,7 @@ class InFilterTest {
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     val escapedValues = values.map(v => s""""$v"""")
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${escapedValues.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${escapedValues.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -48,7 +48,10 @@ class InFilterTest {
       "2001-01-02T15:30:45.678111Z"
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
-    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
+    assertThat(filter.support()).isEqualTo(FilterSupport.PARTIAL)
+    val quotedValues = values.map(v=>s""""$v"""")
+    assertThat(filter.aql("d"))
+      .isEqualTo(s"""LENGTH([${quotedValues.mkString(",")}][* FILTER DATE_TIMESTAMP(`d`.`$field`) == DATE_TIMESTAMP(CURRENT)]) > 0""")
   }
 
   @Test
@@ -60,7 +63,10 @@ class InFilterTest {
       "2001-01-02"
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
-    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    val quotedValues = values.map(v=>s""""$v"""")
+    assertThat(filter.aql("d"))
+      .isEqualTo(s"""LENGTH([${quotedValues.mkString(",")}][* FILTER DATE_TIMESTAMP(`d`.`$field`) == DATE_TIMESTAMP(CURRENT)]) > 0""")
   }
 
   @Test
@@ -70,7 +76,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -80,7 +86,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -90,7 +96,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -100,7 +106,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -110,7 +116,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -120,7 +126,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -134,7 +140,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values.asInstanceOf[Array[Any]]), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([${values.map(v => v.map(x => "\"" + x + "\"").mkString("[", ",", "]")).mkString(",")}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([${values.map(v => v.map(x => "\"" + x + "\"").mkString("[", ",", "]")).mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test
@@ -159,7 +165,7 @@ class InFilterTest {
     val filter = PushableFilter(In(field, values.asInstanceOf[Array[Any]]), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
-      .isEqualTo(s"""POSITION([{"a":"str","b":22},{"a":"str","b":22}], `d`.`$field`)""")
+      .isEqualTo(s"""LENGTH([{"a":"str","b":22},{"a":"str","b":22}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
 }
