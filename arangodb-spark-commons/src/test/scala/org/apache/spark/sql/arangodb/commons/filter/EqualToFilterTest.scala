@@ -20,11 +20,17 @@ class EqualToFilterTest {
     StructField("string", StringType),
 
     // complex types
-    StructField("array", ArrayType(StringType)),
+    StructField("stringArray", ArrayType(StringType)),
+    StructField("dateArray", ArrayType(DateType)),
     StructField("null", NullType),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
       StructField("b", IntegerType)
+    ))),
+    StructField("structWithTimestamp", StructType(Array(
+      StructField("a", StringType),
+      StructField("b", IntegerType),
+      StructField("c", DateType)
     )))
   ))
 
@@ -110,12 +116,20 @@ class EqualToFilterTest {
   }
 
   @Test
-  def equalToArrayFilter(): Unit = {
-    val field = "array"
+  def equalToStringArrayFilter(): Unit = {
+    val field = "stringArray"
     val value = Seq("a", "b", "c")
     val filter = PushableFilter(EqualTo(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` == ["a","b","c"]""")
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`stringArray` == ["a","b","c"]""")
+  }
+
+  @Test
+  def equalToDateArrayFilter(): Unit = {
+    val field = "dateArray"
+    val value = Seq("2001-01-01", "2001-01-02", "2001-01-03")
+    val filter = PushableFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
   }
 
   @Test
@@ -131,6 +145,21 @@ class EqualToFilterTest {
     val filter = PushableFilter(EqualTo(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`struct` == {"a":"str","b":22}""")
+  }
+
+  @Test
+  def equalToStructWithTimestampFieldFilter(): Unit = {
+    val field = "structWithTimestamp"
+    val value = new GenericRowWithSchema(
+      Array("str", "2001-01-02"),
+      StructType(Array(
+        StructField("a", StringType),
+        StructField("b", IntegerType),
+        StructField("c", DateType)
+      ))
+    )
+    val filter = PushableFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
   }
 
 }

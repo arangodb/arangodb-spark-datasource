@@ -104,8 +104,9 @@ private class EqualToFilter(attribute: String, value: Any, schema: StructType) e
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if supportsType(t) => FilterSupport.FULL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
@@ -123,8 +124,9 @@ private class GreaterThanFilter(attribute: String, value: Any, schema: StructTyp
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if supportsType(t) => FilterSupport.FULL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
@@ -142,8 +144,9 @@ private class GreaterThanOrEqualFilter(attribute: String, value: Any, schema: St
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if supportsType(t) => FilterSupport.FULL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
@@ -161,8 +164,9 @@ private class LessThanFilter(attribute: String, value: Any, schema: StructType) 
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if supportsType(t) => FilterSupport.FULL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
@@ -180,8 +184,9 @@ private class LessThanOrEqualFilter(attribute: String, value: Any, schema: Struc
   private val escapedFieldName = fieldNameParts.map(v => s"`$v`").mkString(".")
 
   override def support(): FilterSupport = dataType match {
+    case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if supportsType(t) => FilterSupport.FULL
+    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 

@@ -24,12 +24,10 @@ package object filter {
     parts.toArray
   }
 
-  private[filter] def supportsType(t: AbstractDataType): Boolean = t match {
+  private[filter] def isTypeAqlCompatible(t: AbstractDataType): Boolean = t match {
     // atomic types
     case _:
-           DateType
-         | TimestampType
-         | StringType
+           StringType
          | BooleanType
          | FloatType
          | DoubleType
@@ -37,10 +35,14 @@ package object filter {
          | LongType
          | ShortType
     => true
+    case _:
+           DateType
+         | TimestampType
+    => false
     // complex types
     case _: NullType => true
-    case at: ArrayType => supportsType(at.elementType)
-    case st: StructType => st.forall(f => supportsType(f.dataType))
+    case at: ArrayType => isTypeAqlCompatible(at.elementType)
+    case st: StructType => st.forall(f => isTypeAqlCompatible(f.dataType))
     case _ => false
   }
 
