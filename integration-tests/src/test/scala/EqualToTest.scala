@@ -26,6 +26,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -43,6 +44,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -60,6 +62,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -77,6 +80,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -94,6 +98,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -111,6 +116,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = "$value"
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -128,6 +134,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = "$value"
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -145,6 +152,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = "$value"
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -162,6 +170,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = $value
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -179,6 +188,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = "$value"
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
@@ -196,6 +206,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = array(${value.mkString(",")})
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName).asInstanceOf[mutable.WrappedArray[Int]].toArray).isEqualTo(value)
   }
 
@@ -215,6 +226,7 @@ class EqualToTest extends BaseSparkTest {
          |WHERE $fieldName = struct("a1" AS a, 1 AS b)
          |""".stripMargin).collect()
       .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
