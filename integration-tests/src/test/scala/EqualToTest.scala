@@ -1,4 +1,5 @@
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
@@ -6,6 +7,7 @@ import org.junit.jupiter.api.{AfterAll, BeforeAll, Test}
 
 import java.sql.{Date, Timestamp}
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 class EqualToTest extends BaseSparkTest {
   private val df = EqualToTest.df
@@ -180,6 +182,42 @@ class EqualToTest extends BaseSparkTest {
     assertThat(sqlRes.head(fieldName)).isEqualTo(value)
   }
 
+  @Test
+  def intArray(): Unit = {
+    val fieldName = "intArray"
+    val value = EqualToTest.data.head(fieldName).asInstanceOf[Array[Int]]
+    val res = df.filter(col(fieldName).equalTo(value)).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(res).hasSize(1)
+    assertThat(res.head(fieldName).asInstanceOf[mutable.WrappedArray[Int]].toArray).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = array(${value.mkString(",")})
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName).asInstanceOf[mutable.WrappedArray[Int]].toArray).isEqualTo(value)
+  }
+
+  @Test
+  def struct(): Unit = {
+    val fieldName = "struct"
+    val value = new GenericRowWithSchema(
+      Array("a1", 1),
+      StructType(Array(
+        StructField("a", StringType),
+        StructField("b", IntegerType)
+      ))
+    )
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = struct("a1" AS a, 1 AS b)
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
+  }
+
 }
 
 object EqualToTest {
@@ -195,7 +233,12 @@ object EqualToTest {
       "timestampString" -> Timestamp.valueOf("2021-01-01 01:01:01.111"),
       "timestampMillis" -> Timestamp.valueOf("2021-01-01 01:01:01.111").getTime,
       "short" -> 1.toShort,
-      "string" -> "one"
+      "string" -> "one",
+      "intArray" -> Array(1, 1, 1),
+      "struct" -> Map(
+        "a" -> "a1",
+        "b" -> 1
+      )
     ),
     Map(
       "bool" -> true,
@@ -207,7 +250,12 @@ object EqualToTest {
       "timestampString" -> Timestamp.valueOf("2022-02-02 02:02:02.222"),
       "timestampMillis" -> Timestamp.valueOf("2022-02-02 02:02:02.222").getTime,
       "short" -> 2.toShort,
-      "string" -> "two"
+      "string" -> "two",
+      "intArray" -> Array(2, 2, 2),
+      "struct" -> Map(
+        "a" -> "a2",
+        "b" -> 2
+      )
     )
   )
 
@@ -223,11 +271,7 @@ object EqualToTest {
     StructField("timestampMillis", TimestampType, nullable = false),
     StructField("short", ShortType, nullable = false),
     StructField("string", StringType, nullable = false),
-
-    // TODO
-    // complex types
-    StructField("array", ArrayType(StringType)),
-    StructField("null", NullType),
+    StructField("intArray", ArrayType(IntegerType), nullable = false),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
       StructField("b", IntegerType)
