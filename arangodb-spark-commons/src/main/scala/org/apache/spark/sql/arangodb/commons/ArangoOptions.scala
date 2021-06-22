@@ -22,7 +22,12 @@ package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.ArangoDB
 
+import java.io.ByteArrayInputStream
+import java.security.KeyStore
+import java.security.cert.{CertificateFactory, X509Certificate}
 import java.util
+import java.util.Base64
+import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 
 
@@ -46,6 +51,12 @@ object ArangoOptions {
   val PASSWORD = "password"
   val ENDPOINTS = "endpoints"
   val PROTOCOL = "protocol"
+
+  // To use SSL, either:
+  // - must executors already have a properly configured default TrustStore, or
+  // - X.509 Base64 encoded CA certificate should be provided as "ssl.cert" configuration entry
+  val SSL_ENABLED = "ssl.enabled"
+  val SSL_CA_CERT = "ssl.cert" // X.509 Base64 encoded CA certificate, eg. from Oasis
 
   // read/write options
   val DB = "database"
@@ -71,10 +82,33 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     case (Protocol.HTTP, ContentType.VPack) => com.arangodb.Protocol.HTTP_VPACK
     case (Protocol.HTTP, ContentType.Json) => com.arangodb.Protocol.HTTP_JSON
   }
+  private val sslEnabled: Boolean = options.getOrElse(ArangoOptions.SSL_ENABLED, "false").toBoolean
+  private val caCert: Option[String] = options.get(ArangoOptions.SSL_CA_CERT)
 
   def builder(): ArangoDB.Builder = {
     val builder = new ArangoDB.Builder()
       .useProtocol(arangoProtocol)
+
+    if (sslEnabled) {
+      builder
+        .useSsl(true)
+        .sslContext(caCert match {
+          case Some(cert) =>
+            val is = new ByteArrayInputStream(Base64.getDecoder.decode(cert))
+            val cf = CertificateFactory.getInstance("X.509")
+            val caCert = cf.generateCertificate(is).asInstanceOf[X509Certificate]
+            val ks = KeyStore.getInstance(KeyStore.getDefaultType)
+            ks.load(null)
+            ks.setCertificateEntry("caCert", caCert)
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+            tmf.init(ks)
+            val sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, tmf.getTrustManagers, null)
+            sslContext
+          case None => SSLContext.getDefault
+        })
+    }
+
     options.get(ArangoOptions.USER).foreach(builder.user)
     options.get(ArangoOptions.PASSWORD).foreach(builder.password)
     endpoints
