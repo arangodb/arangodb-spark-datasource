@@ -31,6 +31,7 @@
 - `Float`
 - `Double`
 - `Integer`
+- `Long`  
 - `Short`
 - `Null`
 - `Array`
