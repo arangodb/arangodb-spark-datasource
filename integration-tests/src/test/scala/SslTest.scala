@@ -50,7 +50,7 @@ class SslTest {
       ).asInstanceOf[Seq[Any]].asJava,
       StructType(Array(
         StructField("str", StringType),
-        StructField("int", IntegerType),
+        StructField("int", IntegerType)
       ))
     )
   }
