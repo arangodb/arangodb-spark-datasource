@@ -24,7 +24,7 @@ import com.arangodb.ArangoDB
 
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
-import java.security.cert.{CertificateFactory, X509Certificate}
+import java.security.cert.CertificateFactory
 import java.util
 import java.util.Base64
 import javax.net.ssl.{SSLContext, TrustManagerFactory}
@@ -52,11 +52,28 @@ object ArangoOptions {
   val ENDPOINTS = "endpoints"
   val PROTOCOL = "protocol"
 
-  // To use SSL, either:
-  // - must executors already have a properly configured default TrustStore, or
-  // - X.509 Base64 encoded CA certificate should be provided as "ssl.cert" configuration entry
+  // To use SSL, set "ssl.enabled" to "true" and either:
+  // - provide base64 encoded certificate as "ssl.cert.value" configuration entry and optionally set "ssl.*", or
+  // - start executors jvm with properly configured default TrustStore
   val SSL_ENABLED = "ssl.enabled"
-  val SSL_CA_CERT = "ssl.cert" // X.509 Base64 encoded CA certificate, eg. from Oasis
+
+  // Base64 encoded certificate
+  val SSL_CERT = "ssl.cert.value"
+
+  // certificate type, default "X.509"
+  val SSL_CERT_TYPE = "ssl.cert.type"
+
+  // certificate alias name
+  val SSL_CERT_ALIAS = "ssl.cert.alias"
+
+  // trustmanager algorithm, default "SunX509"
+  val SSL_ALGORITHM = "ssl.algorithm"
+
+  // keystore type, default "jks"
+  val SSL_KEYSTORE = "ssl.keystore.type"
+
+  // SSLContext protocol, default "TLS"
+  val SSL_PROTOCOL = "ssl.protocol"
 
   // read/write options
   val DB = "database"
@@ -83,7 +100,12 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     case (Protocol.HTTP, ContentType.Json) => com.arangodb.Protocol.HTTP_JSON
   }
   private val sslEnabled: Boolean = options.getOrElse(ArangoOptions.SSL_ENABLED, "false").toBoolean
-  private val caCert: Option[String] = options.get(ArangoOptions.SSL_CA_CERT)
+  private val sslCert: Option[String] = options.get(ArangoOptions.SSL_CERT)
+  private val sslCertType: String = options.getOrElse(ArangoOptions.SSL_CERT_TYPE, "X.509")
+  private val sslCertAlias: String = options.getOrElse(ArangoOptions.SSL_CERT_ALIAS, "arangodb")
+  private val sslAlgorithm: String = options.getOrElse(ArangoOptions.SSL_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm)
+  private val sslKeystore: String = options.getOrElse(ArangoOptions.SSL_KEYSTORE, KeyStore.getDefaultType)
+  private val sslProtocol: String = options.getOrElse(ArangoOptions.SSL_PROTOCOL, "TLS")
 
   def builder(): ArangoDB.Builder = {
     val builder = new ArangoDB.Builder()
@@ -92,21 +114,7 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     if (sslEnabled) {
       builder
         .useSsl(true)
-        .sslContext(caCert match {
-          case Some(cert) =>
-            val is = new ByteArrayInputStream(Base64.getDecoder.decode(cert))
-            val cf = CertificateFactory.getInstance("X.509")
-            val caCert = cf.generateCertificate(is).asInstanceOf[X509Certificate]
-            val ks = KeyStore.getInstance(KeyStore.getDefaultType)
-            ks.load(null)
-            ks.setCertificateEntry("caCert", caCert)
-            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
-            tmf.init(ks)
-            val sslContext = SSLContext.getInstance("TLS")
-            sslContext.init(null, tmf.getTrustManagers, null)
-            sslContext
-          case None => SSLContext.getDefault
-        })
+        .sslContext(getSslContext())
     }
 
     options.get(ArangoOptions.USER).foreach(builder.user)
@@ -115,6 +123,21 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
       .map(_.split(":"))
       .foreach(host => builder.host(host(0), host(1).toInt))
     builder
+  }
+
+  def getSslContext(): SSLContext = sslCert match {
+    case Some(b64cert) =>
+      val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
+      val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
+      val ks = KeyStore.getInstance(sslKeystore)
+      ks.load(null)
+      ks.setCertificateEntry(sslCertAlias, cert)
+      val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
+      tmf.init(ks)
+      val sc = SSLContext.getInstance(sslProtocol)
+      sc.init(null, tmf.getTrustManagers, null)
+      sc
+    case None => SSLContext.getDefault
   }
 
   def endpoints: Seq[String] = options

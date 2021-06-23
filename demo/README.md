@@ -132,7 +132,7 @@ To connect to SSL secured deployments using X.509 base64 encoded CA certificate 
   "user" -> "root",
   "password" -> "<passwd>",
   "endpoints" -> "<endpoint>:18529",
-  "ssl.cert" -> "<base64 encoded CA certificate>",
+  "ssl.cert.value" -> "<base64 encoded CA certificate>",
   "ssl.enabled" -> "true",
   "table" -> "<table>"
 )
