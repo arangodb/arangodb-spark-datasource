@@ -57,7 +57,7 @@
             <properties>
                 <spark.version>3.1.2</spark.version>
                 <spark.compat.version>3.1</spark.compat.version>
-                <scala.version>2.12.13</scala.version>
+                <scala.version>2.12.15</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
                 <jackson.vpack.variant/>
                 <jackson.vpack.version>2.0.0</jackson.vpack.version>
@@ -98,7 +98,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.12.1</version>
+            <version>6.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -121,7 +121,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.19.0</version>
+            <version>3.21.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
