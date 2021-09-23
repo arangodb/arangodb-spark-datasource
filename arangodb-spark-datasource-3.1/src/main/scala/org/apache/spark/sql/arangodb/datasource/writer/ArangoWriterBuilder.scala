@@ -13,7 +13,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoOptions) extends Wr
       ArangoClient(options).truncate()
       this
     } else {
-      throw new UnsupportedOperationException(
+      throw new IllegalArgumentException(
         """You are attempting to use overwrite mode which will truncate
           |this collection prior to inserting data. If you just want
           |to change data already in the collection use the "Append" mode.
