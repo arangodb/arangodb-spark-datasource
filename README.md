@@ -128,6 +128,7 @@ df.write
 
 ### write parameters
 - `waitForSync`: whether to wait until the documents have been synced to disk, default `true`
+- `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
 
 ## Implemented filter pushdowns
 

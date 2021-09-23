@@ -90,6 +90,7 @@ object ArangoOptions {
 
   // write options
   val WAIT_FOR_SYNC = "waitForSync"
+  val CONFIRM_TRUNCATE = "confirm.truncate"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 
@@ -178,6 +179,7 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
   val collection: String = getRequired(ArangoOptions.COLLECTION)
   val waitForSync: Boolean = options.getOrElse(ArangoOptions.WAIT_FOR_SYNC, "true").toBoolean
+  val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
 }
 
 sealed trait ReadMode
