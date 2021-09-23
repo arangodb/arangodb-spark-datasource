@@ -116,11 +116,18 @@ df.write
 - `ssl.protocol`: SSLContext protocol, default `TLS`
 - `database`: database name, default `_system`
 - `table`: table name (ignored if `query` is specified)
+- `batch.size`: batch size (for reading and writing), default `1000`
+- `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
+
+### read parameters
 - `query`: custom AQL read query. This should be used for data coming from different tables, eg. resulting from a AQL
   traversal query. In this case the data will not be partitioned, so this should not be used for fetching a lot of data.
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
-- `batch.size`: batch size (for reading and writing), default `1000`
-- `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
+- `cache`: whether the AQL query results cache shall be used, default `true`
+- `fillBlockCache`: whether the query should store the data it reads in the RocksDB block cache , default `false`
+
+### write parameters
+- `waitForSync`: whether to wait until the documents have been synced to disk, default `true`
 
 ## Implemented filter pushdowns
 

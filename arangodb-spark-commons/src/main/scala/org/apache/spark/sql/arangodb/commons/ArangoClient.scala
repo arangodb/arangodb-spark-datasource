@@ -15,9 +15,16 @@ import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 class ArangoClient(options: ArangoOptions) {
 
+  private val aqlOptions = new AqlQueryOptions()
+    .cache(options.readOptions.cache)
+    .fillBlockCache(options.readOptions.fillBlockCache)
+    .batchSize(options.readOptions.batchSize)
+    .stream(true)
+
   lazy val arangoDB: ArangoDB = options.driverOptions
     .builder()
     .serializer(new ArangoJack() {
+      //noinspection ConvertExpressionToSAM
       configure(new ArangoJack.ConfigureFunction {
         override def configure(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
       })
@@ -51,10 +58,7 @@ class ArangoClient(options: ArangoOptions) {
     .db(options.readOptions.db)
     .query(
       options.readOptions.query.get,
-      new AqlQueryOptions()
-        //        .ttl()
-        .batchSize(options.readOptions.batchSize)
-        .stream(true),
+      aqlOptions,
       classOf[VPackSlice])
 
   def readCollectionSample(): util.List[String] = arangoDB
@@ -67,10 +71,7 @@ class ArangoClient(options: ArangoOptions) {
       )
         .asInstanceOf[Map[String, AnyRef]]
         .asJava,
-      new AqlQueryOptions()
-        //        .ttl()
-        .batchSize(options.readOptions.batchSize)
-        .stream(true),
+      aqlOptions,
       classOf[String])
     .asListRemaining()
 
@@ -78,10 +79,7 @@ class ArangoClient(options: ArangoOptions) {
     .db(options.readOptions.db)
     .query(
       options.readOptions.query.get,
-      new AqlQueryOptions()
-        //        .ttl()
-        .batchSize(options.readOptions.batchSize)
-        .stream(true),
+      aqlOptions,
       classOf[String])
     .asListRemaining()
 
@@ -90,6 +88,13 @@ class ArangoClient(options: ArangoOptions) {
       options.writeOptions.db,
       RequestType.POST,
       s"/_api/document/${options.writeOptions.collection}")
+
+    request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
+    request.putQueryParam("silent", true)
+
+    // TODO:
+    //    request.putQueryParam("overwriteMode", ...);
+
     request.setBody(data)
     val response = arangoDB.execute(request)
     println(response.getResponseCode)

@@ -78,11 +78,18 @@ object ArangoOptions {
   // read/write options
   val DB = "database"
   val COLLECTION = "table"
-  val QUERY = "query"
-  val SAMPLE_SIZE = "sample.size"
   val BATCH_SIZE = "batch.size"
   val CONTENT_TYPE = "content-type"
   val TOPOLOGY = "topology"
+
+  // read options
+  val QUERY = "query"
+  val SAMPLE_SIZE = "sample.size"
+  val CACHE = "cache"
+  val FILL_BLOCK_CACHE = "fillBlockCache"
+
+  // write options
+  val WAIT_FOR_SYNC = "waitForSync"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 
@@ -114,7 +121,7 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     if (sslEnabled) {
       builder
         .useSsl(true)
-        .sslContext(getSslContext())
+        .sslContext(getSslContext)
     }
 
     options.get(ArangoOptions.USER).foreach(builder.user)
@@ -125,7 +132,7 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     builder
   }
 
-  def getSslContext(): SSLContext = sslCert match {
+  def getSslContext: SSLContext = sslCert match {
     case Some(b64cert) =>
       val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
       val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
@@ -164,10 +171,13 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
     else throw new IllegalArgumentException("Either collection or query must be defined")
   }
   val arangoTopology: ArangoTopology = ArangoTopology(options.getOrElse(ArangoOptions.TOPOLOGY, "cluster"))
+  val cache: Boolean = options.getOrElse(ArangoOptions.CACHE, "true").toBoolean
+  val fillBlockCache: Boolean = options.getOrElse(ArangoOptions.FILL_BLOCK_CACHE, "false").toBoolean
 }
 
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
   val collection: String = getRequired(ArangoOptions.COLLECTION)
+  val waitForSync: Boolean = options.getOrElse(ArangoOptions.WAIT_FOR_SYNC, "true").toBoolean
 }
 
 sealed trait ReadMode
