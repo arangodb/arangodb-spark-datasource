@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
-import com.arangodb.model.AqlQueryOptions
+import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
@@ -13,6 +13,7 @@ import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import java.util
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
+// TODO: extend AutoCloseable
 class ArangoClient(options: ArangoOptions) {
 
   private val aqlOptions = new AqlQueryOptions()
@@ -82,6 +83,22 @@ class ArangoClient(options: ArangoOptions) {
       aqlOptions,
       classOf[String])
     .asListRemaining()
+
+  def collectionExists(): Boolean = arangoDB
+    .db(options.writeOptions.db)
+    .collection(options.writeOptions.collection)
+    .exists()
+
+  def createCollection(): Unit = arangoDB
+    .db(options.writeOptions.db)
+    .collection(options.writeOptions.collection)
+    .create(new CollectionCreateOptions()
+      // TODO:
+      //      .`type`()
+      //      .numberOfShards()
+      //      .replicationFactor()
+      //      .minReplicationFactor()
+    )
 
   def truncate(): Unit = arangoDB
     .db(options.writeOptions.db)

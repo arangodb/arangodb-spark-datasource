@@ -1,3 +1,5 @@
+package org.apache.spark.sql.arangodb.datasource
+
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.functions.col

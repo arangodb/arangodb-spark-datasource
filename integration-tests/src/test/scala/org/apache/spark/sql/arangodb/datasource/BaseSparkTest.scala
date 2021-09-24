@@ -1,3 +1,5 @@
+package org.apache.spark.sql.arangodb.datasource
+
 import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.{ArangoDB, ArangoDatabase}

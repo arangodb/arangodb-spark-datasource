@@ -1,3 +1,5 @@
+package org.apache.spark.sql.arangodb.datasource
+
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.assertThat
