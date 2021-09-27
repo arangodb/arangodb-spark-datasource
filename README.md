@@ -115,7 +115,7 @@ df.write
 - `ssl.keystore.type`: keystore type, default `jks`
 - `ssl.protocol`: SSLContext protocol, default `TLS`
 - `database`: database name, default `_system`
-- `table`: table name (ignored if `query` is specified)
+- `table`: collection name (ignored if `query` is specified)
 - `batch.size`: batch size (for reading and writing), default `1000`
 - `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
 
@@ -129,6 +129,25 @@ df.write
 ### write parameters
 - `waitForSync`: whether to wait until the documents have been synced to disk, default `true`
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
+
+## SaveMode
+
+On writing, `org.apache.spark.sql.SaveMode` is used to specify the expected behavior in case the target collection 
+already exists.  
+
+Spark 2.4 implementation supports all save modes with the following semantics:
+- `Append`: the target collection is created if it does not exist
+- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with `confirm.truncate` write configuration parameter.
+- `ErrorIfExists`: the target collection is created if it does not exist, an `AnalysisException` is thrown otherwise 
+- `Ignore`: the target collection is created if it does not exist, no write is performed otherwise
+
+Spark 3.1 implementation supports:
+- `Append`: the target collection is created if it does not exist
+- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with `confirm.truncate` write configuration parameter.
+The other `SaveMode` values (`ErrorIfExists` and `Ignore`) behave the same as `Append`.
+
+Use `overwriteMode` write configuration parameter to specify the documents overwrite behavior (in case a document with 
+the same `_key` already exists).
 
 ## Implemented filter pushdowns
 
