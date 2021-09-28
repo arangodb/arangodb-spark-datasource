@@ -1,24 +1,25 @@
 package org.apache.spark.sql.arangodb.datasource.mapping
 
-import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
-import com.fasterxml.jackson.core.JsonFactoryBuilder
+import com.arangodb.jackson.dataformat.velocypack.VPackFactory
+import com.fasterxml.jackson.core.JsonFactory
 import org.apache.spark.sql.arangodb.commons.ContentType
 import org.apache.spark.sql.arangodb.datasource.mapping.json.{JSONOptions, JacksonGenerator}
 import org.apache.spark.sql.types.{DataType, StructType}
+import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGeneratorProvider}
 
 import java.io.OutputStream
 
-abstract sealed class ArangoGenerator(
+abstract sealed class ArangoGeneratorImpl(
                                        schema: DataType,
                                        writer: OutputStream,
                                        options: JSONOptions)
   extends JacksonGenerator(
     schema,
     options.buildJsonFactory().createGenerator(writer),
-    options)
+    options) with ArangoGenerator
 
-object ArangoGenerator {
-  def of(contentType: ContentType, schema: StructType, outputStream: OutputStream): ArangoGenerator = contentType match {
+class ArangoGeneratorProviderImpl extends ArangoGeneratorProvider {
+  override def of(contentType: ContentType, schema: StructType, outputStream: OutputStream): ArangoGeneratorImpl = contentType match {
     case ContentType.Json => new JsonArangoGenerator(schema, outputStream)
     case ContentType.VPack => new VPackArangoGenerator(schema, outputStream)
     case _ => throw new IllegalArgumentException
@@ -26,15 +27,15 @@ object ArangoGenerator {
 }
 
 class JsonArangoGenerator(schema: StructType, outputStream: OutputStream)
-  extends ArangoGenerator(
+  extends ArangoGeneratorImpl(
     schema,
     outputStream,
-    createOptions(new JsonFactoryBuilder().build())
+    createOptions(new JsonFactory())
   )
 
 class VPackArangoGenerator(schema: StructType, outputStream: OutputStream)
-  extends ArangoGenerator(
+  extends ArangoGeneratorImpl(
     schema,
     outputStream,
-    createOptions(new VPackFactoryBuilder().build())
+    createOptions(new VPackFactory())
   )
