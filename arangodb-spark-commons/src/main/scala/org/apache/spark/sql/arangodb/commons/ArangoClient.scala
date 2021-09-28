@@ -113,13 +113,18 @@ class ArangoClient(options: ArangoOptions) {
 
     request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
     request.putQueryParam("silent", true)
-
-    // TODO:
-    //    request.putQueryParam("overwriteMode", ...);
+    request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode)
+    request.putQueryParam("keepNull", options.writeOptions.keepNull)
+    request.putQueryParam("mergeObjects", options.writeOptions.mergeObjects)
 
     request.setBody(data)
     val response = arangoDB.execute(request)
     println(response.getResponseCode)
+
+    // FIXME:
+    //  response body is an array, where i-th element indicates the success in writing i-th record
+    //  parse it and throw an Exception if any element is error, report each record generating errors
+    //  this will happen only in case of overwriteMode conflict
   }
 }
 

@@ -129,6 +129,17 @@ df.write
 ### write parameters
 - `waitForSync`: whether to wait until the documents have been synced to disk, default `true`
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
+- `overwriteMode`: configures the behavior in case a document with the specified `_key` value exists already
+  - `ignore`: it will not be written
+  - `replace`: it will be overwritten with the specified document value
+  - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be further controlled via the `keepNull` and `mergeObjects` parameters.
+  - `conflict`: return a unique constraint violation error so that the insert operation fails (default)
+- `keepNull`: in case `overwriteMode` is set to `update`
+  - `true`: `null` values are saved within the document (default)
+  - `false`: `null` values are used to delete corresponding existing attributes
+- `mergeObjects`: in case `overwriteMode` is set to `update`, controls whether objects (not arrays) will be merged.
+  - `true`: objects will be merged (default)
+  - `false`: existing document fields will be overwritten
 
 ## SaveMode
 

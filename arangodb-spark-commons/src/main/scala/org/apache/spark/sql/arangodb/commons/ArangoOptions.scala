@@ -21,6 +21,7 @@
 package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.ArangoDB
+import com.arangodb.model.OverwriteMode
 
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
@@ -91,6 +92,9 @@ object ArangoOptions {
   // write options
   val WAIT_FOR_SYNC = "waitForSync"
   val CONFIRM_TRUNCATE = "confirm.truncate"
+  val OVERWRITE_MODE = "overwriteMode"
+  val KEEP_NULL = "keepNull"
+  val MERGE_OBJECTS = "mergeObjects"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 
@@ -180,6 +184,9 @@ class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(opt
   val collection: String = getRequired(ArangoOptions.COLLECTION)
   val waitForSync: Boolean = options.getOrElse(ArangoOptions.WAIT_FOR_SYNC, "true").toBoolean
   val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
+  val overwriteMode: OverwriteMode = OverwriteMode.valueOf(options.getOrElse(ArangoOptions.OVERWRITE_MODE, "conflict"))
+  val keepNull: Boolean = options.getOrElse(ArangoOptions.KEEP_NULL, "true").toBoolean
+  val mergeObjects: Boolean = options.getOrElse(ArangoOptions.MERGE_OBJECTS, "true").toBoolean
 }
 
 sealed trait ReadMode
