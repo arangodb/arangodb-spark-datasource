@@ -1,17 +1,19 @@
 package org.apache.spark.sql.arangodb.commons
 
+import com.arangodb.internal.ArangoResponseField
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
-import com.arangodb.velocypack.VPackSlice
+import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBServerException
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 
 import java.util
-import scala.collection.JavaConverters.mapAsJavaMapConverter
+import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapConverter}
 
 // TODO: extend AutoCloseable
 class ArangoClient(options: ArangoOptions) {
@@ -21,6 +23,8 @@ class ArangoClient(options: ArangoOptions) {
     .fillBlockCache(options.readOptions.fillBlockCache)
     .batchSize(options.readOptions.batchSize)
     .stream(true)
+
+  private val errorParser = new VPackParser.Builder().build()
 
   lazy val arangoDB: ArangoDB = options.driverOptions
     .builder()
@@ -121,10 +125,12 @@ class ArangoClient(options: ArangoOptions) {
     val response = arangoDB.execute(request)
     println(response.getResponseCode)
 
-    // FIXME:
-    //  response body is an array, where i-th element indicates the success in writing i-th record
-    //  parse it and throw an Exception if any element is error, report each record generating errors
-    //  this will happen only in case of overwriteMode conflict
+    val errors = response.getBody.arrayIterator.asScala
+      .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
+      .map(it => errorParser.toJson(it, true))
+    if (errors.nonEmpty) {
+      throw new ArangoDBServerException(errors.mkString("[\n\t", ",\n\t", "\n]"))
+    }
   }
 }
 

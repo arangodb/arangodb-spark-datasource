@@ -15,7 +15,8 @@ import org.junit.jupiter.params.provider.MethodSource
 
 class SaveModeTest extends BaseSparkTest {
 
-  private val collection: ArangoCollection = db.collection("chessPlayers")
+  private val collectionName = "chessPlayersSaveMode"
+  private val collection: ArangoCollection = db.collection(collectionName)
 
   import spark.implicits._
 
@@ -49,7 +50,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType
       ))
@@ -67,7 +68,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType
       ))
@@ -84,7 +85,7 @@ class SaveModeTest extends BaseSparkTest {
         .format("org.apache.spark.sql.arangodb.datasource")
         .mode(SaveMode.Overwrite)
         .options(options + (
-          ArangoOptions.COLLECTION -> "chessPlayers",
+          ArangoOptions.COLLECTION -> collectionName,
           ArangoOptions.PROTOCOL -> protocol,
           ArangoOptions.CONTENT_TYPE -> contentType
         ))
@@ -102,7 +103,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType,
         ArangoOptions.CONFIRM_TRUNCATE -> "true"
@@ -122,7 +123,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType,
         ArangoOptions.CONFIRM_TRUNCATE -> "true"
@@ -143,7 +144,7 @@ class SaveModeTest extends BaseSparkTest {
         .format("org.apache.spark.sql.arangodb.datasource")
         .mode(SaveMode.ErrorIfExists)
         .options(options + (
-          ArangoOptions.COLLECTION -> "chessPlayers",
+          ArangoOptions.COLLECTION -> collectionName,
           ArangoOptions.PROTOCOL -> protocol,
           ArangoOptions.CONTENT_TYPE -> contentType
         ))
@@ -163,7 +164,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.ErrorIfExists)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType
       ))
@@ -181,7 +182,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Ignore)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType
       ))
@@ -201,7 +202,7 @@ class SaveModeTest extends BaseSparkTest {
       .format("org.apache.spark.sql.arangodb.datasource")
       .mode(SaveMode.Ignore)
       .options(options + (
-        ArangoOptions.COLLECTION -> "chessPlayers",
+        ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType
       ))
