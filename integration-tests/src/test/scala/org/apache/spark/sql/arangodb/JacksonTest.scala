@@ -24,12 +24,14 @@ class JacksonTest {
       |  "name": {
       |    "first": "Roseline",
       |    "last": "Jucean"
-      |  }
+      |  },
+      |  "nullString": null,
+      |  "nullField": null
       |}
       |""".stripMargin.replaceAll("\\s", "")
 
   private val jsonBytes = jsonString.getBytes
-  private val vpackBytes = new VPackParser.Builder().build().fromJson(jsonString).toByteArray
+  private val vpackBytes = new VPackParser.Builder().build().fromJson(jsonString, true).toByteArray
 
   private val schema: StructType = new StructType(
     Array(
@@ -41,7 +43,9 @@ class JacksonTest {
           StructField("first", StringType),
           StructField("last", StringType)
         )
-      ))
+      )),
+      StructField("nullString", StringType, nullable = true),
+      StructField("nullField", NullType)
     )
   )
 

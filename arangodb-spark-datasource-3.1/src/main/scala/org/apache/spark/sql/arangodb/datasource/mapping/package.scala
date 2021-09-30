@@ -9,5 +9,6 @@ package object mapping {
     "UTC"
   ) {
     override def buildJsonFactory(): JsonFactory = jsonFactory
+    override val ignoreNullFields = false
   }
 }
