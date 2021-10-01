@@ -125,11 +125,14 @@ class ArangoClient(options: ArangoOptions) {
     val response = arangoDB.execute(request)
     println(response.getResponseCode)
 
-    val errors = response.getBody.arrayIterator.asScala
-      .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
-      .map(it => errorParser.toJson(it, true))
-    if (errors.nonEmpty) {
-      throw new ArangoDBServerException(errors.mkString("[\n\t", ",\n\t", "\n]"))
+    // in case there are no errors, response body is an empty object
+    if (response.getBody.isArray) {
+      val errors = response.getBody.arrayIterator.asScala
+        .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
+        .map(it => errorParser.toJson(it, true))
+      if (errors.nonEmpty) {
+        throw new ArangoDBServerException(errors.mkString("[\n\t", ",\n\t", "\n]"))
+      }
     }
   }
 }
