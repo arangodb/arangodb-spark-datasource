@@ -50,7 +50,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions) extends DataW
     vpackGenerator.flush()
     val payload = options.writeOptions.contentType match {
       case ContentType.VPack => new VPackSlice(outVPack.toByteArray)
-      case ContentType.Json => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray))
+      case ContentType.Json => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
     }
     client.saveDocuments(payload)
   }

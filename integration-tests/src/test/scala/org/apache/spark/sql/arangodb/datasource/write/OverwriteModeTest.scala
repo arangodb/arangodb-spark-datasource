@@ -9,7 +9,7 @@ import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBServerException
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -37,8 +37,8 @@ class OverwriteModeTest extends BaseSparkTest {
       .repartition(3)
   }
 
-  @AfterEach
-  def afterEach(): Unit = {
+  @BeforeEach
+  def beforeEach(): Unit = {
     if (collection.exists()) {
       collection.drop()
     }

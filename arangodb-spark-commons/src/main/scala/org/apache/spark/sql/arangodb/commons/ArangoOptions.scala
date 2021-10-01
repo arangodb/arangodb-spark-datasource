@@ -87,14 +87,14 @@ object ArangoOptions {
   val QUERY = "query"
   val SAMPLE_SIZE = "sample.size"
   val CACHE = "cache"
-  val FILL_BLOCK_CACHE = "fillBlockCache"
+  val FILL_BLOCK_CACHE = "fill.cache"
 
   // write options
-  val WAIT_FOR_SYNC = "waitForSync"
+  val WAIT_FOR_SYNC = "wait.sync"
   val CONFIRM_TRUNCATE = "confirm.truncate"
-  val OVERWRITE_MODE = "overwriteMode"
-  val KEEP_NULL = "keepNull"
-  val MERGE_OBJECTS = "mergeObjects"
+  val OVERWRITE_MODE = "overwrite.mode"
+  val KEEP_NULL = "keep.null"
+  val MERGE_OBJECTS = "merge.objects"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
 

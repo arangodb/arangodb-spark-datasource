@@ -124,20 +124,20 @@ df.write
   traversal query. In this case the data will not be partitioned, so this should not be used for fetching a lot of data.
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `cache`: whether the AQL query results cache shall be used, default `true`
-- `fillBlockCache`: whether the query should store the data it reads in the RocksDB block cache , default `false`
+- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache , default `false`
 
 ### write parameters
-- `waitForSync`: whether to wait until the documents have been synced to disk, default `true`
+- `wait.sync`: whether to wait until the documents have been synced to disk, default `true`
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
-- `overwriteMode`: configures the behavior in case a document with the specified `_key` value exists already
+- `overwrite.mode`: configures the behavior in case a document with the specified `_key` value exists already
   - `ignore`: it will not be written
   - `replace`: it will be overwritten with the specified document value
-  - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be further controlled via the `keepNull` and `mergeObjects` parameters.
+  - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be further controlled via the `keep.null` and `merge.objects` parameters.
   - `conflict`: return a unique constraint violation error so that the insert operation fails (default)
-- `keepNull`: in case `overwriteMode` is set to `update`
+- `keep.null`: in case `overwrite.mode` is set to `update`
   - `true`: `null` values are saved within the document (default)
   - `false`: `null` values are used to delete corresponding existing attributes
-- `mergeObjects`: in case `overwriteMode` is set to `update`, controls whether objects (not arrays) will be merged.
+- `merge.objects`: in case `overwrite.mode` is set to `update`, controls whether objects (not arrays) will be merged.
   - `true`: objects will be merged (default)
   - `false`: existing document fields will be overwritten
 
@@ -157,12 +157,12 @@ Spark 3.1 implementation supports:
 - `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with `confirm.truncate` write configuration parameter.
 The other `SaveMode` values (`ErrorIfExists` and `Ignore`) behave the same as `Append`.
 
-Use `overwriteMode` write configuration parameter to specify the documents overwrite behavior (in case a document with 
+Use `overwrite.mode` write configuration parameter to specify the documents overwrite behavior (in case a document with 
 the same `_key` already exists).
 
 
 ## Limitations
-- Batch writes are not performed atomically, so in some cases (i.e. in case of `overWriteMode: conflict`) some documents 
+- Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some documents 
   in the batch may be written and some others may return an exception (i.e. due to conflicting key).
 
 
