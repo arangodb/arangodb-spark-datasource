@@ -23,7 +23,7 @@ mvn -Pspark-${sparkVersion} -DskipTests=true install
     <dependency>
         <groupId>com.arangodb</groupId>
         <artifactId>arangodb-spark-datasource-${sparkVersion}</artifactId>
-        <version>0.0.3-SNAPSHOT</version>
+        <version>0.0.4-SNAPSHOT</version>
     </dependency>
     <!-- ... -->
 </dependencies>
@@ -34,7 +34,7 @@ mvn -Pspark-${sparkVersion} -DskipTests=true install
 Submit your application with the following parameter:
 
 ```shell
---jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.3-SNAPSHOT-jar-with-dependencies.jar"
+--jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.4-SNAPSHOT-jar-with-dependencies.jar"
 ```
 
 ## Batch Read
@@ -88,10 +88,10 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 ```scala
 import org.apache.spark.sql.DataFrame
 
-val df: DataFrame = ???
+val df: DataFrame = //...
 df.write
   .format("org.apache.spark.sql.arangodb.datasource")
-  .mode(SaveMode.Append)  //FIXME: other modes not implemented yet
+  .mode(SaveMode.Append)
   .options(Map(
     "password" -> "test",
     "endpoints" -> "c1:8529,c2:8529,c3:8529",
@@ -111,7 +111,7 @@ df.write
 - `ssl.cert.value`: base64 encoded certificate
 - `ssl.cert.type`: certificate type, default `X.509`
 - `ssl.cert.alias`: certificate alias name, default `arangodb`
-- `ssl.algorithm`: trustmanager algorithm, default `SunX509`
+- `ssl.algorithm`: trust manager algorithm, default `SunX509`
 - `ssl.keystore.type`: keystore type, default `jks`
 - `ssl.protocol`: SSLContext protocol, default `TLS`
 - `database`: database name, default `_system`
@@ -120,7 +120,7 @@ df.write
 - `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
 
 ### read parameters
-- `query`: custom AQL read query. This should be used for data coming from different tables, eg. resulting from a AQL
+- `query`: custom AQL read query. This should be used for data coming from different tables, i.e. resulting from an AQL
   traversal query. In this case the data will not be partitioned, so this should not be used for fetching a lot of data.
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `cache`: whether the AQL query results cache shall be used, default `true`
@@ -184,7 +184,7 @@ the same `_key` already exists).
 - `stringContainsFilter`
 - `inFilter`
 
-## Supported Spark Datatypes
+## Supported Spark data types
 
 - `Date`
 - `Timestamp`
