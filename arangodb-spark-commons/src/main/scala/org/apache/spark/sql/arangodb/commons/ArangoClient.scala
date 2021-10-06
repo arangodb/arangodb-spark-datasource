@@ -18,11 +18,13 @@ import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapCo
 // TODO: extend AutoCloseable
 class ArangoClient(options: ArangoOptions) {
 
-  private val aqlOptions = new AqlQueryOptions()
-    .cache(options.readOptions.cache)
-    .fillBlockCache(options.readOptions.fillBlockCache)
-    .batchSize(options.readOptions.batchSize)
-    .stream(true)
+  private def aqlOptions(): AqlQueryOptions = {
+    val opt = new AqlQueryOptions().stream(true)
+    options.readOptions.fillBlockCache.foreach(opt.fillBlockCache(_))
+    options.readOptions.cache.foreach(opt.cache(_))
+    options.readOptions.batchSize.foreach(opt.batchSize(_))
+    opt
+  }
 
   private val errorParser = new VPackParser.Builder().build()
 
@@ -51,11 +53,7 @@ class ArangoClient(options: ArangoOptions) {
       .db(options.readOptions.db)
       .query(query,
         Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
-        new AqlQueryOptions()
-          //        .ttl()
-          .batchSize(options.readOptions.batchSize)
-          .stream(true)
-          .shardIds(shardId),
+        aqlOptions().shardIds(shardId),
         classOf[VPackSlice])
   }
 
@@ -63,7 +61,7 @@ class ArangoClient(options: ArangoOptions) {
     .db(options.readOptions.db)
     .query(
       options.readOptions.query.get,
-      aqlOptions,
+      aqlOptions(),
       classOf[VPackSlice])
 
   def readCollectionSample(): util.List[String] = arangoDB
@@ -76,7 +74,7 @@ class ArangoClient(options: ArangoOptions) {
       )
         .asInstanceOf[Map[String, AnyRef]]
         .asJava,
-      aqlOptions,
+      aqlOptions(),
       classOf[String])
     .asListRemaining()
 
@@ -84,7 +82,7 @@ class ArangoClient(options: ArangoOptions) {
     .db(options.readOptions.db)
     .query(
       options.readOptions.query.get,
-      aqlOptions,
+      aqlOptions(),
       classOf[String])
     .asListRemaining()
 
@@ -115,11 +113,11 @@ class ArangoClient(options: ArangoOptions) {
       RequestType.POST,
       s"/_api/document/${options.writeOptions.collection}")
 
-    request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
     request.putQueryParam("silent", true)
-    request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode)
-    request.putQueryParam("keepNull", options.writeOptions.keepNull)
-    request.putQueryParam("mergeObjects", options.writeOptions.mergeObjects)
+    options.writeOptions.waitForSync.foreach(request.putQueryParam("waitForSync", _))
+    options.writeOptions.overwriteMode.foreach(request.putQueryParam("overwriteMode", _))
+    options.writeOptions.keepNull.foreach(request.putQueryParam("keepNull", _))
+    options.writeOptions.mergeObjects.foreach(request.putQueryParam("mergeObjects", _))
 
     request.setBody(data)
     val response = arangoDB.execute(request)

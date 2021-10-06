@@ -159,7 +159,6 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
 
 abstract class CommonOptions(options: Map[String, String]) extends Serializable {
   val db: String = options.getOrElse(ArangoOptions.DB, "_system")
-  val batchSize: Int = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt).getOrElse(1000)
   val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
 
   protected def getRequired(key: String): String = options
@@ -167,26 +166,27 @@ abstract class CommonOptions(options: Map[String, String]) extends Serializable 
 }
 
 class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(options) {
+  val batchSize: Option[Int] = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt)
   val sampleSize: Int = options.get(ArangoOptions.SAMPLE_SIZE).map(_.toInt).getOrElse(1000)
   val collection: Option[String] = options.get(ArangoOptions.COLLECTION)
   val query: Option[String] = options.get(ArangoOptions.QUERY)
-  val readMode: ReadMode = {
+  val readMode: ReadMode =
     if (query.isDefined) ReadMode.Query
     else if (collection.isDefined) ReadMode.Collection
     else throw new IllegalArgumentException("Either collection or query must be defined")
-  }
   val arangoTopology: ArangoTopology = ArangoTopology(options.getOrElse(ArangoOptions.TOPOLOGY, "cluster"))
-  val cache: Boolean = options.getOrElse(ArangoOptions.CACHE, "true").toBoolean
-  val fillBlockCache: Boolean = options.getOrElse(ArangoOptions.FILL_BLOCK_CACHE, "false").toBoolean
+  val cache: Option[Boolean] = options.get(ArangoOptions.CACHE).map(_.toBoolean)
+  val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
 }
 
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
+  val batchSize: Int = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt).getOrElse(1000)
   val collection: String = getRequired(ArangoOptions.COLLECTION)
-  val waitForSync: Boolean = options.getOrElse(ArangoOptions.WAIT_FOR_SYNC, "true").toBoolean
+  val waitForSync: Option[Boolean] = options.get(ArangoOptions.WAIT_FOR_SYNC).map(_.toBoolean)
   val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
-  val overwriteMode: OverwriteMode = OverwriteMode.valueOf(options.getOrElse(ArangoOptions.OVERWRITE_MODE, "conflict"))
-  val keepNull: Boolean = options.getOrElse(ArangoOptions.KEEP_NULL, "true").toBoolean
-  val mergeObjects: Boolean = options.getOrElse(ArangoOptions.MERGE_OBJECTS, "true").toBoolean
+  val overwriteMode: Option[OverwriteMode] = options.get(ArangoOptions.OVERWRITE_MODE).map(OverwriteMode.valueOf)
+  val keepNull: Option[Boolean] = options.get(ArangoOptions.KEEP_NULL).map(_.toBoolean)
+  val mergeObjects: Option[Boolean] = options.get(ArangoOptions.MERGE_OBJECTS).map(_.toBoolean)
 }
 
 sealed trait ReadMode
