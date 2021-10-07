@@ -107,6 +107,11 @@ class ArangoClient(options: ArangoOptions) {
     .collection(options.writeOptions.collection)
     .truncate()
 
+  def drop(): Unit = arangoDB
+    .db(options.writeOptions.db)
+    .collection(options.writeOptions.collection)
+    .drop()
+
   def saveDocuments(data: VPackSlice): Unit = {
     val request = new Request(
       options.writeOptions.db,

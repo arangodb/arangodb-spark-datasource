@@ -161,9 +161,16 @@ Use `overwrite.mode` write configuration parameter to specify the documents over
 the same `_key` already exists).
 
 
+## Resiliency considerations
+
+Prefer using `overwrite.mode=replace` (or `overwrite.mode=ignore`), since the batch writes would be in this case
+idempotent. This will increase the resiliency of the job and allow tasks and requests retries in case of temporary errors.
+
+
 ## Limitations
 - Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some documents 
   in the batch may be written and some others may return an exception (i.e. due to conflicting key).
+- In case of `SaveMode.Append`, failed jobs cannot be rolled back and the underlying data source may require manual cleanup.
 
 
 ## Implemented filter pushdowns

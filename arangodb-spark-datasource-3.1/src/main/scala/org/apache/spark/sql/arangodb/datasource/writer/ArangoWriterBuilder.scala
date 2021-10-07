@@ -1,20 +1,23 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
-import org.apache.spark.sql.AnalysisException
+import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
 import org.apache.spark.sql.connector.write.{BatchWrite, SupportsTruncate, WriteBuilder}
 import org.apache.spark.sql.types.StructType
 
 class ArangoWriterBuilder(schema: StructType, options: ArangoOptions) extends WriteBuilder with SupportsTruncate {
 
+  private var mode: SaveMode = SaveMode.Append
+
   override def buildForBatch(): BatchWrite = {
     val client = ArangoClient(options)
     if (!client.collectionExists())
       client.createCollection()
-    new ArangoBatchWriter(schema, options)
+    new ArangoBatchWriter(schema, options, mode)
   }
 
   override def truncate(): WriteBuilder = {
+    mode = SaveMode.Overwrite
     if (options.writeOptions.confirmTruncate) {
       val client = ArangoClient(options)
       if (client.collectionExists())

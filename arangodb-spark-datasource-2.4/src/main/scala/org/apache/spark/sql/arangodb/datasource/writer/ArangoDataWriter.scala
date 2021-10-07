@@ -1,6 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
+import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
+import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGeneratorProvider}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
@@ -32,9 +34,26 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions) extends DataW
     null
   }
 
-  // TODO
+  /**
+   * Clear in-memory resources only.
+   * Data cleanup will happen in [[ArangoDataSourceWriter.abort()]]
+   */
   override def abort(): Unit = {
     client.shutdown()
+    options.writeOptions.overwriteMode.foreach {
+      case OverwriteMode.ignore => // do nothing, task can be retried
+      case OverwriteMode.replace => // do nothing, task can be retried
+      case OverwriteMode.update => throw new DataWriteAbortException(
+        """
+          |Cannot abort with OverwriteMode.update: the operation will not be retried. Consider using
+          |OverwriteMode.ignore or OverwriteMode.replace to make batch writes idempotent, so that they can be retried."""
+          .stripMargin.replaceAll("\n", " "))
+      case OverwriteMode.conflict => throw new DataWriteAbortException(
+        """
+          |Cannot abort with OverwriteMode.conflict: the operation will not be retried. Consider using
+          |OverwriteMode.ignore or OverwriteMode.replace to make batch writes idempotent, so that they can be retried."""
+          .stripMargin.replaceAll("\n", " "))
+    }
   }
 
   private def initBatch(): Unit = {
