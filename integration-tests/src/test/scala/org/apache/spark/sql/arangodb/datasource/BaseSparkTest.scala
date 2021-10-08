@@ -31,6 +31,7 @@ class BaseSparkTest {
     arangoDB.shutdown()
   }
 
+  def isSingle: Boolean = BaseSparkTest.isSingle
 }
 
 object BaseSparkTest {
@@ -114,7 +115,7 @@ object BaseSparkTest {
   def createDF(name: String, docs: util.Collection[Any], schema: StructType, dropExisting: Boolean = true): DataFrame = {
     val col = db.collection(name)
     if (col.exists()) {
-      if(dropExisting){
+      if (dropExisting) {
         col.drop()
         col.create()
       }
