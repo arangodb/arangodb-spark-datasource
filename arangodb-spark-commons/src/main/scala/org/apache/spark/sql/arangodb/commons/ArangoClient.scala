@@ -1,15 +1,16 @@
 package org.apache.spark.sql.arangodb.commons
 
+import com.arangodb.entity.ErrorEntity
 import com.arangodb.internal.ArangoResponseField
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
-import com.arangodb.velocypack.{VPackParser, VPackSlice}
+import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBServerException
+import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 
 import java.util
@@ -25,8 +26,6 @@ class ArangoClient(options: ArangoOptions) {
     options.readOptions.batchSize.foreach(opt.batchSize(_))
     opt
   }
-
-  private val errorParser = new VPackParser.Builder().build()
 
   lazy val arangoDB: ArangoDB = options.driverOptions
     .builder()
@@ -129,12 +128,14 @@ class ArangoClient(options: ArangoOptions) {
     println(response.getResponseCode)
 
     // in case there are no errors, response body is an empty object
+    // In cluster 3.8.1 this is not true due to: https://arangodb.atlassian.net/browse/BTS-592
     if (response.getBody.isArray) {
       val errors = response.getBody.arrayIterator.asScala
         .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
-        .map(it => errorParser.toJson(it, true))
+        .map(arangoDB.util().deserialize(_, classOf[ErrorEntity]).asInstanceOf[ErrorEntity])
+        .toIterable
       if (errors.nonEmpty) {
-        throw new ArangoDBServerException(errors.mkString("[\n\t", ",\n\t", "\n]"))
+        throw new ArangoDBMultiException(errors)
       }
     }
   }
