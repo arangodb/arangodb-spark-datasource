@@ -9,6 +9,7 @@ import org.apache.spark.sql.types.StructType
 
 class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoOptions) extends DataSourceWriter {
   private val client = ArangoClient(options)
+  private var createdCollection = false
 
   override def createWriterFactory(): DataWriterFactory[InternalRow] = {
     if (mode == SaveMode.Overwrite && !options.writeOptions.confirmTruncate) {
@@ -30,6 +31,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       }
     } else {
       client.createCollection()
+      createdCollection = true
     }
 
     new ArangoDataWriterFactory(schema, options)
@@ -45,7 +47,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
         "Cannot abort with SaveMode.Append: the underlying data source may require manual cleanup.")
       case SaveMode.Overwrite => client.truncate()
       case SaveMode.ErrorIfExists => client.drop()
-      case SaveMode.Ignore => // do nothing
+      case SaveMode.Ignore => if (createdCollection) client.drop()
     }
   }
 

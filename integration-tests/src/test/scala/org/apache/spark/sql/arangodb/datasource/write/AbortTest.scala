@@ -129,4 +129,31 @@ class AbortTest extends BaseSparkTest {
     assertThat(collection.exists()).isFalse
   }
 
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def saveModeIgnore(protocol: String, contentType: String): Unit = {
+    // FIXME
+    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+
+    val thrown = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = df.write
+        .format("org.apache.spark.sql.arangodb.datasource")
+        .mode(SaveMode.Ignore)
+        .options(options + (
+          ArangoOptions.COLLECTION -> collectionName,
+          ArangoOptions.PROTOCOL -> protocol,
+          ArangoOptions.CONTENT_TYPE -> contentType,
+          ArangoOptions.OVERWRITE_MODE -> "replace"
+        ))
+        .save()
+    })
+
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
+    val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
+    assertThat(errors.size).isEqualTo(1)
+    assertThat(errors.head.getErrorNum).isEqualTo(1221)
+    assertThat(collection.exists()).isFalse
+  }
+
 }

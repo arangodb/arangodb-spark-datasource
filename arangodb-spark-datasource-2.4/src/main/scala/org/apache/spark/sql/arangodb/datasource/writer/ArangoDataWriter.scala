@@ -35,7 +35,6 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions) extends DataW
   }
 
   /**
-   * Clear in-memory resources only.
    * Data cleanup will happen in [[ArangoDataSourceWriter.abort()]]
    */
   override def abort(): Unit = {
