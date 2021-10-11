@@ -94,13 +94,14 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
       failures = 0
     } catch {
       case e: ArangoDBException =>
+        // TODO: log warn e
         client.shutdown()
         failures += 1
         endpointIdx += 1
         if (canRetry && failures < options.driverOptions.endpoints.size) {
           client = createClient()
           saveDocuments(payload)
-        }
+        } else throw e
     }
   }
 

@@ -134,6 +134,8 @@ class AbortTest extends BaseSparkTest {
   def saveModeIgnore(protocol: String, contentType: String): Unit = {
     // FIXME
     assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    // FIXME: https://arangodb.atlassian.net/browse/BTS-615
+    assumeTrue(isSingle)
 
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
