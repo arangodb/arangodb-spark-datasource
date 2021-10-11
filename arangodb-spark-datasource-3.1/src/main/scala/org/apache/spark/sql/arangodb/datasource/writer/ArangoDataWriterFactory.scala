@@ -7,7 +7,6 @@ import org.apache.spark.sql.types.StructType
 
 class ArangoDataWriterFactory(schema: StructType, options: ArangoOptions) extends DataWriterFactory {
   override def createWriter(partitionId: Int, taskId: Long): DataWriter[InternalRow] = {
-    val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
-    new ArangoDataWriter(schema, options.updated(ArangoOptions.ENDPOINTS, endpoints(partitionId)))
+    new ArangoDataWriter(schema, options, partitionId)
   }
 }
