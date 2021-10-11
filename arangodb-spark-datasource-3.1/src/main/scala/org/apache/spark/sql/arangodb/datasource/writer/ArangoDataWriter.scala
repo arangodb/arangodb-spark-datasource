@@ -81,7 +81,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     vpackGenerator.writeEndArray()
     vpackGenerator.close()
     vpackGenerator.flush()
-    val payload: VPackSlice = options.writeOptions.contentType match {
+    val payload = options.writeOptions.contentType match {
       case ContentType.VPack => new VPackSlice(outVPack.toByteArray)
       case ContentType.Json => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
     }
@@ -97,7 +97,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
         client.shutdown()
         failures += 1
         endpointIdx += 1
-        if (canRetry && failures < options.driverOptions.endpoints) {
+        if (canRetry && failures < options.driverOptions.endpoints.size) {
           client = createClient()
           saveDocuments(payload)
         }
