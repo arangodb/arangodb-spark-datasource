@@ -42,15 +42,20 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions) extends DataW
     options.writeOptions.overwriteMode.foreach {
       case OverwriteMode.ignore => // do nothing, task can be retried
       case OverwriteMode.replace => // do nothing, task can be retried
-      case OverwriteMode.update => throw new DataWriteAbortException(
-        """
-          |Cannot abort with OverwriteMode.update: the operation will not be retried. Consider using
-          |OverwriteMode.ignore or OverwriteMode.replace to make batch writes idempotent, so that they can be retried."""
-          .stripMargin.replaceAll("\n", " "))
+      case OverwriteMode.update => // throw if keepNull is false or not set (db default is false)
+        if (options.writeOptions.keepNull.isEmpty || !options.writeOptions.keepNull.get) {
+          throw new DataWriteAbortException(
+            """
+              |Cannot abort with OverwriteMode.update and keepNull=false: the operation will not be retried. Consider using
+              |OverwriteMode.ignore, OverwriteMode.replace or OverwriteMode.update and keepNull=true to make batch writes
+              |idempotent, so that they can be retried."""
+              .stripMargin.replaceAll("\n", " "))
+        }
       case OverwriteMode.conflict => throw new DataWriteAbortException(
         """
           |Cannot abort with OverwriteMode.conflict: the operation will not be retried. Consider using
-          |OverwriteMode.ignore or OverwriteMode.replace to make batch writes idempotent, so that they can be retried."""
+          |OverwriteMode.ignore, OverwriteMode.replace or OverwriteMode.update and keepNull=true to make batch writes
+          |idempotent, so that they can be retried."""
           .stripMargin.replaceAll("\n", " "))
     }
   }
