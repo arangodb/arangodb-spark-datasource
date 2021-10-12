@@ -43,7 +43,7 @@ class ReadTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def inferCollectionSchema(protocol: String, contentType: String): Unit = {
     val usersDF = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .options(options + (
         "table" -> "users",
         "protocol" -> protocol,
@@ -84,7 +84,7 @@ class ReadTest extends BaseSparkTest {
         |""".stripMargin.replaceAll("\n", "")
 
     val directorsDF = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .options(options + (
         "query" -> query,
         "protocol" -> protocol,

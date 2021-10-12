@@ -47,7 +47,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeAppend(protocol: String, contentType: String): Unit = {
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -65,7 +65,7 @@ class SaveModeTest extends BaseSparkTest {
     collection.create()
     collection.insertDocument(new Object)
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -82,7 +82,7 @@ class SaveModeTest extends BaseSparkTest {
   def saveModeOverwriteShouldThrowWhenUsedAlone(protocol: String, contentType: String): Unit = {
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Overwrite)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -100,7 +100,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeOverwrite(protocol: String, contentType: String): Unit = {
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -120,7 +120,7 @@ class SaveModeTest extends BaseSparkTest {
     collection.insertDocument(new Object)
 
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -141,7 +141,7 @@ class SaveModeTest extends BaseSparkTest {
     collection.create()
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.ErrorIfExists)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -161,7 +161,7 @@ class SaveModeTest extends BaseSparkTest {
     // FIXME
     assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.ErrorIfExists)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -179,7 +179,7 @@ class SaveModeTest extends BaseSparkTest {
     // FIXME
     assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Ignore)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -199,7 +199,7 @@ class SaveModeTest extends BaseSparkTest {
     collection.create()
     collection.insertDocument(new Object)
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Ignore)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,

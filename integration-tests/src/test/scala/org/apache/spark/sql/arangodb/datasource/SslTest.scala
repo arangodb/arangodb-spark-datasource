@@ -67,7 +67,7 @@ class SslTest {
   @Test
   def sslTest(): Unit = {
     val df = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .options(options + ("table" -> "sslTest"))
       .load()
     df.show()
@@ -160,7 +160,7 @@ object SslTest {
     col.insertDocuments(docs)
 
     val df = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .options(options + ("table" -> name))
       .schema(schema)
       .load()

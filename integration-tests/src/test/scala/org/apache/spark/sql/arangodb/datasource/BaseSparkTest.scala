@@ -42,6 +42,7 @@ object BaseSparkTest {
     Arguments.of("http", "json")
   )
 
+  val arangoDatasource = "org.apache.spark.sql.arangodb.datasource"
   private val database = "sparkConnectorTest"
   private val user = "root"
   private val password = "test"
@@ -125,7 +126,7 @@ object BaseSparkTest {
     col.insertDocuments(docs)
 
     val df = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(arangoDatasource)
       .options(options + ("table" -> name))
       .schema(schema)
       .load()

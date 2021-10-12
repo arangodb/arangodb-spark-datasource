@@ -51,7 +51,7 @@ class OverwriteModeTest extends BaseSparkTest {
     collection.insertDocument(new BaseDocument("Carlsen"))
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -77,7 +77,7 @@ class OverwriteModeTest extends BaseSparkTest {
     collection.insertDocument(doc)
 
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -101,7 +101,7 @@ class OverwriteModeTest extends BaseSparkTest {
     collection.insertDocument(doc)
 
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -125,7 +125,7 @@ class OverwriteModeTest extends BaseSparkTest {
     collection.insertDocument(doc)
 
     df.write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -151,7 +151,7 @@ class OverwriteModeTest extends BaseSparkTest {
 
     Seq(("Carlsen", null)).toDF("_key", "name")
       .write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,
@@ -178,7 +178,7 @@ class OverwriteModeTest extends BaseSparkTest {
 
     Seq(("Carlsen", null)).toDF("_key", "name")
       .write
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
         ArangoOptions.COLLECTION -> collectionName,

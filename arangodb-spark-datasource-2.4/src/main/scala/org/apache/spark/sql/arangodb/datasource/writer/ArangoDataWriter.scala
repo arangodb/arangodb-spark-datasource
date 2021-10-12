@@ -62,9 +62,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     else options.writeOptions.overwriteMode.get match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
-      case OverwriteMode.update =>
-        if (options.writeOptions.keepNull.isEmpty || !options.writeOptions.keepNull.get) false
-        else true
+      case OverwriteMode.update => options.writeOptions.keepNull.isDefined && options.writeOptions.keepNull.get
       case OverwriteMode.conflict => false
     }
 

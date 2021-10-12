@@ -53,7 +53,7 @@ class AbortTest extends BaseSparkTest {
 
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -80,7 +80,7 @@ class AbortTest extends BaseSparkTest {
 
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Overwrite)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -110,7 +110,7 @@ class AbortTest extends BaseSparkTest {
 
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.ErrorIfExists)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,
@@ -139,7 +139,7 @@ class AbortTest extends BaseSparkTest {
 
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Ignore)
         .options(options + (
           ArangoOptions.COLLECTION -> collectionName,

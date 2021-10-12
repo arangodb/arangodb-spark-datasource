@@ -17,7 +17,6 @@ class InTest extends BaseSparkTest {
   @Test
   def bool(): Unit = {
     val fieldName = "bool"
-    val value = InTest.data.head(fieldName)
     val res = df.filter(col(fieldName).isin(true, false)).collect()
       .map(_.getValuesMap[Any](InTest.schema.fieldNames))
     assertThat(res).hasSize(2)
