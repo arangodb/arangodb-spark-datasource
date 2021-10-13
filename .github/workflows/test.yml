@@ -13,7 +13,7 @@ on:
 jobs:
   test:
 
-    timeout-minutes: 30
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
@@ -53,9 +53,23 @@ jobs:
         run: mvn -version
       - name: Test
         run: mvn -e --no-transfer-progress -Pspark-${{matrix.spark-version}} test
+      - name: Collect docker logs on failure
+        if: ${{ cancelled() || failure() }}
+        uses: jwalton/gh-docker-logs@v1
+        with:
+          dest: './logs'
+      - name: Tar logs
+        if: ${{ cancelled() || failure() }}
+        run: tar cvzf ./logs.tgz ./logs
+      - name: Upload logs to GitHub
+        if: ${{ cancelled() || failure() }}
+        uses: actions/upload-artifact@master
+        with:
+          name: logs.tgz
+          path: ./logs.tgz
 
   sonar:
-    timeout-minutes: 30
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
