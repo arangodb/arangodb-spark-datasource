@@ -46,7 +46,7 @@ object BaseSparkTest {
   private val database = "sparkConnectorTest"
   private val user = "root"
   private val password = "test"
-  private val endpoints = "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529"
+  private val endpoints = "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = new ArangoDB.Builder()
     .user(user)

@@ -6,7 +6,7 @@ on:
       - main
       - devel
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     branches:
       - main
 
@@ -39,7 +39,10 @@ jobs:
           java-version: ${{matrix.java-version}}
           distribution: 'adopt'
       - name: Start Database
-        run: ./docker/start_db_${{matrix.topology}}.sh ${{matrix.docker-img}}
+        run: ./docker/start_db.sh
+        env:
+          STARTER_MODE: ${{matrix.topology}}
+          DOCKER_IMAGE: ${{matrix.docker-img}}
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
@@ -59,7 +62,7 @@ jobs:
       fail-fast: false
       matrix:
         spark-version:
-          - 3.1
+          - 2.4
         topology:
           - cluster
         java-version:

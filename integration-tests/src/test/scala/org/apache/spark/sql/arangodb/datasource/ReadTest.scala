@@ -73,17 +73,13 @@ class ReadTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def readQuery(protocol: String, contentType: String): Unit = {
-    // directors of Kevin Bacon's movies
     val query =
       """
-        |FOR v,e,p IN 2..2 ANY "persons/759"
-        |    GRAPH imdb
-        |    FILTER IS_SAME_COLLECTION("actsIn", p.edges[0]) AND
-        |        IS_SAME_COLLECTION("directed", p.edges[1])
-        |    RETURN v
+        |FOR i IN 1..10
+        | RETURN { idx: i, value: SHA1(i) }
         |""".stripMargin.replaceAll("\n", "")
 
-    val directorsDF = spark.read
+    val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
         "query" -> query,
@@ -92,7 +88,7 @@ class ReadTest extends BaseSparkTest {
       ))
       .load()
 
-    assertThat(directorsDF.count()).isEqualTo(46)
+    assertThat(df.count()).isEqualTo(10)
   }
 
 }
