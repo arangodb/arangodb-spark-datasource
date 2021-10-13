@@ -49,6 +49,7 @@ if [ "$DATABASE_EXTENDED_NAMES" == "true" ]; then
 fi
 
 docker run -d \
+    --name=adb \
     -p 8528:8528 \
     -v "$LOCATION"/server.pem:/server.pem \
     -v "$LOCATION"/jwtSecret:/jwtSecret \
@@ -56,6 +57,7 @@ docker run -d \
     -e ARANGO_LICENSE_KEY="$ARANGO_LICENSE_KEY" \
     $STARTER_DOCKER_IMAGE \
     $STARTER_ARGS \
+    --docker.container=adb \
     --auth.jwt-secret=/jwtSecret \
     --starter.address=172.17.0.1 \
     --docker.image="${DOCKER_IMAGE}" \
