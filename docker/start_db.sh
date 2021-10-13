@@ -94,27 +94,3 @@ for a in ${COORDINATORS[*]} ; do
     echo "$SCHEME://$a"
     echo ""
 done
-
-
-
-
-
-echo "Importing data"
-
-
-## create test db
-curl -u root:test $SCHEME://"${COORDINATORS[0]}"/_api/database -d '{"name":"sparkConnectorTest"}'
-
-## import users sample data
-curl -u root:test $SCHEME://"${COORDINATORS[0]}"/_db/sparkConnectorTest/_api/collection -d '{"name": "users", "numberOfShards": 6}'
-docker run --rm \
-  -v "$LOCATION"/import:/import \
-  $DOCKER_IMAGE \
-  arangoimport \
-  --server.endpoint=$ARANGOSH_SCHEME://"${COORDINATORS[0]}" \
-  --server.username=root --server.password=test \
-  --server.database sparkConnectorTest --file "/import/users/users.json" --type json --collection "users"
-
-
-
-echo "Done"

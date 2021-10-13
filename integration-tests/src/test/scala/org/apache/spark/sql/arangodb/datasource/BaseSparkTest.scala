@@ -2,6 +2,7 @@ package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
+import com.arangodb.model.CollectionCreateOptions
 import com.arangodb.{ArangoDB, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -9,13 +10,14 @@ import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerP
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.{AfterEach, BeforeAll}
 import org.junit.jupiter.params.provider.Arguments
 
 import java.sql.Date
 import java.time.LocalDate
 import java.util
 import java.util.{Collections, stream}
+import scala.collection.JavaConverters.asJavaIterableConverter
 
 class BaseSparkTest {
 
@@ -97,7 +99,41 @@ object BaseSparkTest {
     .config("spark.driver.host", "127.0.0.1")
     .getOrCreate()
 
-  private val usersDF: DataFrame = createDF("users", Collections.emptySet(),
+  private lazy val usersDF: DataFrame = createDF("users",
+    Seq(
+      Map(
+        "name" -> Map(
+          "first" -> "Prudence",
+          "last" -> "Litalien"
+        ),
+        "gender" -> "female",
+        "birthday" -> "1944-06-19",
+        "likes" -> Seq(
+          "swimming",
+          "chess"
+        )
+      ),
+      Map(
+        "name" -> Map(
+          "first" -> "Ernie",
+          "last" -> "Levinson"
+        ),
+        "gender" -> "male",
+        "birthday" -> "1955-07-25",
+        "likes" -> Seq()
+      ),
+      Map(
+        "name" -> Map(
+          "first" -> "Malinda",
+          "last" -> "Siemon"
+        ),
+        "gender" -> "female",
+        "birthday" -> "1993-04-10",
+        "likes" -> Seq(
+          "climbing"
+        )
+      )
+    ),
     new StructType(
       Array(
         StructField("likes", ArrayType(StringType, containsNull = false)),
@@ -110,20 +146,17 @@ object BaseSparkTest {
           )
         ), nullable = true)
       )
-    ), dropExisting = false
+    )
   )
 
-  def createDF(name: String, docs: util.Collection[Any], schema: StructType, dropExisting: Boolean = true): DataFrame = {
+  def createDF(name: String, docs: Iterable[Any], schema: StructType): DataFrame = {
     val col = db.collection(name)
     if (col.exists()) {
-      if (dropExisting) {
-        col.drop()
-        col.create()
-      }
+      col.truncate()
     } else {
-      col.create()
+      db.createCollection(name, new CollectionCreateOptions().numberOfShards(6))
     }
-    col.insertDocuments(docs)
+    col.insertDocuments(docs.asJava.asInstanceOf[util.Collection[Any]])
 
     val df = spark.read
       .format(arangoDatasource)
@@ -136,5 +169,11 @@ object BaseSparkTest {
 
   def dropTable(name: String): Unit = {
     db.collection(name).drop()
+  }
+
+  @BeforeAll
+  def beforeAll(): Unit = {
+    if (!db.exists())
+      db.create()
   }
 }

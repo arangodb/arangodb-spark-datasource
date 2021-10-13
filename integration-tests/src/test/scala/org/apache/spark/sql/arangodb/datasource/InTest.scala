@@ -212,7 +212,7 @@ object InTest {
 
   @BeforeAll
   def init(): Unit = {
-    df = BaseSparkTest.createDF("in", data.asInstanceOf[Seq[Any]].asJava, schema)
+    df = BaseSparkTest.createDF("in", data, schema)
   }
 
   @AfterAll

@@ -84,7 +84,7 @@ object StringFiltersTest {
 
   @BeforeAll
   def init(): Unit = {
-    df = BaseSparkTest.createDF("stringFilters", data.asInstanceOf[Seq[Any]].asJava, schema)
+    df = BaseSparkTest.createDF("stringFilters", data, schema)
   }
 
   @AfterAll

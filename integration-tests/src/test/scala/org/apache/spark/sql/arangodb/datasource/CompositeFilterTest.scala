@@ -95,7 +95,7 @@ object CompositeFilterTest {
 
   @BeforeAll
   def init(): Unit = {
-    df = BaseSparkTest.createDF("compositeFilter", data.asInstanceOf[Seq[Any]].asJava, schema)
+    df = BaseSparkTest.createDF("compositeFilter", data, schema)
   }
 
   @AfterAll

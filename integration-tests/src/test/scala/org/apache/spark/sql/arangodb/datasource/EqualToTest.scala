@@ -294,7 +294,7 @@ object EqualToTest {
 
   @BeforeAll
   def init(): Unit = {
-    df = BaseSparkTest.createDF("equalTo", data.asInstanceOf[Seq[Any]].asJava, schema)
+    df = BaseSparkTest.createDF("equalTo", data, schema)
   }
 
   @AfterAll
