@@ -125,8 +125,8 @@ class ArangoClient(options: ArangoOptions) {
 
     request.setBody(data)
     val response = arangoDB.execute(request)
-    println(response.getResponseCode)
 
+    // FIXME
     // in case there are no errors, response body is an empty object
     // In cluster 3.8.1 this is not true due to: https://arangodb.atlassian.net/browse/BTS-592
     if (response.getBody.isArray) {
