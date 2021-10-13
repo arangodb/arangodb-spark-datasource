@@ -64,7 +64,7 @@ jobs:
         spark-version:
           - 2.4
         topology:
-          - cluster
+          - single
         java-version:
           - 11
         docker-img:
@@ -79,7 +79,10 @@ jobs:
           java-version: ${{matrix.java-version}}
           distribution: 'adopt'
       - name: Start Database
-        run: ./docker/start_db_${{matrix.topology}}.sh ${{matrix.docker-img}}
+        run: ./docker/start_db.sh
+        env:
+          STARTER_MODE: ${{matrix.topology}}
+          DOCKER_IMAGE: ${{matrix.docker-img}}
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:

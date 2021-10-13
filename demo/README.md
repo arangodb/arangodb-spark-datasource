@@ -47,7 +47,7 @@ Run sample code:
   "database" -> "sparkConnectorTest",
   "user" -> "root",
   "password" -> "test",
-  "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529",
+  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549",
   "table" -> "users"
 )
 val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options).load()
@@ -102,7 +102,7 @@ Run sample code:
   "database" -> "sparkConnectorTest",
   "user" -> "root",
   "password" -> "test",
-  "endpoints" -> "172.28.3.1:8529,172.28.3.2:8529,172.28.3.3:8529",
+  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549",
   "table" -> "users"
 )
 val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options).load()
