@@ -12,9 +12,8 @@ class ArangoBatchWriter(schema: StructType, options: ArangoOptions, mode: SaveMo
   override def createBatchWriterFactory(info: PhysicalWriteInfo): DataWriterFactory =
     new ArangoDataWriterFactory(schema, options)
 
-  // TODO
   override def commit(messages: Array[WriterCommitMessage]): Unit = {
-    println("ArangoBatchWriter::commit")
+    client.shutdown()
   }
 
   override def abort(messages: Array[WriterCommitMessage]): Unit = {
@@ -22,9 +21,8 @@ class ArangoBatchWriter(schema: StructType, options: ArangoOptions, mode: SaveMo
       case SaveMode.Append => throw new DataWriteAbortException(
         "Cannot abort with SaveMode.Append: the underlying data source may require manual cleanup.")
       case SaveMode.Overwrite => client.truncate()
-      case SaveMode.ErrorIfExists => client.drop()
-      case SaveMode.Ignore => // do nothing
     }
+    client.shutdown()
   }
 
 }

@@ -47,7 +47,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     if (!canRetry)
       throw new DataWriteAbortException(
         """
-          |Task cannot be aborted: the operation will not be retried. Consider using one of the following:
+          |Task cannot be retried. Consider using one of the following:
           |- OverwriteMode.ignore
           |- OverwriteMode.replace
           |- OverwriteMode.update

@@ -27,10 +27,10 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoOptions) extends Wr
       this
     } else {
       throw new AnalysisException(
-        """You are attempting to use overwrite mode which will truncate
-          |this collection prior to inserting data. If you just want
-          |to change data already in the collection use the "Append" mode.
-          |To actually truncate please set "confirm.truncate" option to "true".""".stripMargin)
+        """You are attempting to use overwrite mode which will truncate this collection prior to inserting data. If you
+          |just want to change data already in the collection use the "Append" mode with "overwrite.mode" "replace" or
+          |"update". To actually truncate please set "confirm.truncate" option to "true".""".stripMargin
+      )
     }
   }
 

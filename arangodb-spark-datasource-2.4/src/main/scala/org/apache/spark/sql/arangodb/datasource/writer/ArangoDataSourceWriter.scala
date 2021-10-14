@@ -14,10 +14,9 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
   override def createWriterFactory(): DataWriterFactory[InternalRow] = {
     if (mode == SaveMode.Overwrite && !options.writeOptions.confirmTruncate) {
       throw new AnalysisException(
-        """You are attempting to use overwrite mode which will truncate
-          |this collection prior to inserting data. If you just want
-          |to change data already in the collection use the "Append" mode.
-          |To actually truncate please set "confirm.truncate" option to "true".""".stripMargin
+        """You are attempting to use overwrite mode which will truncate this collection prior to inserting data. If you
+          |just want to change data already in the collection use the "Append" mode with "overwrite.mode" "replace" or
+          |"update". To actually truncate please set "confirm.truncate" option to "true".""".stripMargin
       )
     }
 
@@ -37,9 +36,9 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
     new ArangoDataWriterFactory(schema, options)
   }
 
-  // TODO
-  override def commit(messages: Array[WriterCommitMessage]): Unit =
-    println("ArangoDataSourceWriter::commit")
+  override def commit(messages: Array[WriterCommitMessage]): Unit = {
+    client.shutdown()
+  }
 
   override def abort(messages: Array[WriterCommitMessage]): Unit = {
     mode match {
@@ -49,6 +48,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       case SaveMode.ErrorIfExists => client.drop()
       case SaveMode.Ignore => if (createdCollection) client.drop()
     }
+    client.shutdown()
   }
 
 }
