@@ -23,7 +23,7 @@ mvn -Pspark-${sparkVersion} -DskipTests=true install
     <dependency>
         <groupId>com.arangodb</groupId>
         <artifactId>arangodb-spark-datasource-${sparkVersion}</artifactId>
-        <version>0.0.6-SNAPSHOT</version>
+        <version>0.0.7-SNAPSHOT</version>
     </dependency>
     <!-- ... -->
 </dependencies>
@@ -34,7 +34,7 @@ mvn -Pspark-${sparkVersion} -DskipTests=true install
 Submit your application with the following parameter:
 
 ```shell
---jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.6-SNAPSHOT-jar-with-dependencies.jar"
+--jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.7-SNAPSHOT-jar-with-dependencies.jar"
 ```
 
 ## Batch Read
