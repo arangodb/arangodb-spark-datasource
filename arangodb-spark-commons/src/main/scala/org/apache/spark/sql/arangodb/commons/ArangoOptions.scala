@@ -81,6 +81,7 @@ object ArangoOptions {
   val COLLECTION = "table"
   val BATCH_SIZE = "batch.size"
   val CONTENT_TYPE = "content-type"
+  val ACQUIRE_HOST_LIST = "acquire-host-list"
   val TOPOLOGY = "topology"
 
   // read options
@@ -118,6 +119,9 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
   private val sslKeystore: String = options.getOrElse(ArangoOptions.SSL_KEYSTORE, KeyStore.getDefaultType)
   private val sslProtocol: String = options.getOrElse(ArangoOptions.SSL_PROTOCOL, "TLS")
 
+  val endpoints: Seq[String] = options(ArangoOptions.ENDPOINTS).split(",")
+  val acquireHostList: Boolean = options.getOrElse(ArangoOptions.ACQUIRE_HOST_LIST, "false").toBoolean
+
   def builder(): ArangoDB.Builder = {
     val builder = new ArangoDB.Builder()
       .useProtocol(arangoProtocol)
@@ -151,9 +155,6 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
     case None => SSLContext.getDefault
   }
 
-  def endpoints: Seq[String] = options
-    .get(ArangoOptions.ENDPOINTS).toList
-    .flatMap(_.split(","))
 }
 
 abstract class CommonOptions(options: Map[String, String]) extends Serializable {

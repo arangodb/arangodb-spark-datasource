@@ -16,7 +16,7 @@ import org.junit.jupiter.params.provider.Arguments
 import java.sql.Date
 import java.time.LocalDate
 import java.util
-import java.util.{Collections, stream}
+import java.util.stream
 import scala.collection.JavaConverters.asJavaIterableConverter
 
 class BaseSparkTest {

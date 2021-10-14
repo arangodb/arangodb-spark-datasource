@@ -20,21 +20,19 @@ class SaveModeTest extends BaseSparkTest {
 
   import spark.implicits._
 
-  private val df = {
-    Seq(
-      ("Carlsen", "Magnus"),
-      ("Caruana", "Fabiano"),
-      ("Ding", "Liren"),
-      ("Nepomniachtchi", "Ian"),
-      ("Aronian", "Levon"),
-      ("Grischuk", "Alexander"),
-      ("Giri", "Anish"),
-      ("Mamedyarov", "Shakhriyar"),
-      ("So", "Wesley"),
-      ("Radjabov", "Teimour")
-    ).toDF("surname", "name")
-      .repartition(3)
-  }
+  private val df = Seq(
+    ("Carlsen", "Magnus"),
+    ("Caruana", "Fabiano"),
+    ("Ding", "Liren"),
+    ("Nepomniachtchi", "Ian"),
+    ("Aronian", "Levon"),
+    ("Grischuk", "Alexander"),
+    ("Giri", "Anish"),
+    ("Mamedyarov", "Shakhriyar"),
+    ("So", "Wesley"),
+    ("Radjabov", "Teimour")
+  ).toDF("surname", "name")
+    .repartition(3)
 
   @BeforeEach
   def beforeEach(): Unit = {

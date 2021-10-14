@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.entity.ErrorEntity
-import com.arangodb.internal.ArangoResponseField
+import com.arangodb.internal.{ArangoRequestParam, ArangoResponseField}
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions, OverwriteMode}
@@ -157,9 +157,22 @@ object ArangoClient {
         options.readOptions.db,
         RequestType.GET,
         s"/_api/collection/${options.readOptions.collection.get}/shards"))
-      val shardIds: Array[String] = client.util(Serializer.CUSTOM).deserialize(res.getBody.get("shards"), classOf[Array[String]])
+      val shardIds: Array[String] = client.util().deserialize(res.getBody.get("shards"), classOf[Array[String]])
       client.shutdown()
       shardIds
+  }
+
+  def acquireHostList(options: ArangoOptions): Iterable[String] = {
+    val client = ArangoClient(options).arangoDB
+    val response = client.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
+    val field = response.getBody.get("endpoints")
+    val res = client.util(Serializer.CUSTOM)
+      .deserialize(field, classOf[Seq[Map[String, String]]])
+      .asInstanceOf[Seq[Map[String, String]]]
+      .map(it => it("endpoint").replaceFirst(".*://", ""))
+
+    client.shutdown()
+    res
   }
 
 }

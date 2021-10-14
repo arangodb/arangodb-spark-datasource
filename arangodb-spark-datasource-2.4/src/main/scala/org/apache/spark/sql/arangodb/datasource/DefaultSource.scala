@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.{ArangoOptions, ArangoUtils}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ArangoUtils}
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoDataSourceReader
 import org.apache.spark.sql.arangodb.datasource.writer.ArangoDataSourceWriter
 import org.apache.spark.sql.sources.DataSourceRegister
@@ -25,14 +25,26 @@ class DefaultSource extends DataSourceV2 with DataSourceRegister
     inferredSchema
   }
 
-  override def createReader(options: DataSourceOptions): DataSourceReader =
-    createReader(inferSchema(ArangoOptions(options.asMap())), options)
+  private def extractOptions(options: DataSourceOptions): ArangoOptions = {
+    val opts: ArangoOptions = ArangoOptions(options.asMap())
+    if (opts.driverOptions.acquireHostList) {
+      val hosts = ArangoClient.acquireHostList(opts)
+      opts.updated(ArangoOptions.ENDPOINTS, hosts.mkString(","))
+    } else {
+      opts
+    }
+  }
+
+  override def createReader(options: DataSourceOptions): DataSourceReader = {
+    val opts = extractOptions(options)
+    new ArangoDataSourceReader(inferSchema(opts), opts)
+  }
 
   override def createReader(schema: StructType, options: DataSourceOptions): DataSourceReader =
-    new ArangoDataSourceReader(schema, ArangoOptions(options.asMap()))
+    new ArangoDataSourceReader(schema, extractOptions(options))
 
   override def createWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: DataSourceOptions): Optional[DataSourceWriter] =
-    Optional.of(new ArangoDataSourceWriter(writeUUID, schema, mode, ArangoOptions(options.asMap())))
+    Optional.of(new ArangoDataSourceWriter(writeUUID, schema, mode, extractOptions(options)))
 
   override def shortName(): String = "arangodb"
 

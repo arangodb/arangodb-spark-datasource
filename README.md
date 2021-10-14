@@ -105,6 +105,7 @@ df.write
 - `user`: db user, default `root`
 - `password`: db password
 - `endpoints`: list of coordinators, eg. `c1:8529,c2:8529`
+- `acquire-host-list`: acquire the list of all known hosts in the cluster (`true`|`false`), default `false`
 - `protocol`: communication protocol (`vst`|`http`), default `vst`
 - `content-type`: content type for driver communication (`json`|`vpack`), default `vpack`
 - `ssl.enabled`: ssl secured driver connection (`true`|`false`), default `false`
