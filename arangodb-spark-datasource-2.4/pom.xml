@@ -11,6 +11,10 @@
 
     <artifactId>arangodb-spark-datasource-2.4</artifactId>
 
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.arangodb</groupId>
