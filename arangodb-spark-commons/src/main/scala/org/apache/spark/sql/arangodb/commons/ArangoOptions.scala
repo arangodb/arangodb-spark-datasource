@@ -93,7 +93,6 @@ object ArangoOptions {
   val WAIT_FOR_SYNC = "wait.sync"
   val CONFIRM_TRUNCATE = "confirm.truncate"
   val OVERWRITE_MODE = "overwrite.mode"
-  val KEEP_NULL = "keep.null"
   val MERGE_OBJECTS = "merge.objects"
 
   def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
@@ -185,7 +184,6 @@ class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(opt
   val waitForSync: Option[Boolean] = options.get(ArangoOptions.WAIT_FOR_SYNC).map(_.toBoolean)
   val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
   val overwriteMode: Option[OverwriteMode] = options.get(ArangoOptions.OVERWRITE_MODE).map(OverwriteMode.valueOf)
-  val keepNull: Option[Boolean] = options.get(ArangoOptions.KEEP_NULL).map(_.toBoolean)
   val mergeObjects: Option[Boolean] = options.get(ArangoOptions.MERGE_OBJECTS).map(_.toBoolean)
 }
 

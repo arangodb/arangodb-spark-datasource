@@ -46,9 +46,9 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
       throw new DataWriteAbortException(
         """
           |Task cannot be aborted: the operation will not be retried. Consider using one of the following:
-          |- OverwriteMode.ignore,
+          |- OverwriteMode.ignore
           |- OverwriteMode.replace
-          |- OverwriteMode.update and keepNull=true
+          |- OverwriteMode.update
           |to make batch writes idempotent, so that they can be retried."""
           .stripMargin.replaceAll("\n", " "))
   }
@@ -64,7 +64,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     else options.writeOptions.overwriteMode.get match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
-      case OverwriteMode.update => options.writeOptions.keepNull.isDefined && options.writeOptions.keepNull.get
+      case OverwriteMode.update => true
       case OverwriteMode.conflict => false
     }
 

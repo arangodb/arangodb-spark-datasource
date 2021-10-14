@@ -143,7 +143,7 @@ class OverwriteModeTest extends BaseSparkTest {
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
-  def overwriteModeUpdateKeepNullTrue(protocol: String, contentType: String): Unit = {
+  def overwriteModeUpdateWithNullValues(protocol: String, contentType: String): Unit = {
     collection.create()
     val doc = new BaseDocument("Carlsen")
     doc.addAttribute("name", "Magnus")
@@ -157,8 +157,7 @@ class OverwriteModeTest extends BaseSparkTest {
         ArangoOptions.COLLECTION -> collectionName,
         ArangoOptions.PROTOCOL -> protocol,
         ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "update",
-        ArangoOptions.KEEP_NULL -> "true"
+        ArangoOptions.OVERWRITE_MODE -> "update"
       ))
       .save()
 
@@ -167,32 +166,5 @@ class OverwriteModeTest extends BaseSparkTest {
     assertThat(c.getProperties.containsKey("name")).isTrue
     assertThat(c.getProperties.get("name")).isNull()
   }
-
-  @ParameterizedTest
-  @MethodSource(Array("provideProtocolAndContentType"))
-  def overwriteModeUpdateKeepNullFalse(protocol: String, contentType: String): Unit = {
-    collection.create()
-    val doc = new BaseDocument("Carlsen")
-    doc.addAttribute("name", "Magnus")
-    collection.insertDocument(doc)
-
-    Seq(("Carlsen", null)).toDF("_key", "name")
-      .write
-      .format(BaseSparkTest.arangoDatasource)
-      .mode(SaveMode.Append)
-      .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "update",
-        ArangoOptions.KEEP_NULL -> "false"
-      ))
-      .save()
-
-    assertThat(collection.count().getCount).isEqualTo(1L)
-    val c = collection.getDocument("Carlsen", classOf[BaseDocument])
-    assertThat(c.getProperties.containsKey("name")).isFalse
-  }
-
 
 }

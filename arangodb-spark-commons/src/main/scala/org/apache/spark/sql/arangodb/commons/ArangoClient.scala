@@ -4,7 +4,7 @@ import com.arangodb.entity.ErrorEntity
 import com.arangodb.internal.ArangoResponseField
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
 import com.arangodb.mapping.ArangoJack
-import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
+import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions, OverwriteMode}
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB}
@@ -119,8 +119,11 @@ class ArangoClient(options: ArangoOptions) {
 
     request.putQueryParam("silent", true)
     options.writeOptions.waitForSync.foreach(request.putQueryParam("waitForSync", _))
-    options.writeOptions.overwriteMode.foreach(request.putQueryParam("overwriteMode", _))
-    options.writeOptions.keepNull.foreach(request.putQueryParam("keepNull", _))
+    options.writeOptions.overwriteMode.foreach(it => {
+      request.putQueryParam("overwriteMode", it)
+      if (it == OverwriteMode.update)
+        request.putQueryParam("keepNull", true)
+    })
     options.writeOptions.mergeObjects.foreach(request.putQueryParam("mergeObjects", _))
 
     request.setBody(data)

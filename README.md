@@ -132,11 +132,10 @@ df.write
 - `overwrite.mode`: configures the behavior in case a document with the specified `_key` value exists already
   - `ignore`: it will not be written
   - `replace`: it will be overwritten with the specified document value
-  - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be further controlled via the `keep.null` and `merge.objects` parameters.
+  - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be 
+    further controlled via the `merge.objects` parameter. Null values are kept in the saved documents and not used to
+    remove existing document fields (as for default ArangoDB upsert behavior).
   - `conflict`: return a unique constraint violation error so that the insert operation fails
-- `keep.null`: in case `overwrite.mode` is set to `update`
-  - `true`: `null` values are saved within the document
-  - `false`: `null` values are used to delete corresponding existing attributes
 - `merge.objects`: in case `overwrite.mode` is set to `update`, controls whether objects (not arrays) will be merged.
   - `true`: objects will be merged
   - `false`: existing document fields will be overwritten
@@ -166,7 +165,7 @@ the same `_key` already exists).
 Prefer using idempotent `overwrite.mode` configurations that allow retrying batch writing requests, such as:
 - `overwrite.mode=replace`
 - `overwrite.mode=ignore`
-- `overwrite.mode=update` with `keepNull=true`
+- `overwrite.mode=update`
 
 In these modes, the requests will be retried to another coordinator in case of exceptions. This makes the job more 
 resilient to temporary errors (i.e. connectivity problems).
