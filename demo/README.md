@@ -3,7 +3,7 @@
 Set ArangoDB Spark Datasource version environment variable:
 
 ```shell
-export ARANGO_SPARK_VERSION=0.0.7-SNAPSHOT
+export ARANGO_SPARK_VERSION=0.0.8-SNAPSHOT
 ```
 
 Start ArangoDB cluster:
