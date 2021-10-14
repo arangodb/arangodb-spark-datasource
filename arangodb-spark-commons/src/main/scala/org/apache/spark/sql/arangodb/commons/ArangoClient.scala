@@ -16,7 +16,6 @@ import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import java.util
 import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapConverter}
 
-// TODO: extend AutoCloseable
 class ArangoClient(options: ArangoOptions) {
 
   private def aqlOptions(): AqlQueryOptions = {
@@ -170,7 +169,6 @@ object ArangoClient {
       .deserialize(field, classOf[Seq[Map[String, String]]])
       .asInstanceOf[Seq[Map[String, String]]]
       .map(it => it("endpoint").replaceFirst(".*://", ""))
-
     client.shutdown()
     res
   }

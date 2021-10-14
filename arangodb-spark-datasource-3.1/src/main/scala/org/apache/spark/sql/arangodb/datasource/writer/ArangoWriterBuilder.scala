@@ -13,6 +13,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoOptions) extends Wr
     val client = ArangoClient(options)
     if (!client.collectionExists())
       client.createCollection()
+    client.shutdown()
     new ArangoBatchWriter(schema, options, mode)
   }
 
@@ -24,6 +25,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoOptions) extends Wr
         client.truncate()
       else
         client.createCollection()
+      client.shutdown()
       this
     } else {
       throw new AnalysisException(
