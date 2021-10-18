@@ -53,9 +53,6 @@ object ArangoOptions {
   val ENDPOINTS = "endpoints"
   val PROTOCOL = "protocol"
 
-  // To use SSL, set "ssl.enabled" to "true" and either:
-  // - provide base64 encoded certificate as "ssl.cert.value" configuration entry and optionally set "ssl.*", or
-  // - start executors jvm with properly configured default TrustStore
   val SSL_ENABLED = "ssl.enabled"
 
   // Base64 encoded certificate

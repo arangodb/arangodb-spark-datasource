@@ -9,13 +9,19 @@ There are 2 variants of this library, each one compatible with different Spark a
 
 In the following sections the placeholder `${sparkVersion}` refers to one of the values above.
 
-## Build instructions
+
+## Distribution
+
+Snapshot packages are available on [GH packages](https://github.com/orgs/arangodb/packages?repo_name=arangodb-spark-datasource).
+Alternatively the project can be built locally:
 
 ```shell
 mvn -Pspark-${sparkVersion} -DskipTests=true install
 ```
 
-## Use in local maven project
+## Setup 
+
+In local maven projects:
 
 ```xml
 
@@ -29,17 +35,40 @@ mvn -Pspark-${sparkVersion} -DskipTests=true install
 </dependencies>
 ```
 
-## External Spark cluster
-
-Submit your application with the following parameter:
+To use in external Spark cluster, submit your application with the following parameter:
 
 ```shell
 --jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.8-SNAPSHOT-jar-with-dependencies.jar"
 ```
 
+## General Configuration
+
+- `user`: db user, default `root`
+- `password`: db password
+- `endpoints`: list of coordinators, eg. `c1:8529,c2:8529`
+- `acquire-host-list`: acquire the list of all known hosts in the cluster (`true`|`false`), default `false`
+- `protocol`: communication protocol (`vst`|`http`), default `vst`
+- `content-type`: content type for driver communication (`json`|`vpack`), default `vpack`
+- `ssl.enabled`: ssl secured driver connection (`true`|`false`), default `false`
+- `ssl.cert.value`: base64 encoded certificate
+- `ssl.cert.type`: certificate type, default `X.509`
+- `ssl.cert.alias`: certificate alias name, default `arangodb`
+- `ssl.algorithm`: trust manager algorithm, default `SunX509`
+- `ssl.keystore.type`: keystore type, default `jks`
+- `ssl.protocol`: SSLContext protocol, default `TLS`
+- `database`: database name, default `_system`
+- `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
+
+### SSL
+
+To use TLS secured connections to ArangoDB, set `ssl.enabled` to `true` and either:
+- start Spark driver and workers with properly configured JVM default TrustStore, see [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
+- provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
+
+
 ## Batch Read
 
-Batch read implements columns pruning and filters pushdowns.
+The connector implements support to batch reading from ArangoDB collection. 
 
 ```scala
 val df: DataFrame = spark.read
@@ -48,6 +77,19 @@ val df: DataFrame = spark.read
   .schema(schema) // StructType
   .load()
 ```
+
+The connector can read data either from:
+- a collection
+- an AQL cursor (query specified by the user)
+
+When reading data from a collection, the reading job is split into many parallelizable tasks, one for each shard in the 
+ArangoDB source collection. The resulting Spark dataframe has the same number of partitions, each one containing the data 
+of the respective collection shard. The reading tasks are load balanced across all the available ArangoDB coordinators 
+and each task will hit only one db server: the one holding the related shard.
+
+When reading data from an AQL cursor, the reading job cannot be neither partitioned nor parallelized. This mode can be 
+used for data coming from different tables, i.e. resulting from an AQL traversal query. It should not be used for 
+fetching a lot of data.
 
 Example:
 
@@ -83,7 +125,54 @@ val df: DataFrame = spark.read
 usersDF.filter(col("birthday") === "1982-12-15").show()
 ```
 
-## Batch Write (under development)
+
+### Read Configuration
+
+- `table`: datasource ArangoDB collection name (ignored if `query` is specified)
+- `query`: custom AQL read query. If set, `table` will be ignored.
+- `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
+- `batch.size`: reading batch size, default `1000`
+- `cache`: whether the AQL query results cache shall be used (`true`|`false`)
+- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`), since ArangoDB 3.8.1
+
+
+### Predicate and Projection Pushdown
+
+The connector can convert some Spark SQL filters predicates into AQL predicates and push their execution down to the data source.
+In this way, ArangoDB can apply the filters and return only the matching documents.
+
+The following filter predicates (implementations of `org.apache.spark.sql.sources.Filter`) are pushed down:
+- `And`
+- `Or`
+- `Not`
+- `EqualTo`
+- `EqualNullSafe`
+- `IsNull`
+- `IsNotNull`
+- `GreaterThan`
+- `GreaterThanOrEqualFilter`
+- `LessThan`
+- `LessThanOrEqualFilter`
+- `StringStartsWithFilter`
+- `StringEndsWithFilter`
+- `StringContainsFilter`
+- `InFilter`
+
+Furthermore, the connector will push down also the subset of columns required by the Spark SQL query, so that only the
+relevant documents fields will be returned.
+
+Predicate and projection pushdown can greatly improve query performance by reducing the amount of data transferred between ArangoDB and Spark.
+
+
+### Read Resiliency
+
+The data of each partition is read using an AQL cursor. If any error occurs the read task of the related partition will
+fail. According to the Spark configuration, the task could be retried and rescheduled on a different executor.
+
+
+## Batch Write
+
+The connector implements support to batch writing to ArangoDB collection.
 
 ```scala
 import org.apache.spark.sql.DataFrame
@@ -100,34 +189,14 @@ df.write
   .save()
 ```
 
-## Configuration
+Write tasks are load balanced across the available ArangoDB coordinators. The data saved into the ArangoDB is sharded 
+according to the related target collection definition and is different from the Spark dataframe partitioning.
 
-- `user`: db user, default `root`
-- `password`: db password
-- `endpoints`: list of coordinators, eg. `c1:8529,c2:8529`
-- `acquire-host-list`: acquire the list of all known hosts in the cluster (`true`|`false`), default `false`
-- `protocol`: communication protocol (`vst`|`http`), default `vst`
-- `content-type`: content type for driver communication (`json`|`vpack`), default `vpack`
-- `ssl.enabled`: ssl secured driver connection (`true`|`false`), default `false`
-- `ssl.cert.value`: base64 encoded certificate
-- `ssl.cert.type`: certificate type, default `X.509`
-- `ssl.cert.alias`: certificate alias name, default `arangodb`
-- `ssl.algorithm`: trust manager algorithm, default `SunX509`
-- `ssl.keystore.type`: keystore type, default `jks`
-- `ssl.protocol`: SSLContext protocol, default `TLS`
-- `database`: database name, default `_system`
-- `table`: collection name (ignored if `query` is specified)
-- `batch.size`: batch size (for reading and writing), default `1000`
-- `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
 
-### read parameters
-- `query`: custom AQL read query. This should be used for data coming from different tables, i.e. resulting from an AQL
-  traversal query. In this case the data will not be partitioned, so this should not be used for fetching a lot of data.
-- `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
-- `cache`: whether the AQL query results cache shall be used (`true`|`false`)
-- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`), since ArangoDB 3.8.1
+### Write Configuration
 
-### write parameters
+- `table`: target ArangoDB collection name
+- `batch.size`: writing batch size, default `1000`
 - `wait.sync`: whether to wait until the documents have been synced to disk (`true`|`false`)
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
 - `overwrite.mode`: configures the behavior in case a document with the specified `_key` value exists already
@@ -141,7 +210,8 @@ df.write
   - `true`: objects will be merged
   - `false`: existing document fields will be overwritten
 
-## SaveMode
+
+### SaveMode
 
 On writing, `org.apache.spark.sql.SaveMode` is used to specify the expected behavior in case the target collection 
 already exists.  
@@ -161,61 +231,54 @@ Use `overwrite.mode` write configuration parameter to specify the documents over
 the same `_key` already exists).
 
 
-## Resiliency considerations
+### Write Resiliency
 
-Prefer using idempotent `overwrite.mode` configurations that allow retrying batch writing requests, such as:
-- `overwrite.mode=replace`
-- `overwrite.mode=ignore`
-- `overwrite.mode=update`
+The data of each partition is saved in batches using ArangoDB API for inserting multiple documents ([create multiple documents](https://www.arangodb.com/docs/stable/http/document-working-with-documents.html#create-multiple-documents)).
+This operation is not atomic, therefore some documents could be successfully written to the database, while others could
+fail. To makes the job more resilient to temporary errors (i.e. connectivity problems), in case of failure the request 
+will be retried (with another coordinator) if the configured `overwrite.mode` allows for idempotent requests, namely: 
+- `replace`
+- `ignore`
+- `update`
+These configurations of `overwrite.mode` would also be compatible with speculative execution of tasks.
 
-In these modes, the requests will be retried to another coordinator in case of exceptions. This makes the job more 
-resilient to temporary errors (i.e. connectivity problems).
- 
-This would also be compatible with speculative execution of tasks.
+A failing batch-saving request is retried at most once for every coordinator. After that, if still failing, the write 
+task for the related partition is aborted. According to the Spark configuration, the task could be retried and 
+rescheduled on a different executor, if the `overwrite.mode` allows for idempotent requests (as above).
+
+If a task ultimately fails and is aborted, the entire write job will be aborted as well. Depending on the `SaveMode` 
+configuration, the following cleanup operations will be performed:
+- `SaveMode.Append`: no cleanup is performed and the underlying data source may require manual cleanup. `DataWriteAbortException` is thrown.
+- `SaveMode.Overwrite`: the target collection will be truncated
+- `SaveMode.ErrorIfExists`: the target collection will be dropped
+- `SaveMode.Ignore`: if the collection did not exist before it will be dropped, nothing otherwise
 
 
-## Limitations
+### Write Limitations
 
 - Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some documents 
   in the batch may be written and some others may return an exception (i.e. due to conflicting key). 
 - In case of `SaveMode.Append`, failed jobs cannot be rolled back and the underlying data source may require manual cleanup.
-- Speculative execution of tasks would only work for idempotent `overwrite.mode` configurations (see [Resiliency considerations](#resiliency-considerations)).
+- Speculative execution of tasks would only work for idempotent `overwrite.mode` configurations (see [Write Resiliency](#write-resiliency)).
 
-
-## Implemented filter pushdowns
-
-- `and`
-- `or`
-- `not`
-- `equalTo`
-- `equalNullSafe`
-- `isNull`
-- `isNotNull`
-- `greaterThan`
-- `greaterThanOrEqualFilter`
-- `lessThan`
-- `lessThanOrEqualFilter`
-- `stringStartsWithFilter`
-- `stringEndsWithFilter`
-- `stringContainsFilter`
-- `inFilter`
 
 ## Supported Spark data types
 
-- `Date`
-- `Timestamp`
-- `String`
-- `Boolean`
-- `Float`
-- `Double`
-- `Integer`
-- `Long`
-- `Short`
-- `Null`
-- `Array`
-- `Struct`
+The following Spark SQL data types (subtypes of `org.apache.spark.sql.types.Filter`) are supported for reading, writing and filter pushdown:
+- `DateType`
+- `TimestampType`
+- `StringType`
+- `BooleanType`
+- `FloatType`
+- `DoubleType`
+- `IntegerType`
+- `LongType`
+- `ShortType`
+- `NullType`
+- `ArrayType`
+- `StructType`
+
 
 ## Demo
 
 [demo](./demo)
-[tests](./integration-tests/src/test/scala)
