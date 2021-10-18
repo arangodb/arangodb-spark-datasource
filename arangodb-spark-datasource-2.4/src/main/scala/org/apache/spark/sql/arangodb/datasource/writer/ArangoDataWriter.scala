@@ -1,6 +1,5 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
-import com.arangodb.ArangoDBException
 import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
@@ -89,7 +88,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
       client.saveDocuments(payload)
       failures = 0
     } catch {
-      case e: ArangoDBException =>
+      case e: Exception =>
         // TODO: log warn e
         client.shutdown()
         failures += 1
