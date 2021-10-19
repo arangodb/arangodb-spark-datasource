@@ -1,6 +1,6 @@
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object Demo {
   def main(args: Array[String]): Unit = {
@@ -9,31 +9,51 @@ object Demo {
       .getOrCreate()
 
     val options = Map(
-      "database" -> "sparkConnectorTest",
       "user" -> "root",
       "password" -> "test",
       "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
     )
 
-    val usersDF: DataFrame = spark.read
+    val schema = new StructType(
+      Array(
+        StructField("likes", ArrayType(StringType)),
+        StructField("birthday", DateType),
+        StructField("gender", StringType),
+        StructField("name", StructType(
+          Array(
+            StructField("first", StringType),
+            StructField("last", StringType)
+          )
+        )),
+        StructField("contact", StructType(
+          Array(
+            StructField("address", StructType(
+              Array(
+                StructField("city", StringType),
+                StructField("state", StringType),
+                StructField("street", StringType),
+                StructField("zip", StringType)
+              )
+            ))
+          )
+        ))
+      )
+    )
+
+    val usersDF = spark.read
       .format("org.apache.spark.sql.arangodb.datasource")
       .options(options + ("table" -> "users"))
-      .schema(new StructType(
-        Array(
-          StructField("likes", ArrayType(StringType, containsNull = false)),
-          StructField("birthday", DateType, nullable = true),
-          StructField("gender", StringType, nullable = false),
-          StructField("name", StructType(
-            Array(
-              StructField("first", StringType, nullable = true),
-              StructField("last", StringType, nullable = false)
-            )
-          ), nullable = true)
-        )
-      ))
+      .schema(schema)
       .load()
+    usersDF.show()
+    usersDF.printSchema()
+    usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "1944-06-19").show()
 
-    usersDF.filter(col("birthday") === "1982-12-15").show()
+    // Spark SQL
+    usersDF.createOrReplaceTempView("users")
+    val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
+    californians.show()
+    californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 
     spark.stop()
   }

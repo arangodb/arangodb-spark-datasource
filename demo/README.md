@@ -9,7 +9,16 @@ export ARANGO_SPARK_VERSION=0.0.8-SNAPSHOT
 Start ArangoDB cluster:
 
 ```shell
-./docker/start_db_cluster.sh docker.io/arangodb/arangodb:3.7.12
+STARTER_MODE=cluster ./docker/start_db.sh
+```
+
+Import users sample data:
+
+```shell
+curl -u root:test http://172.17.0.1:8529/_api/collection -d '{"name": "users", "numberOfShards": 6}'
+docker run --rm -v $(pwd)/docker/import:/import arangodb \
+  arangoimport --server.endpoint=http+tcp://172.17.0.1:8529 --server.password=test \
+  --file "/import/users/users.json" --type json --collection "users"
 ```
 
 ## Spark 2.4
@@ -23,7 +32,7 @@ Start Spark cluster:
 Build the project (with Java 8):
 
 ```shell
-mvn -Pspark-2.4 package
+mvn -Pspark-2.4 -DskipTests=true package
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published 
@@ -43,16 +52,32 @@ docker run -it --rm \
 Run sample code:
 
 ```scala
-  val options = Map(
-  "database" -> "sparkConnectorTest",
+val options = Map(
   "user" -> "root",
   "password" -> "test",
-  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549",
-  "table" -> "users"
+  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
 )
-val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options).load()
+val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
 usersDF.show()
+usersDF.printSchema()
 usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "1944-06-19").show()
+
+// Spark SQL
+usersDF.createOrReplaceTempView("users")
+val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
+californians.show()
+californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
+```
+
+Run Spark SQL:
+
+```shell
+docker run -it --rm \
+  -v $(pwd):/arangodb-spark-datasource \
+  --network arangodb \
+  bde2020/spark-base:2.4.5-hadoop2.7 \
+  ./spark/bin/spark-sql --master spark://spark-master:7077 \
+    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
 ```
 
 Submit demo program:
@@ -78,7 +103,7 @@ Start Spark cluster:
 Build the project:
 
 ```shell
-mvn -Pspark-3.1 package
+mvn -Pspark-3.1 -DskipTests=true package
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published
@@ -98,16 +123,21 @@ docker run -it --rm \
 Run sample code:
 
 ```scala
-  val options = Map(
-  "database" -> "sparkConnectorTest",
+val options = Map(
   "user" -> "root",
   "password" -> "test",
-  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549",
-  "table" -> "users"
+  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
 )
-val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options).load()
+val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
 usersDF.show()
+usersDF.printSchema()
 usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "1944-06-19").show()
+
+// Spark SQL
+usersDF.createOrReplaceTempView("users")
+val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
+californians.show()
+californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 ```
 
 Submit demo program:
@@ -120,21 +150,4 @@ docker run -it --rm \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
     --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
     --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
-```
-
-## CONNECT TO OASIS
-
-To connect to SSL secured deployments using X.509 base64 encoded CA certificate (Oasis):
-
-```scala
-  val options = Map(
-  "database" -> "<dbname>",
-  "user" -> "root",
-  "password" -> "<passwd>",
-  "endpoints" -> "<endpoint>:18529",
-  "ssl.cert.value" -> "<base64 encoded CA certificate>",
-  "ssl.enabled" -> "true",
-  "table" -> "<table>"
-)
-val myDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options).load()
 ```

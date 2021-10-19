@@ -12,7 +12,8 @@ In the following sections the placeholder `${sparkVersion}` refers to one of the
 
 ## Distribution
 
-Snapshot packages are available on [GH packages](https://github.com/orgs/arangodb/packages?repo_name=arangodb-spark-datasource).
+Snapshot packages are available on 
+[GH packages](https://github.com/orgs/arangodb/packages?repo_name=arangodb-spark-datasource).
 Alternatively the project can be built locally:
 
 ```shell
@@ -62,7 +63,8 @@ To use in external Spark cluster, submit your application with the following par
 ### SSL
 
 To use TLS secured connections to ArangoDB, set `ssl.enabled` to `true` and either:
-- start Spark driver and workers with properly configured JVM default TrustStore, see [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
+- start Spark driver and workers with properly configured JVM default TrustStore, see 
+  [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
 - provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 
 
@@ -83,9 +85,9 @@ The connector can read data either from:
 - an AQL cursor (query specified by the user)
 
 When reading data from a collection, the reading job is split into many parallelizable tasks, one for each shard in the 
-ArangoDB source collection. The resulting Spark dataframe has the same number of partitions, each one containing the data 
-of the respective collection shard. The reading tasks are load balanced across all the available ArangoDB coordinators 
-and each task will hit only one db server: the one holding the related shard.
+ArangoDB source collection. The resulting Spark dataframe has the same number of partitions, each one containing the 
+data of the respective collection shard. The reading tasks are load balanced across all the available ArangoDB 
+coordinators and each task will hit only one db server: the one holding the related shard.
 
 When reading data from an AQL cursor, the reading job cannot be neither partitioned nor parallelized. This mode can be 
 used for data coming from different tables, i.e. resulting from an AQL traversal query. It should not be used for 
@@ -133,13 +135,14 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `batch.size`: reading batch size, default `1000`
 - `cache`: whether the AQL query results cache shall be used (`true`|`false`)
-- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`), since ArangoDB 3.8.1
+- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`), since 
+  ArangoDB 3.8.1
 
 
 ### Predicate and Projection Pushdown
 
-The connector can convert some Spark SQL filters predicates into AQL predicates and push their execution down to the data source.
-In this way, ArangoDB can apply the filters and return only the matching documents.
+The connector can convert some Spark SQL filters predicates into AQL predicates and push their execution down to the 
+data source. In this way, ArangoDB can apply the filters and return only the matching documents.
 
 The following filter predicates (implementations of `org.apache.spark.sql.sources.Filter`) are pushed down:
 - `And`
@@ -161,7 +164,8 @@ The following filter predicates (implementations of `org.apache.spark.sql.source
 Furthermore, the connector will push down also the subset of columns required by the Spark SQL query, so that only the
 relevant documents fields will be returned.
 
-Predicate and projection pushdown can greatly improve query performance by reducing the amount of data transferred between ArangoDB and Spark.
+Predicate and projection pushdown can greatly improve query performance by reducing the amount of data transferred 
+between ArangoDB and Spark.
 
 
 ### Read Resiliency
@@ -218,14 +222,17 @@ already exists.
 
 Spark 2.4 implementation supports all save modes with the following semantics:
 - `Append`: the target collection is created if it does not exist
-- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with `confirm.truncate` write configuration parameter.
+- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with 
+  `confirm.truncate` write configuration parameter.
 - `ErrorIfExists`: the target collection is created if it does not exist, an `AnalysisException` is thrown otherwise 
 - `Ignore`: the target collection is created if it does not exist, no write is performed otherwise
 
 Spark 3.1 implementation supports:
 - `Append`: the target collection is created if it does not exist
-- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with `confirm.truncate` write configuration parameter.
-The other `SaveMode` values (`ErrorIfExists` and `Ignore`) behave the same as `Append`.
+- `Overwrite`: the target collection is created if it does not exist, it is truncated otherwise. Use in combination with
+  `confirm.truncate` write configuration parameter.
+
+`SaveMode.ErrorIfExists` and `SaveMode.Ignore` behave the same as `SaveMode.Append`.
 
 Use `overwrite.mode` write configuration parameter to specify the documents overwrite behavior (in case a document with 
 the same `_key` already exists).
@@ -233,7 +240,8 @@ the same `_key` already exists).
 
 ### Write Resiliency
 
-The data of each partition is saved in batches using ArangoDB API for inserting multiple documents ([create multiple documents](https://www.arangodb.com/docs/stable/http/document-working-with-documents.html#create-multiple-documents)).
+The data of each partition is saved in batches using ArangoDB API for inserting multiple documents
+([create multiple documents](https://www.arangodb.com/docs/stable/http/document-working-with-documents.html#create-multiple-documents)).
 This operation is not atomic, therefore some documents could be successfully written to the database, while others could
 fail. To makes the job more resilient to temporary errors (i.e. connectivity problems), in case of failure the request 
 will be retried (with another coordinator) if the configured `overwrite.mode` allows for idempotent requests, namely: 
@@ -248,7 +256,8 @@ rescheduled on a different executor, if the `overwrite.mode` allows for idempote
 
 If a task ultimately fails and is aborted, the entire write job will be aborted as well. Depending on the `SaveMode` 
 configuration, the following cleanup operations will be performed:
-- `SaveMode.Append`: no cleanup is performed and the underlying data source may require manual cleanup. `DataWriteAbortException` is thrown.
+- `SaveMode.Append`: no cleanup is performed and the underlying data source may require manual cleanup. 
+  `DataWriteAbortException` is thrown.
 - `SaveMode.Overwrite`: the target collection will be truncated
 - `SaveMode.ErrorIfExists`: the target collection will be dropped
 - `SaveMode.Ignore`: if the collection did not exist before it will be dropped, nothing otherwise
@@ -256,15 +265,18 @@ configuration, the following cleanup operations will be performed:
 
 ### Write Limitations
 
-- Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some documents 
-  in the batch may be written and some others may return an exception (i.e. due to conflicting key). 
-- In case of `SaveMode.Append`, failed jobs cannot be rolled back and the underlying data source may require manual cleanup.
-- Speculative execution of tasks would only work for idempotent `overwrite.mode` configurations (see [Write Resiliency](#write-resiliency)).
+- Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some 
+  documents in the batch may be written and some others may return an exception (i.e. due to conflicting key). 
+- In case of `SaveMode.Append`, failed jobs cannot be rolled back and the underlying data source may require manual 
+  cleanup.
+- Speculative execution of tasks would only work for idempotent `overwrite.mode` configurations 
+  (see [Write Resiliency](#write-resiliency)).
 
 
 ## Supported Spark data types
 
-The following Spark SQL data types (subtypes of `org.apache.spark.sql.types.Filter`) are supported for reading, writing and filter pushdown:
+The following Spark SQL data types (subtypes of `org.apache.spark.sql.types.Filter`) are supported for reading, writing 
+and filter pushdown:
 - `DateType`
 - `TimestampType`
 - `StringType`
@@ -277,6 +289,37 @@ The following Spark SQL data types (subtypes of `org.apache.spark.sql.types.Filt
 - `NullType`
 - `ArrayType`
 - `StructType`
+
+
+## Connect to ArangoDB Oasis
+
+To connect to SSL secured deployments using X.509 base64 encoded CA certificate (Oasis):
+
+```scala
+  val options = Map(
+  "database" -> "<dbname>",
+  "user" -> "<username>",
+  "password" -> "<passwd>",
+  "endpoints" -> "<endpoint>:<port>",
+  "ssl.cert.value" -> "<base64 encoded CA certificate>",
+  "ssl.enabled" -> "true",
+  "table" -> "<table>"
+)
+
+// read
+val myDF = spark.read
+        .format("org.apache.spark.sql.arangodb.datasource")
+        .options(options)
+        .load()
+
+// write
+import org.apache.spark.sql.DataFrame
+val df: DataFrame = //...
+df.write
+          .format("org.apache.spark.sql.arangodb.datasource")
+          .options(options)
+          .save()
+```
 
 
 ## Demo
