@@ -46,7 +46,7 @@ To use in external Spark cluster, submit your application with the following par
 
 - `user`: db user, default `root`
 - `password`: db password
-- `endpoints`: list of coordinators, eg. `c1:8529,c2:8529`
+- `endpoints`: list of coordinators, eg. `c1:8529,c2:8529` (required)
 - `acquire-host-list`: acquire the list of all known hosts in the cluster (`true`|`false`), default `false`
 - `protocol`: communication protocol (`vst`|`http`), default `http`
 - `content-type`: content type for driver communication (`json`|`vpack`), default `vpack`
@@ -130,8 +130,8 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 
 ### Read Configuration
 
-- `table`: datasource ArangoDB collection name (ignored if `query` is specified)
-- `query`: custom AQL read query. If set, `table` will be ignored.
+- `table`: datasource ArangoDB collection name, ignored if `query` is specified. Either `table` or `query` is required.
+- `query`: custom AQL read query. If set, `table` will be ignored. Either `table` or `query` is required.
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `batch.size`: reading batch size, default `1000`
 - `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`)
@@ -197,7 +197,7 @@ according to the related target collection definition and is different from the 
 
 ### Write Configuration
 
-- `table`: target ArangoDB collection name
+- `table`: target ArangoDB collection name (required)
 - `batch.size`: writing batch size, default `1000`
 - `wait.sync`: whether to wait until the documents have been synced to disk (`true`|`false`)
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`
