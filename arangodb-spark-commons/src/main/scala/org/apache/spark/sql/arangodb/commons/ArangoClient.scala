@@ -21,7 +21,6 @@ class ArangoClient(options: ArangoOptions) {
   private def aqlOptions(): AqlQueryOptions = {
     val opt = new AqlQueryOptions().stream(true)
     options.readOptions.fillBlockCache.foreach(opt.fillBlockCache(_))
-    options.readOptions.cache.foreach(opt.cache(_))
     options.readOptions.batchSize.foreach(opt.batchSize(_))
     opt
   }

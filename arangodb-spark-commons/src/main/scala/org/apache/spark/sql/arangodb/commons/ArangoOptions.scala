@@ -84,7 +84,6 @@ object ArangoOptions {
   // read options
   val QUERY = "query"
   val SAMPLE_SIZE = "sample.size"
-  val CACHE = "cache"
   val FILL_BLOCK_CACHE = "fill.cache"
 
   // write options
@@ -172,7 +171,6 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
     else if (collection.isDefined) ReadMode.Collection
     else throw new IllegalArgumentException("Either collection or query must be defined")
   val arangoTopology: ArangoTopology = ArangoTopology(options.getOrElse(ArangoOptions.TOPOLOGY, "cluster"))
-  val cache: Option[Boolean] = options.get(ArangoOptions.CACHE).map(_.toBoolean)
   val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
 }
 

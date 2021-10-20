@@ -134,9 +134,7 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 - `query`: custom AQL read query. If set, `table` will be ignored.
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `batch.size`: reading batch size, default `1000`
-- `cache`: whether the AQL query results cache shall be used (`true`|`false`)
-- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`), since 
-  ArangoDB 3.8.1
+- `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`)
 
 
 ### Predicate and Projection Pushdown
