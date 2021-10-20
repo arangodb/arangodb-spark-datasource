@@ -21,6 +21,8 @@ class ArangoBatchWriter(schema: StructType, options: ArangoOptions, mode: SaveMo
       case SaveMode.Append => throw new DataWriteAbortException(
         "Cannot abort with SaveMode.Append: the underlying data source may require manual cleanup.")
       case SaveMode.Overwrite => client.truncate()
+      case SaveMode.ErrorIfExists => ???
+      case SaveMode.Ignore => ???
     }
     client.shutdown()
   }
