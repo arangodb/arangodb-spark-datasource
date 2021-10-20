@@ -48,7 +48,7 @@ To use in external Spark cluster, submit your application with the following par
 - `password`: db password
 - `endpoints`: list of coordinators, eg. `c1:8529,c2:8529`
 - `acquire-host-list`: acquire the list of all known hosts in the cluster (`true`|`false`), default `false`
-- `protocol`: communication protocol (`vst`|`http`), default `vst`
+- `protocol`: communication protocol (`vst`|`http`), default `http`
 - `content-type`: content type for driver communication (`json`|`vpack`), default `vpack`
 - `ssl.enabled`: ssl secured driver connection (`true`|`false`), default `false`
 - `ssl.cert.value`: base64 encoded certificate

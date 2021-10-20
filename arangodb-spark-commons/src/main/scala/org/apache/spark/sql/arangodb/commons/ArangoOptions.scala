@@ -100,7 +100,7 @@ object ArangoOptions {
 }
 
 class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
-  private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "vst"))
+  private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "http"))
   private val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
   private val arangoProtocol = (protocol, contentType) match {
     case (Protocol.VST, ContentType.VPack) => com.arangodb.Protocol.VST
