@@ -84,6 +84,7 @@ object ArangoOptions {
   val QUERY = "query"
   val SAMPLE_SIZE = "sample.size"
   val FILL_BLOCK_CACHE = "fill.cache"
+  val STREAM = "stream"
 
   // write options
   val WAIT_FOR_SYNC = "wait.sync"
@@ -170,6 +171,7 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
     else if (collection.isDefined) ReadMode.Collection
     else throw new IllegalArgumentException("Either collection or query must be defined")
   val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
+  val stream: Boolean = options.getOrElse(ArangoOptions.STREAM, "true").toBoolean
 }
 
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {

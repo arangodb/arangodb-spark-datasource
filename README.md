@@ -139,6 +139,7 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 - `sample.size`: sample size prefetched for schema inference, only used if read schema is not provided, default `1000`
 - `batch.size`: reading batch size, default `1000`
 - `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`)
+- `stream`: whether the query should be executed lazily, default `true`
 
 
 ### Predicate and Projection Pushdown

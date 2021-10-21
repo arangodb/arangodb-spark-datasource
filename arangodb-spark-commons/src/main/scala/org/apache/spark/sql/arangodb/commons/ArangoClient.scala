@@ -19,7 +19,7 @@ import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapCo
 class ArangoClient(options: ArangoOptions) {
 
   private def aqlOptions(): AqlQueryOptions = {
-    val opt = new AqlQueryOptions().stream(true)
+    val opt = new AqlQueryOptions().stream(options.readOptions.stream)
     options.readOptions.fillBlockCache.foreach(opt.fillBlockCache(_))
     options.readOptions.batchSize.foreach(opt.batchSize(_))
     opt
