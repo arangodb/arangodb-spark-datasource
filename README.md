@@ -174,7 +174,7 @@ between ArangoDB and Spark.
 ### Read Resiliency
 
 The data of each partition is read using an AQL cursor. If any error occurs the read task of the related partition will
-fail. According to the Spark configuration, the task could be retried and rescheduled on a different executor.
+fail. Depending on the Spark configuration, the task could be retried.
 
 
 ## Batch Write

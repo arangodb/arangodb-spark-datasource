@@ -48,13 +48,14 @@ object BaseSparkTest {
   private val database = "sparkConnectorTest"
   private val user = "root"
   private val password = "test"
-  private val endpoints = "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
+  val endpoints = "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = new ArangoDB.Builder()
     .user(user)
     .password(password)
     .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
     .serializer(new ArangoJack() {
+      //noinspection ConvertExpressionToSAM
       configure(new ArangoJack.ConfigureFunction {
         override def configure(mapper: ObjectMapper): Unit = mapper
           .registerModule(DefaultScalaModule)
