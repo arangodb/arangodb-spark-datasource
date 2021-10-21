@@ -130,10 +130,11 @@ class ArangoClient(options: ArangoOptions) {
     options.writeOptions.waitForSync.foreach(request.putQueryParam("waitForSync", _))
     options.writeOptions.overwriteMode.foreach(it => {
       request.putQueryParam("overwriteMode", it)
-      if (it == OverwriteMode.update)
-        request.putQueryParam("keepNull", true)
+      if (it == OverwriteMode.update) {
+        request.putQueryParam("keepNull", options.writeOptions.keepNull)
+        options.writeOptions.mergeObjects.foreach(request.putQueryParam("mergeObjects", _))
+      }
     })
-    options.writeOptions.mergeObjects.foreach(request.putQueryParam("mergeObjects", _))
 
     request.setBody(data)
     val response = arangoDB.execute(request)

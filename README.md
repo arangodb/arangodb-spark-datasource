@@ -210,13 +210,16 @@ according to the related target collection definition and is different from the 
   - `ignore`: it will not be written
   - `replace`: it will be overwritten with the specified document value
   - `update`: it will be patched (partially updated) with the specified document value. The overwrite mode can be 
-    further controlled via the `merge.objects` parameter. Null values are kept in the saved documents and not used to
-    remove existing document fields (as for default ArangoDB upsert behavior).
+    further controlled via the `keep.null` and `merge.objects` parameter. `keep.null` will also be automatically set to
+    `true`, so that null values are kept in the saved documents and not used to remove existing document fields (as for 
+    default ArangoDB upsert behavior).
   - `conflict`: return a unique constraint violation error so that the insert operation fails
 - `merge.objects`: in case `overwrite.mode` is set to `update`, controls whether objects (not arrays) will be merged.
   - `true`: objects will be merged
   - `false`: existing document fields will be overwritten
-
+- `keep.null`: in case `overwrite.mode` is set to `update`
+  - `true`: `null` values are saved within the document (default)
+  - `false`: `null` values are used to delete corresponding existing attributes
 
 ### SaveMode
 

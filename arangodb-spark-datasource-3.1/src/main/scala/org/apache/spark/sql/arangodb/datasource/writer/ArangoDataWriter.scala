@@ -47,7 +47,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
           |Task cannot be retried. Consider using one of the following:
           |- OverwriteMode.ignore
           |- OverwriteMode.replace
-          |- OverwriteMode.update
+          |- OverwriteMode.update and keepNull=true
           |to make batch writes idempotent, so that they can be retried."""
           .stripMargin.replaceAll("\n", " "))
   }
@@ -63,7 +63,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     else options.writeOptions.overwriteMode.get match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
-      case OverwriteMode.update => true
+      case OverwriteMode.update => options.writeOptions.keepNull
       case OverwriteMode.conflict => false
     }
 
