@@ -270,6 +270,7 @@ configuration, the following cleanup operations will be performed:
 
 - Batch writes are not performed atomically, so in some cases (i.e. in case of `overwrite.mode: conflict`) some 
   documents in the batch may be written and some others may return an exception (i.e. due to conflicting key). 
+- Writing records with `_key` attribute is only allowed on collections sharded by `_key`. 
 - In case of `SaveMode.Append`, failed jobs cannot be rolled back and the underlying data source may require manual 
   cleanup.
 - Speculative execution of tasks would only work for idempotent `overwrite.mode` configurations 
