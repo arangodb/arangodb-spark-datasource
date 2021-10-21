@@ -3,16 +3,32 @@ package org.apache.spark.sql.arangodb.datasource
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 class ReadTest extends BaseSparkTest {
 
-  @Test
-  def readCollection(): Unit = {
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def readCollection(protocol: String, contentType: String): Unit = {
+    // FIXME
+    assumeTrue(contentType != "json")
+
+    val df = spark.read
+      .format(BaseSparkTest.arangoDatasource)
+      .options(options + (
+        "table" -> "users",
+        "protocol" -> protocol,
+        "content-type" -> contentType
+      ))
+      .schema(BaseSparkTest.usersSchema)
+      .load()
+
+
     import spark.implicits._
-    val litalien = usersDF
+    val litalien = df
       .filter(col("name.first") === "Prudence")
       .filter(col("name.last") === "Litalien")
       .filter(col("birthday") === "1944-06-19")

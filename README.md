@@ -329,6 +329,11 @@ df.write
 ```
 
 
+## Known bugs
+
+- `content-type=json` does not work (implementation not finalized)
+
+
 ## Demo
 
 [demo](./demo)

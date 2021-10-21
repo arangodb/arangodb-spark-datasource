@@ -100,6 +100,20 @@ object BaseSparkTest {
     .config("spark.driver.host", "127.0.0.1")
     .getOrCreate()
 
+  val usersSchema = new StructType(
+    Array(
+      StructField("likes", ArrayType(StringType, containsNull = false)),
+      StructField("birthday", DateType, nullable = true),
+      StructField("gender", StringType, nullable = false),
+      StructField("name", StructType(
+        Array(
+          StructField("first", StringType, nullable = true),
+          StructField("last", StringType, nullable = false)
+        )
+      ), nullable = true)
+    )
+  )
+
   private lazy val usersDF: DataFrame = createDF("users",
     Seq(
       Map(
@@ -135,19 +149,7 @@ object BaseSparkTest {
         )
       )
     ),
-    new StructType(
-      Array(
-        StructField("likes", ArrayType(StringType, containsNull = false)),
-        StructField("birthday", DateType, nullable = true),
-        StructField("gender", StringType, nullable = false),
-        StructField("name", StructType(
-          Array(
-            StructField("first", StringType, nullable = true),
-            StructField("last", StringType, nullable = false)
-          )
-        ), nullable = true)
-      )
-    )
+    usersSchema
   )
 
   def createDF(name: String, docs: Iterable[Any], schema: StructType): DataFrame = {
