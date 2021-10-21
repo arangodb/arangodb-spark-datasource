@@ -37,6 +37,11 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
+  private def printAqlQuery(query: String, params: Map[String, AnyRef]): Unit = {
+    println(s"Executing AQL query: $query")
+    if (params.nonEmpty) println(s"with params: $params")
+  }
+
   def readCollectionPartition(shardId: String, ctx: PushDownCtx): ArangoCursor[VPackSlice] = {
     val query =
       s"""
@@ -45,43 +50,49 @@ class ArangoClient(options: ArangoOptions) {
          |RETURN ${PushdownUtils.generateColumnsFilter(ctx.requiredSchema, "d")}"""
         .stripMargin
         .replaceAll("\n", " ")
-
+    val params = Map[String, AnyRef]("@col" -> options.readOptions.collection.get)
+    val opts = aqlOptions().shardIds(shardId)
+    printAqlQuery(query, params)
     arangoDB
       .db(options.readOptions.db)
-      .query(query,
-        Map[String, AnyRef]("@col" -> options.readOptions.collection.get).asJava,
-        aqlOptions().shardIds(shardId),
+      .query(query, params.asJava, opts, classOf[VPackSlice])
+  }
+
+  def readQuery(): ArangoCursor[VPackSlice] = {
+    printAqlQuery(options.readOptions.query.get, Map.empty)
+    arangoDB
+      .db(options.readOptions.db)
+      .query(
+        options.readOptions.query.get,
+        aqlOptions(),
         classOf[VPackSlice])
   }
 
-  def readQuery(): ArangoCursor[VPackSlice] = arangoDB
-    .db(options.readOptions.db)
-    .query(
-      options.readOptions.query.get,
-      aqlOptions(),
-      classOf[VPackSlice])
+  def readCollectionSample(): util.List[String] = {
+    val query = "FOR d IN @@col LIMIT @size RETURN d"
+    val params = Map(
+      "@col" -> options.readOptions.collection.get,
+      "size" -> options.readOptions.sampleSize
+    )
+      .asInstanceOf[Map[String, AnyRef]]
+    val opts = aqlOptions()
+    printAqlQuery(query, params)
+    arangoDB
+      .db(options.readOptions.db)
+      .query(query, params.asJava, opts, classOf[String])
+      .asListRemaining()
+  }
 
-  def readCollectionSample(): util.List[String] = arangoDB
-    .db(options.readOptions.db)
-    .query(
-      "FOR d IN @@col LIMIT @size RETURN d",
-      Map(
-        "@col" -> options.readOptions.collection.get,
-        "size" -> options.readOptions.sampleSize
-      )
-        .asInstanceOf[Map[String, AnyRef]]
-        .asJava,
-      aqlOptions(),
-      classOf[String])
-    .asListRemaining()
-
-  def readQuerySample(): util.List[String] = arangoDB
-    .db(options.readOptions.db)
-    .query(
-      options.readOptions.query.get,
-      aqlOptions(),
-      classOf[String])
-    .asListRemaining()
+  def readQuerySample(): util.List[String] = {
+    printAqlQuery(options.readOptions.query.get, Map.empty)
+    arangoDB
+      .db(options.readOptions.db)
+      .query(
+        options.readOptions.query.get,
+        aqlOptions(),
+        classOf[String])
+      .asListRemaining()
+  }
 
   def collectionExists(): Boolean = arangoDB
     .db(options.writeOptions.db)
