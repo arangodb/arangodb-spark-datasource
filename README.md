@@ -58,7 +58,6 @@ To use in external Spark cluster, submit your application with the following par
 - `ssl.keystore.type`: keystore type, default `jks`
 - `ssl.protocol`: SSLContext protocol, default `TLS`
 - `database`: database name, default `_system`
-- `topology`: ArangoDB deployment topology (`single`|`cluster`), default `cluster`
 
 ### SSL
 
@@ -67,6 +66,9 @@ To use TLS secured connections to ArangoDB, set `ssl.enabled` to `true` and eith
   [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
 - provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 
+### Supported deployment topologies
+
+The connector can work with single server, cluster and active failover deployments of ArangoDB.
 
 ## Batch Read
 

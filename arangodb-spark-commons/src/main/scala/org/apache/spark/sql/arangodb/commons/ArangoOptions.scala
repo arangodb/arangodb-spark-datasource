@@ -79,7 +79,6 @@ object ArangoOptions {
   val BATCH_SIZE = "batch.size"
   val CONTENT_TYPE = "content-type"
   val ACQUIRE_HOST_LIST = "acquire-host-list"
-  val TOPOLOGY = "topology"
 
   // read options
   val QUERY = "query"
@@ -170,7 +169,6 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
     if (query.isDefined) ReadMode.Query
     else if (collection.isDefined) ReadMode.Collection
     else throw new IllegalArgumentException("Either collection or query must be defined")
-  val arangoTopology: ArangoTopology = ArangoTopology(options.getOrElse(ArangoOptions.TOPOLOGY, "cluster"))
   val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
 }
 
@@ -222,19 +220,5 @@ object Protocol {
     case "vst" => VST
     case "http" => HTTP
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
-  }
-}
-
-sealed trait ArangoTopology
-
-object ArangoTopology {
-  case object SINGLE extends ArangoTopology
-
-  case object CLUSTER extends ArangoTopology
-
-  def apply(value: String): ArangoTopology = value match {
-    case "single" => SINGLE
-    case "cluster" => CLUSTER
-    case _ => throw new IllegalArgumentException(s"${ArangoOptions.TOPOLOGY}: $value")
   }
 }

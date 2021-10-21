@@ -7,7 +7,7 @@ import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions, OverwriteMode}
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
-import com.arangodb.{ArangoCursor, ArangoDB}
+import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
@@ -147,9 +147,8 @@ object ArangoClient {
 
   def apply(options: ArangoOptions): ArangoClient = new ArangoClient(options)
 
-  def getCollectionShardIds(options: ArangoOptions): Array[String] = options.readOptions.arangoTopology match {
-    case ArangoTopology.SINGLE => Array("")
-    case ArangoTopology.CLUSTER =>
+  def getCollectionShardIds(options: ArangoOptions): Array[String] = {
+    try {
       val client = ArangoClient(options).arangoDB
       val res = client.execute(new Request(
         options.readOptions.db,
@@ -158,6 +157,11 @@ object ArangoClient {
       val shardIds: Array[String] = client.util().deserialize(res.getBody.get("shards"), classOf[Array[String]])
       client.shutdown()
       shardIds
+    } catch {
+      case e: ArangoDBException =>
+        if (e.getErrorNum == 9) Array("") // single server
+        else throw e
+    }
   }
 
   def acquireHostList(options: ArangoOptions): Iterable[String] = {
