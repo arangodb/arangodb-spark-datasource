@@ -5,5 +5,5 @@
 *.iml
 **/.idea/
 .directory
-/docker/jwtHeader
-/docker/jwtSecret
+**/docker/jwtHeader
+**/docker/jwtSecret

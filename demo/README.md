@@ -29,20 +29,30 @@ Start Spark cluster:
 ./docker/start_spark_2.4.sh 
 ```
 
-Build the project (with Java 8):
-
+Build `arangodb-spark-datasource` project (with Java 8):
 ```shell
-mvn -Pspark-2.4 -DskipTests=true package
+mvn -f ../pom.xml -Pspark-2.4 -DskipTests=true install
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published 
 [package](https://github.com/orgs/arangodb/packages?tab=packages&q=com.arangodb.arangodb-spark-datasource-2.4).
 
+
+Build the `demo` project (with Java 8):
+```shell
+mvn -Pspark-2.4 package
+```
+
+Run the Spark application in embedded mode:
+```shell
+mvn -Pspark-2.4 exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+```
+
 Run Spark Shell:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd):/arangodb-spark-datasource \
+  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
@@ -84,7 +94,7 @@ Submit demo program:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd):/arangodb-spark-datasource \
+  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
@@ -100,20 +110,30 @@ Start Spark cluster:
 ./docker/start_spark_3.1.sh 
 ```
 
-Build the project:
+Build `arangodb-spark-datasource` project:
 
 ```shell
-mvn -Pspark-3.1 -DskipTests=true package
+mvn -f ../pom.xml -Pspark-3.1 -DskipTests=true install
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published
 [package](https://github.com/orgs/arangodb/packages?tab=packages&q=com.arangodb.arangodb-spark-datasource-3.1).
 
+Build the `demo` project:
+```shell
+mvn -Pspark-3.1 package
+```
+
+Run the Spark application in embedded mode:
+```shell
+mvn -Pspark-3.1 exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+```
+
 Run Spark Shell:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd):/arangodb-spark-datasource \
+  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
@@ -144,7 +164,7 @@ Submit demo program:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd):/arangodb-spark-datasource \
+  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
