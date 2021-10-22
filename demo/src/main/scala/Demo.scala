@@ -6,6 +6,7 @@ object Demo {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder()
       .appName("arangodb-demo")
+      .master("local[*, 3]")
       .getOrCreate()
 
     val options = Map(

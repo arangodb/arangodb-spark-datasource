@@ -4,7 +4,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.0.9-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>ArangoDB Spark Connector</description>
 
@@ -12,7 +12,6 @@
         <module>arangodb-spark-commons</module>
         <module>arangodb-spark-datasource-${spark.compat.version}</module>
         <module>integration-tests</module>
-        <module>demo</module>
     </modules>
 
     <licenses>
@@ -35,115 +34,71 @@
         <profile>
             <id>spark-2.4</id>
             <properties>
-                <spark.version>2.4.8</spark.version>
                 <spark.compat.version>2.4</spark.compat.version>
                 <scala.version>2.11.12</scala.version>
                 <scala.compat.version>2.11</scala.compat.version>
-                <jackson.version>2.6.7</jackson.version>
-                <jackson.vpack.variant>_2.6</jackson.vpack.variant>
-                <jackson.vpack.version>0.0.1</jackson.vpack.version>
             </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_${scala.compat.version}</artifactId>
-                    <version>${spark.version}</version>
+                    <artifactId>spark-core_2.11</artifactId>
+                    <version>2.4.8</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_${scala.compat.version}</artifactId>
-                    <version>${spark.version}</version>
+                    <artifactId>spark-sql_2.11</artifactId>
+                    <version>2.4.8</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>com.arangodb</groupId>
-                    <artifactId>jackson-dataformat-velocypack${jackson.vpack.variant}</artifactId>
-                    <version>${jackson.vpack.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.fasterxml.jackson.module</groupId>
-                    <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+                    <artifactId>jackson-dataformat-velocypack_2.6</artifactId>
+                    <version>0.0.1</version>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.fasterxml.jackson</groupId>
-                        <artifactId>jackson-bom</artifactId>
-                        <version>${jackson.version}</version>
-                        <scope>import</scope>
-                        <type>pom</type>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
         <profile>
             <id>spark-3.1</id>
             <properties>
-                <spark.version>3.1.2</spark.version>
                 <spark.compat.version>3.1</spark.compat.version>
                 <scala.version>2.12.15</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
-                <jackson.version>2.12.3</jackson.version>
-                <jackson.vpack.variant/>
-                <jackson.vpack.version>2.0.0</jackson.vpack.version>
             </properties>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_${scala.compat.version}</artifactId>
-                    <version>${spark.version}</version>
+                    <artifactId>spark-core_2.12</artifactId>
+                    <version>3.1.2</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_${scala.compat.version}</artifactId>
-                    <version>${spark.version}</version>
+                    <artifactId>spark-sql_2.12</artifactId>
+                    <version>3.1.2</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>com.arangodb</groupId>
-                    <artifactId>jackson-dataformat-velocypack${jackson.vpack.variant}</artifactId>
-                    <version>${jackson.vpack.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.fasterxml.jackson.module</groupId>
-                    <artifactId>jackson-module-scala_${scala.compat.version}</artifactId>
+                    <artifactId>jackson-dataformat-velocypack</artifactId>
+                    <version>2.0.0</version>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.fasterxml.jackson</groupId>
-                        <artifactId>jackson-bom</artifactId>
-                        <version>${jackson.version}</version>
-                        <scope>import</scope>
-                        <type>pom</type>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
             <version>6.13.0</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -167,12 +122,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.opencypher</groupId>
-            <artifactId>morpheus-spark-cypher</artifactId>
-            <version>0.4.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

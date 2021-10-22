@@ -30,7 +30,7 @@ In local maven projects:
     <dependency>
         <groupId>com.arangodb</groupId>
         <artifactId>arangodb-spark-datasource-${sparkVersion}</artifactId>
-        <version>0.0.8-SNAPSHOT</version>
+        <version>0.0.9-SNAPSHOT</version>
     </dependency>
     <!-- ... -->
 </dependencies>
@@ -39,7 +39,7 @@ In local maven projects:
 To use in external Spark cluster, submit your application with the following parameter:
 
 ```shell
---jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.8-SNAPSHOT-jar-with-dependencies.jar"
+--jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.9-SNAPSHOT-jar-with-dependencies.jar"
 ```
 
 ## General Configuration

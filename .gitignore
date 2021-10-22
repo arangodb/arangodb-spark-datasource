@@ -3,7 +3,7 @@
 /target/
 **/target/
 *.iml
-/.idea/
+**/.idea/
 .directory
 /docker/jwtHeader
 /docker/jwtSecret
