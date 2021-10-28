@@ -329,9 +329,10 @@ df.write
 ```
 
 
-## Known bugs
+## Current limitations
 
 - `content-type=json` does not work (implementation not finalized)
+- on batch reading, bad records are not tolerated and will make the job fail 
 
 
 ## Demo
