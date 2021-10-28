@@ -22,6 +22,7 @@ class InFilterTest {
 
     // complex types
     StructField("array", ArrayType(StringType)),
+    StructField("intMap", MapType(StringType, IntegerType)),
     StructField("null", NullType),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
@@ -50,7 +51,7 @@ class InFilterTest {
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.PARTIAL)
-    val quotedValues = values.map(v=>s""""$v"""")
+    val quotedValues = values.map(v => s""""$v"""")
     assertThat(filter.aql("d"))
       .isEqualTo(s"""LENGTH([${quotedValues.mkString(",")}][* FILTER DATE_TIMESTAMP(`d`.`$field`) == DATE_TIMESTAMP(CURRENT)]) > 0""")
   }
@@ -65,7 +66,7 @@ class InFilterTest {
     )
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    val quotedValues = values.map(v=>s""""$v"""")
+    val quotedValues = values.map(v => s""""$v"""")
     assertThat(filter.aql("d"))
       .isEqualTo(s"""LENGTH([${quotedValues.mkString(",")}][* FILTER DATE_TIMESTAMP(`d`.`$field`) == DATE_TIMESTAMP(CURRENT)]) > 0""")
   }
@@ -152,6 +153,22 @@ class InFilterTest {
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))
       .isEqualTo(s"""LENGTH([${values.map(v => v.map(x => "\"" + x + "\"").mkString("[", ",", "]")).mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
+  }
+
+  @Test
+  def inMapFilter(): Unit = {
+    val field = "intMap"
+    val values: Array[Map[String, Int]] = Array(
+      Map("a" -> 1, "b" -> 2, "c" -> 3),
+      Map("a" -> 1, "b" -> 2, "c" -> 3),
+      Map("a" -> 1, "b" -> 2, "c" -> 3)
+    )
+    val filter = PushableFilter(In(field, values.asInstanceOf[Array[Any]]), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d"))
+      .isEqualTo(s"""LENGTH([${values
+        .map(v => v.map(x => "\"" + x._1 + "\":" + x._2)
+          .mkString("{", ",", "}")).mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
   }
 
   @Test

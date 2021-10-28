@@ -284,18 +284,28 @@ configuration, the following cleanup operations will be performed:
 
 The following Spark SQL data types (subtypes of `org.apache.spark.sql.types.Filter`) are supported for reading, writing 
 and filter pushdown:
-- `DateType`
-- `TimestampType`
-- `StringType`
-- `BooleanType`
-- `FloatType`
-- `DoubleType`
-- `IntegerType`
-- `LongType`
-- `ShortType`
-- `NullType`
-- `ArrayType`
-- `StructType`
+- Numeric types:
+  - `ByteType`
+  - `ShortType`
+  - `IntegerType`
+  - `LongType`
+  - `FloatType`
+  - `DoubleType`
+
+- String types:
+  - `StringType`
+
+- Boolean types:
+  - `BooleanType`
+
+- Datetime types:
+  - `TimestampType`
+  - `DateType`
+
+- Complex types:
+  - `ArrayType`
+  - `MapType` (only with key type `StringType`)
+  - `StructType`
 
 
 ## Connect to ArangoDB Oasis

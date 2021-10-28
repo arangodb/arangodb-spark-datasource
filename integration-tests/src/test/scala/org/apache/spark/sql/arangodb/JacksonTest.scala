@@ -26,7 +26,11 @@ class JacksonTest {
       |    "last": "Jucean"
       |  },
       |  "nullString": null,
-      |  "nullField": null
+      |  "nullField": null,
+      |  "mapField": {
+      |    "foo": 1,
+      |    "bar": 2
+      |  }
       |}
       |""".stripMargin.replaceAll("\\s", "")
 
@@ -45,7 +49,8 @@ class JacksonTest {
         )
       )),
       StructField("nullString", StringType, nullable = true),
-      StructField("nullField", NullType)
+      StructField("nullField", NullType),
+      StructField("mapField", MapType(StringType, IntegerType))
     )
   )
 

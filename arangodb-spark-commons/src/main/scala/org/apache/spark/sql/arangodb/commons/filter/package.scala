@@ -44,6 +44,7 @@ package object filter {
     case _: NullType => true
     case at: ArrayType => isTypeAqlCompatible(at.elementType)
     case st: StructType => st.forall(f => isTypeAqlCompatible(f.dataType))
+    case mt: MapType => mt.keyType == StringType && isTypeAqlCompatible(mt.valueType)
     case _ => false
   }
 
@@ -58,6 +59,10 @@ package object filter {
         s""""${sf._2.name}":${getValue(sf._2.dataType, sf._1)}"""
       )
       s"{${parts.mkString(",")}}"
+    case mt: MapType =>
+      v.asInstanceOf[Map[String, Any]].map(it => {
+        s"""${getValue(mt.keyType, it._1)}:${getValue(mt.valueType, it._2)}"""
+      }).mkString("{", ",", "}")
   }
 
 }

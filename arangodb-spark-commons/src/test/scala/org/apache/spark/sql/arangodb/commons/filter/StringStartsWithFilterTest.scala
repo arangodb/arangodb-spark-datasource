@@ -20,6 +20,7 @@ class StringStartsWithFilterTest {
 
     // complex types
     StructField("array", ArrayType(StringType)),
+    StructField("intMap", MapType(StringType, IntegerType)),
     StructField("null", NullType),
     StructField("struct", StructType(Array(
       StructField("a", StringType),

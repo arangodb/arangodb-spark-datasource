@@ -23,6 +23,8 @@ class EqualToFilterTest {
     // complex types
     StructField("stringArray", ArrayType(StringType)),
     StructField("dateArray", ArrayType(DateType)),
+    StructField("intMap", MapType(StringType, IntegerType)),
+    StructField("dateMap", MapType(StringType, DateType)),
     StructField("null", NullType),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
@@ -138,6 +140,31 @@ class EqualToFilterTest {
   def equalToDateArrayFilter(): Unit = {
     val field = "dateArray"
     val value = Seq("2001-01-01", "2001-01-02", "2001-01-03")
+    val filter = PushableFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
+  }
+
+  @Test
+  def equalToIntMapFilter(): Unit = {
+    val field = "intMap"
+    val value = Map(
+      "a" -> 1,
+      "b" -> 2,
+      "c" -> 3
+    )
+    val filter = PushableFilter(EqualTo(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`intMap` == {"a":1,"b":2,"c":3}""")
+  }
+
+  @Test
+  def equalToDateMapFilter(): Unit = {
+    val field = "dateMap"
+    val value = Map(
+      "a" -> "2001-01-01",
+      "b" -> "2001-01-02",
+      "c" -> "2001-01-03"
+    )
     val filter = PushableFilter(EqualTo(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.NONE)
   }

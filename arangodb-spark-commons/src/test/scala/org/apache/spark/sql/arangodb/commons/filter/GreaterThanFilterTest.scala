@@ -22,6 +22,7 @@ class GreaterThanFilterTest {
 
     // complex types
     StructField("array", ArrayType(StringType)),
+    StructField("intMap", MapType(StringType, IntegerType)),
     StructField("null", NullType),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
@@ -126,6 +127,15 @@ class GreaterThanFilterTest {
     val filter = PushableFilter(GreaterThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` > ["a","b","c"]""")
+  }
+
+  @Test
+  def greaterThanMapFilter(): Unit = {
+    val field = "intMap"
+    val value = Map("a" -> 1, "b" -> 2, "c" -> 3)
+    val filter = PushableFilter(GreaterThan(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`intMap` > {"a":1,"b":2,"c":3}""")
   }
 
   @Test
