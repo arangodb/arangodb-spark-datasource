@@ -17,6 +17,7 @@ class LessThanOrEqualFilterTest {
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
+    StructField("byte", ByteType),
     StructField("string", StringType),
 
     // complex types
@@ -104,6 +105,15 @@ class LessThanOrEqualFilterTest {
   def lessThanOrEqualShortFilter(): Unit = {
     val field = "short"
     val value: Short = 22
+    val filter = PushableFilter(LessThanOrEqual(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` <= $value""")
+  }
+
+  @Test
+  def lessThanOrEqualByteFilter(): Unit = {
+    val field = "byte"
+    val value: Byte = 22
     val filter = PushableFilter(LessThanOrEqual(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` <= $value""")

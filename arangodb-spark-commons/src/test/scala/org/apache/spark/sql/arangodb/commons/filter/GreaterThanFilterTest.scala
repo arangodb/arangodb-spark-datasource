@@ -17,6 +17,7 @@ class GreaterThanFilterTest {
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
+    StructField("byte", ByteType),
     StructField("string", StringType),
 
     // complex types
@@ -104,6 +105,15 @@ class GreaterThanFilterTest {
   def greaterThanShortFilter(): Unit = {
     val field = "short"
     val value: Short = 22
+    val filter = PushableFilter(GreaterThan(field, value), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` > $value""")
+  }
+
+  @Test
+  def greaterThanByteFilter(): Unit = {
+    val field = "byte"
+    val value: Byte = 22
     val filter = PushableFilter(GreaterThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d")).isEqualTo(s"""`d`.`$field` > $value""")

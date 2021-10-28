@@ -177,6 +177,24 @@ class EqualToTest extends BaseSparkTest {
   }
 
   @Test
+  def byte(): Unit = {
+    val fieldName = "byte"
+    val value = EqualToTest.data.head(fieldName)
+    val res = df.filter(col(fieldName).equalTo(value)).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(res).hasSize(1)
+    assertThat(res.head(fieldName)).isEqualTo(value)
+    val sqlRes = spark.sql(
+      s"""
+         |SELECT * FROM equalTo
+         |WHERE $fieldName = $value
+         |""".stripMargin).collect()
+      .map(_.getValuesMap[Any](EqualToTest.schema.fieldNames))
+    assertThat(sqlRes).hasSize(1)
+    assertThat(sqlRes.head(fieldName)).isEqualTo(value)
+  }
+
+  @Test
   def string(): Unit = {
     val fieldName = "string"
     val value = EqualToTest.data.head(fieldName)
@@ -247,6 +265,7 @@ object EqualToTest {
       "timestampString" -> Timestamp.valueOf("2021-01-01 01:01:01.111"),
       "timestampMillis" -> Timestamp.valueOf("2021-01-01 01:01:01.111").getTime,
       "short" -> 1.toShort,
+      "byte" -> 1.toByte,
       "string" -> "one",
       "intArray" -> Array(1, 1, 1),
       "struct" -> Map(
@@ -264,6 +283,7 @@ object EqualToTest {
       "timestampString" -> Timestamp.valueOf("2022-02-02 02:02:02.222"),
       "timestampMillis" -> Timestamp.valueOf("2022-02-02 02:02:02.222").getTime,
       "short" -> 2.toShort,
+      "byte" -> 2.toByte,
       "string" -> "two",
       "intArray" -> Array(2, 2, 2),
       "struct" -> Map(
@@ -284,6 +304,7 @@ object EqualToTest {
     StructField("timestampString", TimestampType, nullable = false),
     StructField("timestampMillis", TimestampType, nullable = false),
     StructField("short", ShortType, nullable = false),
+    StructField("byte", ByteType, nullable = false),
     StructField("string", StringType, nullable = false),
     StructField("intArray", ArrayType(IntegerType), nullable = false),
     StructField("struct", StructType(Array(

@@ -17,6 +17,7 @@ class InFilterTest {
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
+    StructField("byte", ByteType),
     StructField("string", StringType),
 
     // complex types
@@ -123,6 +124,16 @@ class InFilterTest {
   def inShortFilter(): Unit = {
     val field = "short"
     val values: Array[Any] = Array(22.toShort, 33.toShort, 44.toShort)
+    val filter = PushableFilter(In(field, values), schema: StructType)
+    assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
+    assertThat(filter.aql("d"))
+      .isEqualTo(s"""LENGTH([${values.mkString(",")}][* FILTER `d`.`$field` == CURRENT]) > 0""")
+  }
+
+  @Test
+  def inByteFilter(): Unit = {
+    val field = "byte"
+    val values: Array[Any] = Array(22.toByte, 33.toByte, 44.toByte)
     val filter = PushableFilter(In(field, values), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
     assertThat(filter.aql("d"))

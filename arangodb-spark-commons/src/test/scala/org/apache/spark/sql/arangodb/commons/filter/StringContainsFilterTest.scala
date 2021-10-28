@@ -15,6 +15,7 @@ class StringContainsFilterTest {
     StructField("date", DateType),
     StructField("timestamp", TimestampType),
     StructField("short", ShortType),
+    StructField("byte", ByteType),
     StructField("string", StringType),
 
     // complex types

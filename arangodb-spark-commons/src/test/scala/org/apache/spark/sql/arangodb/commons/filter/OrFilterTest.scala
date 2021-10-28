@@ -9,7 +9,7 @@ class OrFilterTest {
   private val schema = StructType(Array(
     StructField("integer", IntegerType),
     StructField("string", StringType),
-    StructField("byte", ByteType)
+    StructField("binary", BinaryType)
   ))
 
   // FilterSupport.FULL
@@ -17,7 +17,7 @@ class OrFilterTest {
   private val pushF1 = PushableFilter(f1, schema)
 
   // FilterSupport.NONE
-  private val f2 = EqualTo("byte", 1.toByte)
+  private val f2 = EqualTo("binary", Array(Byte.MaxValue))
 
   // FilterSupport.PARTIAL
   private val f3 = And(f1, f2)
