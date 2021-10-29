@@ -5,17 +5,11 @@
     <parent>
         <artifactId>arangodb-spark-datasource</artifactId>
         <groupId>com.arangodb</groupId>
-        <version>0.0.9-SNAPSHOT</version>
+        <version>0.0.10-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>arangodb-spark-datasource-3.1</artifactId>
-
-    <properties>
-        <spark.compat.version>3.1</spark.compat.version>
-        <scala.compat.version>2.12</scala.compat.version>
-        <jackson.vpack.version>2.0.0</jackson.vpack.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -23,11 +17,6 @@
             <artifactId>arangodb-spark-commons</artifactId>
             <version>${project.version}</version>
             <classifier>${scala.compat.version}</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.arangodb</groupId>
-            <artifactId>jackson-dataformat-velocypack</artifactId>
-            <version>${jackson.vpack.version}</version>
         </dependency>
     </dependencies>
 

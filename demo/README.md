@@ -3,7 +3,17 @@
 Set ArangoDB Spark Datasource version environment variable:
 
 ```shell
-export ARANGO_SPARK_VERSION=0.0.9-SNAPSHOT
+export ARANGO_SPARK_VERSION=0.0.10-SNAPSHOT
+```
+
+Set Scala version:
+
+```shell
+# Scala 2.11 is only supported by Spark 2.4
+export SCALA_VERSION=2.11
+
+# Scala 2.12 is supported by both Spark 2.4 and 3.1
+export SCALA_VERSION=2.12
 ```
 
 Start ArangoDB cluster:
@@ -31,7 +41,7 @@ Start Spark cluster:
 
 Build `arangodb-spark-datasource` project (with Java 8):
 ```shell
-mvn -f ../pom.xml -Pspark-2.4 -DskipTests=true install
+mvn -f ../pom.xml -Pspark-2.4 -Pscala-$SCALA_VERSION -DskipTests=true install
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published 
@@ -40,12 +50,12 @@ Alternatively, an already built jar with dependencies can be found inside the la
 
 Build the `demo` project (with Java 8):
 ```shell
-mvn -Pspark-2.4 package
+mvn -Pspark-2.4 -Pscala-$SCALA_VERSION package
 ```
 
 Run the Spark application in embedded mode:
 ```shell
-mvn -Pspark-2.4 exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+mvn -Pspark-2.4 -Pscala-$SCALA_VERSION exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
 ```
 
 Run Spark Shell:
@@ -113,7 +123,7 @@ Start Spark cluster:
 Build `arangodb-spark-datasource` project:
 
 ```shell
-mvn -f ../pom.xml -Pspark-3.1 -DskipTests=true install
+mvn -f ../pom.xml -Pspark-3.1 -Pscala-$SCALA_VERSION -DskipTests=true install
 ```
 
 Alternatively, an already built jar with dependencies can be found inside the latest published
@@ -121,12 +131,12 @@ Alternatively, an already built jar with dependencies can be found inside the la
 
 Build the `demo` project:
 ```shell
-mvn -Pspark-3.1 package
+mvn -Pspark-3.1 -Pscala-$SCALA_VERSION package
 ```
 
 Run the Spark application in embedded mode:
 ```shell
-mvn -Pspark-3.1 exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+mvn -Pspark-3.1 -Pscala-$SCALA_VERSION exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
 ```
 
 Run Spark Shell:

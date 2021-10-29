@@ -7,3 +7,4 @@
 .directory
 **/docker/jwtHeader
 **/docker/jwtSecret
+**/.flattened-pom.xml

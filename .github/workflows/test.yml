@@ -19,6 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        scala-version:
+          - 2.11
+          - 2.12
         spark-version:
           - 2.4
           - 3.1
@@ -29,7 +32,9 @@ jobs:
           - 8
         docker-img:
           - docker.io/arangodb/arangodb:3.8.1
-
+        exclude:
+          - spark-version: 3.1
+            scala-version: 2.11
     steps:
       - uses: actions/checkout@v2
         with:
@@ -52,7 +57,7 @@ jobs:
       - name: Info
         run: mvn -version
       - name: Test
-        run: mvn -e --no-transfer-progress -Pspark-${{matrix.spark-version}} test
+        run: mvn -e --no-transfer-progress -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} test
       - name: Collect docker logs on failure
         if: ${{ cancelled() || failure() }}
         uses: jwalton/gh-docker-logs@v1
@@ -75,6 +80,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        scala-version:
+          - 2.12
         spark-version:
           - 3.1
         topology:
@@ -115,4 +122,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -e --no-transfer-progress -Pspark-${{matrix.spark-version}} -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=arangodb_arangodb-spark-datasource
+        run: mvn -e --no-transfer-progress -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=arangodb_arangodb-spark-datasource

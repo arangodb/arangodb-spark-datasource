@@ -4,7 +4,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.9-SNAPSHOT</version>
+    <version>0.0.10-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>ArangoDB Spark Connector</description>
 
@@ -32,60 +32,36 @@
 
     <profiles>
         <profile>
-            <id>spark-2.4</id>
+            <id>scala-2.11</id>
             <properties>
-                <spark.compat.version>2.4</spark.compat.version>
                 <scala.version>2.11.12</scala.version>
                 <scala.compat.version>2.11</scala.compat.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_2.11</artifactId>
-                    <version>2.4.8</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.11</artifactId>
-                    <version>2.4.8</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.arangodb</groupId>
-                    <artifactId>jackson-dataformat-velocypack_2.6</artifactId>
-                    <version>0.0.1</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
+        </profile>
+        <profile>
+            <id>scala-2.12</id>
+            <properties>
+                <scala.version>2.12.15</scala.version>
+                <scala.compat.version>2.12</scala.compat.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>spark-2.4</id>
+            <properties>
+                <spark.version>2.4.8</spark.version>
+                <spark.compat.version>2.4</spark.compat.version>
+                <jackson.vpack.variant>_2.6</jackson.vpack.variant>
+                <jackson.vpack.version>0.0.1</jackson.vpack.version>
+            </properties>
         </profile>
         <profile>
             <id>spark-3.1</id>
             <properties>
+                <spark.version>3.1.2</spark.version>
                 <spark.compat.version>3.1</spark.compat.version>
-                <scala.version>2.12.15</scala.version>
-                <scala.compat.version>2.12</scala.compat.version>
+                <jackson.vpack.variant/>
+                <jackson.vpack.version>2.0.0</jackson.vpack.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_2.12</artifactId>
-                    <version>3.1.2</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.12</artifactId>
-                    <version>3.1.2</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.arangodb</groupId>
-                    <artifactId>jackson-dataformat-velocypack</artifactId>
-                    <version>2.0.0</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 
@@ -96,9 +72,26 @@
             <version>6.13.0</version>
         </dependency>
         <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>jackson-dataformat-velocypack${jackson.vpack.variant}</artifactId>
+            <version>${jackson.vpack.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -181,16 +174,37 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
-                <configuration>
-                    <argLine>-Duser.timezone=UTC</argLine>
-                </configuration>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0-M1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>${scala.compat.version}</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.7</version>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

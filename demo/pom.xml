@@ -6,7 +6,7 @@
 
     <groupId>com.arangodb</groupId>
     <artifactId>demo</artifactId>
-    <version>0.0.9-SNAPSHOT</version>
+    <version>0.0.10-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -16,54 +16,32 @@
 
     <profiles>
         <profile>
-            <id>spark-2.4</id>
+            <id>scala-2.11</id>
             <properties>
                 <scala.version>2.11.12</scala.version>
+                <scala.compat.version>2.11</scala.compat.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.arangodb</groupId>
-                    <artifactId>arangodb-spark-datasource-2.4</artifactId>
-                    <version>0.0.9-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_2.11</artifactId>
-                    <version>2.4.8</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.11</artifactId>
-                    <version>2.4.8</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
+        </profile>
+        <profile>
+            <id>scala-2.12</id>
+            <properties>
+                <scala.version>2.12.15</scala.version>
+                <scala.compat.version>2.12</scala.compat.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>spark-2.4</id>
+            <properties>
+                <spark.version>2.4.8</spark.version>
+                <spark.compat.version>2.4</spark.compat.version>
+            </properties>
         </profile>
         <profile>
             <id>spark-3.1</id>
             <properties>
-                <scala.version>2.12.15</scala.version>
+                <spark.version>3.1.2</spark.version>
+                <spark.compat.version>3.1</spark.compat.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.arangodb</groupId>
-                    <artifactId>arangodb-spark-datasource-3.1</artifactId>
-                    <version>0.0.9-SNAPSHOT</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-core_2.12</artifactId>
-                    <version>3.1.2</version>
-                    <scope>provided</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.spark</groupId>
-                    <artifactId>spark-sql_2.12</artifactId>
-                    <version>3.1.2</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 
@@ -74,11 +52,28 @@
             <version>${scala.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-spark-datasource-${spark.compat.version}</artifactId>
+            <version>0.0.10-SNAPSHOT</version>
+            <classifier>${scala.compat.version}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.compat.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
