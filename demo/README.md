@@ -66,17 +66,13 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
+    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
 ```
 
 Run sample code:
 
 ```scala
-val options = Map(
-  "user" -> "root",
-  "password" -> "test",
-  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
-)
+val options = Map("user" -> "root", "password" -> "test", "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549")
 val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
 usersDF.show()
 usersDF.printSchema()
@@ -89,17 +85,6 @@ californians.show()
 californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 ```
 
-Run Spark SQL:
-
-```shell
-docker run -it --rm \
-  -v $(pwd):/arangodb-spark-datasource \
-  --network arangodb \
-  bde2020/spark-base:2.4.5-hadoop2.7 \
-  ./spark/bin/spark-sql --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
-```
-
 Submit demo program:
 
 ```shell
@@ -108,7 +93,7 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
+    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
     --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
@@ -147,17 +132,13 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
+    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
 ```
 
 Run sample code:
 
 ```scala
-val options = Map(
-  "user" -> "root",
-  "password" -> "test",
-  "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
-)
+val options = Map("user" -> "root", "password" -> "test", "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549")
 val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
 usersDF.show()
 usersDF.printSchema()
@@ -178,6 +159,6 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
+    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
     --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
