@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
-import org.apache.spark.SPARK_VERSION_SHORT
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.sql.{AnalysisException, SaveMode}
@@ -135,7 +135,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeErrorIfExistsShouldThrow(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     collection.create()
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.write
@@ -157,7 +157,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeErrorIfExists(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     df.write
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.ErrorIfExists)
@@ -175,7 +175,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeIgnore(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     df.write
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Ignore)
@@ -193,7 +193,7 @@ class SaveModeTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeIgnoreWithExistingCollection(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     collection.create()
     collection.insertDocument(new Object)
     df.write

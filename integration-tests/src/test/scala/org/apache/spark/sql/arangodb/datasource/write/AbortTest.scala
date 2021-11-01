@@ -5,7 +5,7 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBMultiException, DataWriteAbortException}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
-import org.apache.spark.{SPARK_VERSION_SHORT, SparkException}
+import org.apache.spark.{SPARK_VERSION, SparkException}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -104,7 +104,7 @@ class AbortTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeErrorIfExists(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     // FIXME: https://arangodb.atlassian.net/browse/BTS-615
     assumeTrue(isSingle)
 
@@ -133,7 +133,7 @@ class AbortTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def saveModeIgnore(protocol: String, contentType: String): Unit = {
     // FIXME
-    assumeTrue(SPARK_VERSION_SHORT.startsWith("2.4"))
+    assumeTrue(SPARK_VERSION.startsWith("2.4"))
     // FIXME: https://arangodb.atlassian.net/browse/BTS-615
     assumeTrue(isSingle)
 
