@@ -54,9 +54,8 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-spark-datasource-${spark.compat.version}</artifactId>
+            <artifactId>arangodb-spark-datasource-${spark.compat.version}_${scala.compat.version}</artifactId>
             <version>0.0.10-SNAPSHOT</version>
-            <classifier>${scala.compat.version}</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
