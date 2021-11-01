@@ -30,11 +30,14 @@ jobs:
           - cluster
         java-version:
           - 8
+          - 11
         docker-img:
           - docker.io/arangodb/arangodb:3.8.1
         exclude:
-          - spark-version: 3.1
-            scala-version: 2.11
+          - scala-version: 2.11
+            spark-version: 3.1
+          - scala-version: 2.11
+            java-version: 11
     steps:
       - uses: actions/checkout@v2
         with:
