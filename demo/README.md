@@ -39,15 +39,6 @@ Start Spark cluster:
 ./docker/start_spark_2.4.sh 
 ```
 
-Build `arangodb-spark-datasource` project (with Java 8):
-```shell
-mvn -f ../pom.xml -Pspark-2.4 -Pscala-$SCALA_VERSION -DskipTests=true install
-```
-
-Alternatively, an already built jar with dependencies can be found inside the latest published 
-[package](https://github.com/orgs/arangodb/packages?tab=packages&q=com.arangodb.arangodb-spark-datasource-2.4).
-
-
 Build the `demo` project (with Java 8):
 ```shell
 mvn -Pspark-2.4 -Pscala-$SCALA_VERSION package
@@ -104,15 +95,6 @@ Start Spark cluster:
 ```shell
 ./docker/start_spark_3.1.sh 
 ```
-
-Build `arangodb-spark-datasource` project:
-
-```shell
-mvn -f ../pom.xml -Pspark-3.1 -Pscala-$SCALA_VERSION -DskipTests=true install
-```
-
-Alternatively, an already built jar with dependencies can be found inside the latest published
-[package](https://github.com/orgs/arangodb/packages?tab=packages&q=com.arangodb.arangodb-spark-datasource-3.1).
 
 Build the `demo` project:
 ```shell
