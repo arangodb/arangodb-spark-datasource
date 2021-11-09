@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-spark-commons_${scala.compat.version}</artifactId>
+            <artifactId>arangodb-spark-commons-${spark.compat.version}_${scala.compat.version}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
