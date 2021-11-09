@@ -2,10 +2,13 @@
 
 ## Supported versions
 
-There are 2 variants of this library, each one compatible with different Spark and Scala versions:
+There are 3 variants of this library, each one compatible with different Spark and Scala versions:
 
-- `2.4`: compatible with Spark 2.4 (from 2.4.5 to 2.4.8), Scala 2.11 and 2.12
-- `3.1`: compatible with Spark 3.1.* and Scala 2.12
+- `2.4`, compatible with Spark 2.4 (from 2.4.5 to 2.4.8):
+  - `com.arangodb:arangodb-spark-datasource-2.4_2.11` (Scala 2.11)
+  - `com.arangodb:arangodb-spark-datasource-2.4_2.12` (Scala 2.12)
+- `3.1`, compatible with Spark 3.1.* and Scala 2.12
+  - `com.arangodb:arangodb-spark-datasource-3.1_2.12` (Scala 2.12)
 
 In the following sections the placeholder `${sparkVersion}` refers to one of the values above.
 
