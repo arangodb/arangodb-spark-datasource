@@ -85,11 +85,34 @@
         </profile>
         <profile>
             <id>deploy-gh</id>
+            <activation>
+                <property>
+                    <name>deployGH</name>
+                </property>
+            </activation>
             <distributionManagement>
                 <repository>
                     <id>github</id>
                     <name>GitHub arangodb/arangodb-spark-datasource Apache Maven Packages</name>
                     <url>https://maven.pkg.github.com/arangodb/arangodb-spark-datasource</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>deploy-ossrh</id>
+            <activation>
+                <property>
+                    <name>!deployGH</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
         </profile>
@@ -262,16 +285,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
 </project>

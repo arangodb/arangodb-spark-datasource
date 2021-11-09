@@ -5,6 +5,7 @@ on:
       - v**-SNAPSHOT
 jobs:
   publish:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,6 +28,6 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
       - name: Publish package
-        run: mvn --projects arangodb-spark-datasource-${{matrix.spark-version}} --also-make -Pdeploy-gh -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dgpg.skip=true -DskipTests=true --batch-mode deploy
+        run: mvn --projects arangodb-spark-datasource-${{matrix.spark-version}} --also-make -DdeployGH -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dgpg.skip=true -DskipTests=true --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
