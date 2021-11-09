@@ -22,6 +22,18 @@
         </license>
     </licenses>
 
+    <organization>
+        <name>ArangoDB GmbH</name>
+        <url>https://www.arangodb.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Michele Rastelli</name>
+            <url>https://github.com/rashtao</url>
+        </developer>
+    </developers>
+
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -70,6 +82,16 @@
                 <jackson.vpack.variant/>
                 <jackson.vpack.version>2.0.0</jackson.vpack.version>
             </properties>
+        </profile>
+        <profile>
+            <id>deploy-gh</id>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub arangodb/arangodb-spark-datasource Apache Maven Packages</name>
+                    <url>https://maven.pkg.github.com/arangodb/arangodb-spark-datasource</url>
+                </repository>
+            </distributionManagement>
         </profile>
     </profiles>
 
@@ -206,6 +228,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>3.0.0-M1</version>
+                <configuration>
+                    <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -221,14 +246,31 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
         <repository>
-            <id>github</id>
-            <name>GitHub arangodb/arangodb-spark-datasource Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/arangodb/arangodb-spark-datasource</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
