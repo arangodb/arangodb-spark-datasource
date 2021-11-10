@@ -3,7 +3,7 @@
 Set ArangoDB Spark Datasource version environment variable:
 
 ```shell
-export ARANGO_SPARK_VERSION=0.0.10-SNAPSHOT
+export ARANGO_SPARK_VERSION=0.1.0-SNAPSHOT
 ```
 
 Set Scala version:
@@ -53,11 +53,11 @@ Run Spark Shell:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
+    --packages="com.arangodb:arangodb-spark-datasource-2.4_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
+    --repositories="https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
 Run sample code:
@@ -84,7 +84,8 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:2.4.5-hadoop2.7 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-2.4/target/arangodb-spark-datasource-2.4_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
+    --packages="com.arangodb:arangodb-spark-datasource-2.4_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
+    --repositories="https://oss.sonatype.org/content/repositories/snapshots" \
     --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
@@ -110,11 +111,11 @@ Run Spark Shell:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd)/..:/arangodb-spark-datasource \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-shell --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar"
+    --packages="com.arangodb:arangodb-spark-datasource-3.1_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
+    --repositories="https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
 Run sample code:
@@ -141,6 +142,7 @@ docker run -it --rm \
   --network arangodb \
   bde2020/spark-base:3.1.1-hadoop3.2 \
   ./spark/bin/spark-submit --master spark://spark-master:7077 \
-    --jars="/arangodb-spark-datasource/arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_$SCALA_VERSION-$ARANGO_SPARK_VERSION-jar-with-dependencies.jar" \
+    --packages="com.arangodb:arangodb-spark-datasource-3.1_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
+    --repositories="https://oss.sonatype.org/content/repositories/snapshots" \
     --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```

@@ -4,45 +4,42 @@
 
 There are 3 variants of this library, each one compatible with different Spark and Scala versions:
 
-- `2.4`, compatible with Spark 2.4 (from 2.4.5 to 2.4.8):
-  - `com.arangodb:arangodb-spark-datasource-2.4_2.11` (Scala 2.11)
-  - `com.arangodb:arangodb-spark-datasource-2.4_2.12` (Scala 2.12)
-- `3.1`, compatible with Spark 3.1.* and Scala 2.12
-  - `com.arangodb:arangodb-spark-datasource-3.1_2.12` (Scala 2.12)
+- `com.arangodb:arangodb-spark-datasource-2.4_2.11` (Spark 2.4, Scala 2.11)
+- `com.arangodb:arangodb-spark-datasource-2.4_2.12` (Spark 2.4, Scala 2.12)
+- `com.arangodb:arangodb-spark-datasource-3.1_2.12` (Spark 3.1, Scala 2.12)
 
-In the following sections the placeholder `${sparkVersion}` refers to one of the values above.
+In the following sections the placeholders `${sparkVersion}` and `${scalaVersion}` refer to the Spark and Scala versions.
 
 
-## Distribution
+## Setup
 
-Snapshot packages are available on 
-[GH packages](https://github.com/orgs/arangodb/packages?repo_name=arangodb-spark-datasource).
-Alternatively the project can be built locally:
-
-```shell
-mvn -Pspark-${sparkVersion} -DskipTests=true install
-```
-
-## Setup 
-
-In local maven projects:
+To import ArangoDB Spark Datasource in a maven project:
 
 ```xml
-
-<dependencies>
+  <dependencies>
     <dependency>
-        <groupId>com.arangodb</groupId>
-        <artifactId>arangodb-spark-datasource-${sparkVersion}</artifactId>
-        <version>0.0.10-SNAPSHOT</version>
+      <groupId>com.arangodb</groupId>
+      <artifactId>arangodb-spark-datasource-${sparkVersion}_${scalaVersion}</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
-    <!-- ... -->
-</dependencies>
+  </dependencies>
+
+  <repositories>
+      <repository>
+          <id>snapshots-repo</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
+  </repositories>
 ```
 
 To use in external Spark cluster, submit your application with the following parameter:
 
 ```shell
---jars="./arangodb-spark-datasource-${sparkVersion}/target/arangodb-spark-datasource-${sparkVersion}-0.0.10-SNAPSHOT-jar-with-dependencies.jar"
+    --packages="com.arangodb:arangodb-spark-datasource-${sparkVersion}_${scalaVersion}:0.1.0-SNAPSHOT" \
+    --repositories="https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
 ## General Configuration
