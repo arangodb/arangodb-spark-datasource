@@ -20,7 +20,7 @@ To import ArangoDB Spark Datasource in a maven project:
     <dependency>
       <groupId>com.arangodb</groupId>
       <artifactId>arangodb-spark-datasource-${sparkVersion}_${scalaVersion}</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.2.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
@@ -38,7 +38,7 @@ To import ArangoDB Spark Datasource in a maven project:
 To use in external Spark cluster, submit your application with the following parameter:
 
 ```shell
-    --packages="com.arangodb:arangodb-spark-datasource-${sparkVersion}_${scalaVersion}:0.1.0-SNAPSHOT" \
+    --packages="com.arangodb:arangodb-spark-datasource-${sparkVersion}_${scalaVersion}:0.2.0-SNAPSHOT" \
     --repositories="https://oss.sonatype.org/content/repositories/snapshots"
 ```
 

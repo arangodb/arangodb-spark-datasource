@@ -3,7 +3,7 @@
 Set ArangoDB Spark Datasource version environment variable:
 
 ```shell
-export ARANGO_SPARK_VERSION=0.1.0-SNAPSHOT
+export ARANGO_SPARK_VERSION=0.2.0-SNAPSHOT
 ```
 
 Set Scala version:
