@@ -203,6 +203,8 @@ according to the related target collection definition and is different from the 
 ### Write Configuration
 
 - `table`: target ArangoDB collection name (required)
+- `table.shards`: number of shards of the created collection (in case of SaveMode `Append` or `Overwrite`)
+- `table.type`: type (`document`|`edge`) of the created collection (in case of SaveMode `Append` or `Overwrite`)
 - `batch.size`: writing batch size, default `1000`
 - `wait.sync`: whether to wait until the documents have been synced to disk (`true`|`false`)
 - `confirm.truncate`: confirm to truncate table when using `SaveMode.Overwrite` mode, default `false`

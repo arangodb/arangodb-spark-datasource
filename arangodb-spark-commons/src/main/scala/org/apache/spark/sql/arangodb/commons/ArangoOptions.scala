@@ -20,7 +20,7 @@
 
 package org.apache.spark.sql.arangodb.commons
 
-import com.arangodb.ArangoDB
+import com.arangodb.{ArangoDB, entity}
 import com.arangodb.model.OverwriteMode
 
 import java.io.ByteArrayInputStream
@@ -87,6 +87,8 @@ object ArangoOptions {
   val STREAM = "stream"
 
   // write options
+  val NUMBER_OF_SHARDS = "table.shards"
+  val COLLECTION_TYPE = "table.type"
   val WAIT_FOR_SYNC = "wait.sync"
   val CONFIRM_TRUNCATE = "confirm.truncate"
   val OVERWRITE_MODE = "overwrite.mode"
@@ -178,6 +180,8 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
   val batchSize: Int = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt).getOrElse(1000)
   val collection: String = getRequired(ArangoOptions.COLLECTION)
+  val numberOfShards: Option[Int] = options.get(ArangoOptions.NUMBER_OF_SHARDS).map(_.toInt)
+  val collectionType: Option[CollectionType] = options.get(ArangoOptions.COLLECTION_TYPE).map(CollectionType(_))
   val waitForSync: Option[Boolean] = options.get(ArangoOptions.WAIT_FOR_SYNC).map(_.toBoolean)
   val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
   val overwriteMode: Option[OverwriteMode] = options.get(ArangoOptions.OVERWRITE_MODE).map(OverwriteMode.valueOf)
@@ -224,5 +228,25 @@ object Protocol {
     case "vst" => VST
     case "http" => HTTP
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
+  }
+}
+
+sealed trait CollectionType {
+  def get(): entity.CollectionType
+}
+
+object CollectionType {
+  case object DOCUMENT extends CollectionType {
+    override def get() = entity.CollectionType.DOCUMENT
+  }
+
+  case object EDGE extends CollectionType {
+    override def get() = entity.CollectionType.EDGES
+  }
+
+  def apply(value: String): CollectionType = value match {
+    case "document" => DOCUMENT
+    case "edge" => EDGE
+    case _ => throw new IllegalArgumentException(s"${ArangoOptions.COLLECTION_TYPE}: $value")
   }
 }

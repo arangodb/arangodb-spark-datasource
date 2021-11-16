@@ -99,16 +99,16 @@ class ArangoClient(options: ArangoOptions) {
     .collection(options.writeOptions.collection)
     .exists()
 
-  def createCollection(): Unit = arangoDB
-    .db(options.writeOptions.db)
-    .collection(options.writeOptions.collection)
-    .create(new CollectionCreateOptions()
-      // TODO:
-      //      .`type`()
-      //      .numberOfShards()
-      //      .replicationFactor()
-      //      .minReplicationFactor()
-    )
+  def createCollection(): Unit = {
+    val opts = new CollectionCreateOptions()
+    options.writeOptions.numberOfShards.foreach(opts.numberOfShards(_))
+    options.writeOptions.collectionType.foreach(ct => opts.`type`(ct.get()))
+
+    arangoDB
+      .db(options.writeOptions.db)
+      .collection(options.writeOptions.collection)
+      .create(opts)
+  }
 
   def truncate(): Unit = arangoDB
     .db(options.writeOptions.db)
