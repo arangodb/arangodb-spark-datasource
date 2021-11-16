@@ -50,7 +50,9 @@ class CreateCollectionTest extends BaseSparkTest {
       ))
       .save()
 
-    assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
+    if (isCluster) {
+      assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
+    }
     assertThat(collection.getProperties.getType.getType).isEqualTo(CollectionType.EDGES.getType)
   }
 
@@ -70,7 +72,9 @@ class CreateCollectionTest extends BaseSparkTest {
       ))
       .save()
 
-    assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
+    if (isCluster) {
+      assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
+    }
     assertThat(collection.getProperties.getType.getType).isEqualTo(CollectionType.EDGES.getType)
   }
 

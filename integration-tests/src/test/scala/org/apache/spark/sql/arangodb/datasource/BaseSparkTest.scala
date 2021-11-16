@@ -34,6 +34,7 @@ class BaseSparkTest {
   }
 
   def isSingle: Boolean = BaseSparkTest.isSingle
+  def isCluster: Boolean = !BaseSparkTest.isSingle
 }
 
 object BaseSparkTest {
