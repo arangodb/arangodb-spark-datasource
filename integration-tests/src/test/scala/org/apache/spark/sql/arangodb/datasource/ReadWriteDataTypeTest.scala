@@ -23,6 +23,7 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
     val firstRead = ReadWriteDataTypeTest.df.collect()
       .map(it => it.getValuesMap(it.schema.fieldNames))
 
+    ReadWriteDataTypeTest.df.show()
     ReadWriteDataTypeTest.df.write
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
@@ -64,6 +65,7 @@ object ReadWriteDataTypeTest {
       "byte" -> 1.toByte,
       "string" -> "one",
       "intArray" -> Array(1, 1, 1),
+      "stringArrayArray" -> Array(Array("a", "b", "c"), Array("d", "e", "f")),
       "intMap" -> Map("a" -> 1, "b" -> 1),
       "struct" -> Map(
         "a" -> "a1",
@@ -82,6 +84,7 @@ object ReadWriteDataTypeTest {
       "byte" -> 2.toByte,
       "string" -> "two",
       "intArray" -> Array(2, 2, 2),
+      "stringArrayArray" -> Array(Array("a", "b", "c"), Array("d", "e", "f")),
       "intMap" -> Map("a" -> 2, "b" -> 2),
       "struct" -> Map(
         "a" -> "a2",
@@ -103,6 +106,7 @@ object ReadWriteDataTypeTest {
     StructField("byte", ByteType, nullable = false),
     StructField("string", StringType, nullable = false),
     StructField("intArray", ArrayType(IntegerType), nullable = false),
+    StructField("stringArrayArray", ArrayType(ArrayType(StringType)), nullable = false),
     StructField("intMap", MapType(StringType, IntegerType), nullable = false),
     StructField("struct", StructType(Array(
       StructField("a", StringType),
