@@ -37,10 +37,8 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  private def printAqlQuery(query: String, params: Map[String, AnyRef]): Unit = {
-    println(s"Executing AQL query: $query")
-    if (params.nonEmpty) println(s"with params: $params")
-  }
+  private def printAqlQuery(query: String, params: Map[String, AnyRef]): Unit =
+    println(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
 
   def readCollectionPartition(shardId: String, ctx: PushDownCtx): ArangoCursor[VPackSlice] = {
     val query =
