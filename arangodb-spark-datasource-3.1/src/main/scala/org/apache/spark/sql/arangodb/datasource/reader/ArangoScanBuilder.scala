@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.arangodb.commons.filter.{FilterSupport, PushableFilter}
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
@@ -9,7 +10,8 @@ import org.apache.spark.sql.types.StructType
 
 class ArangoScanBuilder(options: ArangoOptions, tableSchema: StructType) extends ScanBuilder
   with SupportsPushDownFilters
-  with SupportsPushDownRequiredColumns {
+  with SupportsPushDownRequiredColumns
+  with Logging {
 
   private var requiredSchema: StructType = _
 
