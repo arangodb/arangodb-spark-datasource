@@ -24,25 +24,22 @@ class ArangoScanBuilder(options: ArangoOptions, tableSchema: StructType) extends
       .map(f => (f, PushableFilter(f, tableSchema)))
       .groupBy(_._2.support())
 
-    val appliedFilters = filtersBySupport
-      .filter(_._1 != FilterSupport.NONE)
-      .values.flatten
+    val fullSupp = filtersBySupport.getOrElse(FilterSupport.FULL, Array())
+    val partialSupp = filtersBySupport.getOrElse(FilterSupport.PARTIAL, Array())
+    val noneSupp = filtersBySupport.getOrElse(FilterSupport.NONE, Array())
 
-    appliedPushableFilters = appliedFilters.map(_._2).toArray
-    appliedSparkFilters = appliedFilters.map(_._1).toArray
+    val appliedFilters = fullSupp ++ partialSupp
+    appliedPushableFilters = appliedFilters.map(_._2)
+    appliedSparkFilters = appliedFilters.map(_._1)
 
-    // partially or not applied filters
-    val toEvaluateFilters = filtersBySupport
-      .filter(_._1 != FilterSupport.FULL)
-      .values.flatten
-      .map(_._1).toArray
+    if (fullSupp.nonEmpty)
+      logInfo(s"Fully supported filters (applied in AQL):\n${fullSupp.map(_._1).mkString("\n")}")
+    if (partialSupp.nonEmpty)
+      logInfo(s"Partially supported filters (applied in AQL and Spark):\n${partialSupp.map(_._1).mkString("\n")}")
+    if (noneSupp.nonEmpty)
+      logInfo(s"Not supported filters (applied in Spark):\n${noneSupp.map(_._1).mkString("\n")}")
 
-    println("\n--- APPLIED FILTERS:")
-    println(appliedSparkFilters.mkString("\n"))
-    println("\n--- TO EVALUATE FILTERS:")
-    println(toEvaluateFilters.mkString("\n"))
-
-    toEvaluateFilters
+    (partialSupp ++ noneSupp).map(_._1)
   }
 
   override def pushedFilters(): Array[Filter] = appliedSparkFilters

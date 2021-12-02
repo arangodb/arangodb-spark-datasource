@@ -10,13 +10,14 @@ import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 
 import java.util
 import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapConverter}
 
-class ArangoClient(options: ArangoOptions) {
+class ArangoClient(options: ArangoOptions) extends Logging {
 
   private def aqlOptions(): AqlQueryOptions = {
     val opt = new AqlQueryOptions().stream(options.readOptions.stream)
@@ -37,9 +38,6 @@ class ArangoClient(options: ArangoOptions) {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  private def printAqlQuery(query: String, params: Map[String, AnyRef]): Unit =
-    println(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
-
   def readCollectionPartition(shardId: String, ctx: PushDownCtx): ArangoCursor[VPackSlice] = {
     val query =
       s"""
@@ -50,18 +48,19 @@ class ArangoClient(options: ArangoOptions) {
         .replaceAll("\n", " ")
     val params = Map[String, AnyRef]("@col" -> options.readOptions.collection.get)
     val opts = aqlOptions().shardIds(shardId)
-    printAqlQuery(query, params)
+    logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
     arangoDB
       .db(options.readOptions.db)
       .query(query, params.asJava, opts, classOf[VPackSlice])
   }
 
   def readQuery(): ArangoCursor[VPackSlice] = {
-    printAqlQuery(options.readOptions.query.get, Map.empty)
+    val query = options.readOptions.query.get
+    logDebug(s"Executing AQL query: \n\t$query")
     arangoDB
       .db(options.readOptions.db)
       .query(
-        options.readOptions.query.get,
+        query,
         aqlOptions(),
         classOf[VPackSlice])
   }
@@ -74,7 +73,7 @@ class ArangoClient(options: ArangoOptions) {
     )
       .asInstanceOf[Map[String, AnyRef]]
     val opts = aqlOptions()
-    printAqlQuery(query, params)
+    logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
     arangoDB
       .db(options.readOptions.db)
       .query(query, params.asJava, opts, classOf[String])
@@ -82,11 +81,12 @@ class ArangoClient(options: ArangoOptions) {
   }
 
   def readQuerySample(): util.List[String] = {
-    printAqlQuery(options.readOptions.query.get, Map.empty)
+    val query = options.readOptions.query.get
+    logDebug(s"Executing AQL query: \n\t$query")
     arangoDB
       .db(options.readOptions.db)
       .query(
-        options.readOptions.query.get,
+        query,
         aqlOptions(),
         classOf[String])
       .asListRemaining()
