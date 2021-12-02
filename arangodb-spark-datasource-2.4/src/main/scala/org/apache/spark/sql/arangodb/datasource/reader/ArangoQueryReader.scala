@@ -7,6 +7,8 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
 import org.apache.spark.sql.types._
 
+import java.nio.charset.StandardCharsets
+
 
 class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends InputPartitionReader[InternalRow] {
 
@@ -26,7 +28,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Inpu
 
   override def get: InternalRow = options.readOptions.contentType match {
     case ContentType.VPack => parser.parse(current.toByteArray).head
-    case ContentType.Json => parser.parse(new VPackParser.Builder().build().toJson(current).getBytes).head
+    case ContentType.Json => parser.parse(current.toString.getBytes(StandardCharsets.UTF_8)).head
   }
 
   override def close(): Unit = {

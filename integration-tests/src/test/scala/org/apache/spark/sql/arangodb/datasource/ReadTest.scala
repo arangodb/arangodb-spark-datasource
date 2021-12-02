@@ -1,12 +1,12 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.SparkException
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.catalyst.util.BadRecordException
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -16,15 +16,12 @@ class ReadTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def readCollection(protocol: String, contentType: String): Unit = {
-    // FIXME
-    assumeTrue(contentType != "json")
-
     val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        "table" -> "users",
-        "protocol" -> protocol,
-        "content-type" -> contentType
+        ArangoOptions.COLLECTION -> "users",
+        ArangoOptions.PROTOCOL -> protocol,
+        ArangoOptions.CONTENT_TYPE -> contentType
       ))
       .schema(BaseSparkTest.usersSchema)
       .load()
@@ -48,17 +45,14 @@ class ReadTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def readCollectionWithBadRecords(protocol: String, contentType: String): Unit = {
-    // FIXME
-    assumeTrue(contentType != "json")
-
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit =
         spark.read
           .format(BaseSparkTest.arangoDatasource)
           .options(options + (
-            "table" -> "users",
-            "protocol" -> protocol,
-            "content-type" -> contentType
+            ArangoOptions.COLLECTION -> "users",
+            ArangoOptions.PROTOCOL -> protocol,
+            ArangoOptions.CONTENT_TYPE -> contentType
           ))
           .schema(new StructType(
             Array(
@@ -92,9 +86,9 @@ class ReadTest extends BaseSparkTest {
     val usersDF = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        "table" -> "users",
-        "protocol" -> protocol,
-        "content-type" -> contentType
+        ArangoOptions.COLLECTION -> "users",
+        ArangoOptions.PROTOCOL -> protocol,
+        ArangoOptions.CONTENT_TYPE -> contentType
       ))
       .load()
 
@@ -129,9 +123,9 @@ class ReadTest extends BaseSparkTest {
     val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        "query" -> query,
-        "protocol" -> protocol,
-        "content-type" -> contentType
+        ArangoOptions.QUERY -> query,
+        ArangoOptions.PROTOCOL -> protocol,
+        ArangoOptions.CONTENT_TYPE -> contentType
       ))
       .load()
 

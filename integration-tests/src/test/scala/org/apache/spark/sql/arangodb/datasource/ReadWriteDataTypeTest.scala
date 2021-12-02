@@ -17,9 +17,6 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def roundTripReadWrite(protocol: String, contentType: String): Unit = {
-    // FIXME
-    assumeTrue(contentType != "json")
-
     val firstRead = ReadWriteDataTypeTest.df.collect()
       .map(it => it.getValuesMap(it.schema.fieldNames))
 

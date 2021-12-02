@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 /**
  * @author Michele Rastelli
@@ -34,7 +35,7 @@ class JacksonTest {
       |}
       |""".stripMargin.replaceAll("\\s", "")
 
-  private val jsonBytes = jsonString.getBytes
+  private val jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8)
   private val vpackBytes = new VPackParser.Builder().build().fromJson(jsonString, true).toByteArray
 
   private val schema: StructType = new StructType(

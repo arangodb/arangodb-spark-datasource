@@ -3,9 +3,11 @@ package org.apache.spark.sql.arangodb.datasource.reader
 import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
+
+import java.nio.charset.StandardCharsets
 
 
 class ArangoCollectionPartitionReader(
@@ -30,7 +32,10 @@ class ArangoCollectionPartitionReader(
       false
     }
 
-  override def get: InternalRow = parser.parse(current.toByteArray).head
+  override def get: InternalRow = options.readOptions.contentType match {
+    case ContentType.VPack => parser.parse(current.toByteArray).head
+    case ContentType.Json => parser.parse(current.toString.getBytes(StandardCharsets.UTF_8)).head
+  }
 
   override def close(): Unit = {
     iterator.close()
