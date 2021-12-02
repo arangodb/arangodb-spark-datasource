@@ -169,7 +169,9 @@ object ArangoClient {
       shardIds
     } catch {
       case e: ArangoDBException =>
-        if (e.getErrorNum == 9) Array("") // single server
+        // single server < 3.8  returns Response: 500, Error: 4 - internal error
+        // single server >= 3.8 returns Response: 501, Error: 9 - shards API is only available in a cluster
+        if (e.getErrorNum == 9 || e.getErrorNum == 4) Array("")
         else throw e
     }
   }

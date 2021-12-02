@@ -110,7 +110,7 @@ jobs:
         run: ./docker/start_db.sh
         env:
           STARTER_MODE: cluster
-          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.8.3
+          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.7.16
       - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
