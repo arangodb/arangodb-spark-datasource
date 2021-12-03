@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
+import com.arangodb.entity.CursorEntity.Warning
 import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
@@ -9,6 +10,7 @@ import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
 import org.apache.spark.sql.types._
 
 import java.nio.charset.StandardCharsets
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
 class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends InputPartitionReader[InternalRow]
@@ -44,9 +46,9 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Inpu
     client.shutdown()
   }
 
-  private def logWarns(): Unit = Option(iterator.getWarnings).foreach(_.forEach(w => {
+  private def logWarns(): Unit = Option(iterator.getWarnings).foreach(_.asScala.foreach((w: Warning) =>
     logWarning(s"Got AQL warning: [${w.getCode}] ${w.getMessage}")
-  }))
+  ))
 
 }
 
