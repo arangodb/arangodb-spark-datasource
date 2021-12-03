@@ -49,11 +49,11 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoOptions) ex
     appliedSparkFilters = appliedFilters.map(_._1)
 
     if (fullSupp.nonEmpty)
-      logInfo(s"Fully supported filters (applied in AQL):\n${fullSupp.map(_._1).mkString("\n")}")
+      logInfo(s"Fully supported filters (applied in AQL):\n\t${fullSupp.map(_._1).mkString("\n\t")}")
     if (partialSupp.nonEmpty)
-      logInfo(s"Partially supported filters (applied in AQL and Spark):\n${partialSupp.map(_._1).mkString("\n")}")
+      logInfo(s"Partially supported filters (applied in AQL and Spark):\n\t${partialSupp.map(_._1).mkString("\n\t")}")
     if (noneSupp.nonEmpty)
-      logInfo(s"Not supported filters (applied in Spark):\n${noneSupp.map(_._1).mkString("\n")}")
+      logInfo(s"Not supported filters (applied in Spark):\n\t${noneSupp.map(_._1).mkString("\n\t")}")
 
     (partialSupp ++ noneSupp).map(_._1)
   }

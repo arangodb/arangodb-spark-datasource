@@ -343,9 +343,8 @@ df.write
 
 ## Current limitations
 
-- `content-type=json` does not work (implementation not finalized)
 - on batch reading, bad records are not tolerated and will make the job fail 
-
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each the read task
 
 ## Demo
 
