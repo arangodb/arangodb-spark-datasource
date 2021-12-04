@@ -255,7 +255,8 @@ fail. To makes the job more resilient to temporary errors (i.e. connectivity pro
 will be retried (with another coordinator) if the configured `overwrite.mode` allows for idempotent requests, namely: 
 - `replace`
 - `ignore`
-- `update`
+- `update` with `keep.null=true`
+
 These configurations of `overwrite.mode` would also be compatible with speculative execution of tasks.
 
 A failing batch-saving request is retried at most once for every coordinator. After that, if still failing, the write 
