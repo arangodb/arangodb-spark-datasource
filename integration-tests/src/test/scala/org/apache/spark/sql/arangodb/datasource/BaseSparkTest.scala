@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.{AfterEach, BeforeAll}
@@ -153,7 +154,7 @@ object BaseSparkTest {
     usersSchema
   )
 
-  def createDF(name: String, docs: Iterable[Any], schema: StructType): DataFrame = {
+  def createDF(name: String, docs: Iterable[Any], schema: StructType, contentType: String = "vpack"): DataFrame = {
     val col = db.collection(name)
     if (col.exists()) {
       col.truncate()
@@ -164,7 +165,7 @@ object BaseSparkTest {
 
     val df = spark.read
       .format(arangoDatasource)
-      .options(options + ("table" -> name))
+      .options(options + (ArangoOptions.COLLECTION -> name) + (ArangoOptions.CONTENT_TYPE -> contentType))
       .schema(schema)
       .load()
     df.createOrReplaceTempView(name)
