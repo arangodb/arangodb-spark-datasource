@@ -154,7 +154,7 @@ object BaseSparkTest {
     usersSchema
   )
 
-  def createDF(name: String, docs: Iterable[Any], schema: StructType, contentType: String = "vpack"): DataFrame = {
+  def createDF(name: String, docs: Iterable[Any], schema: StructType, additionalOptions: Map[String, String] = Map.empty): DataFrame = {
     val col = db.collection(name)
     if (col.exists()) {
       col.truncate()
@@ -165,7 +165,7 @@ object BaseSparkTest {
 
     val df = spark.read
       .format(arangoDatasource)
-      .options(options + (ArangoOptions.COLLECTION -> name) + (ArangoOptions.CONTENT_TYPE -> contentType))
+      .options(options ++ additionalOptions + (ArangoOptions.COLLECTION -> name))
       .schema(schema)
       .load()
     df.createOrReplaceTempView(name)

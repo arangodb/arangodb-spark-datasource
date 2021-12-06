@@ -7,6 +7,7 @@ import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
 
 import java.nio.charset.StandardCharsets
@@ -19,6 +20,11 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
   private val parser = ArangoParserProvider().of(options.readOptions.contentType, ctx.requiredSchema)
+  private val safeParser = new FailureSafeParser[Array[Byte]](
+    parser.parse,
+    options.readOptions.parseMode,
+    ctx.requiredSchema,
+    "columnNameOfCorruptRecord")
   private val client = ArangoClient(options)
   private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx)
 
@@ -38,10 +44,10 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
       false
     }
 
-  override def get: InternalRow = options.readOptions.contentType match {
-    case ContentType.VPack => parser.parse(current.toByteArray).head
-    case ContentType.Json => parser.parse(current.toString.getBytes(StandardCharsets.UTF_8)).head
-  }
+  override def get: InternalRow = safeParser.parse(options.readOptions.contentType match {
+    case ContentType.VPack => current.toByteArray
+    case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+  }).next()
 
   override def close(): Unit = {
     iterator.close()

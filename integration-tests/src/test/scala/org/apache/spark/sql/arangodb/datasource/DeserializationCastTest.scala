@@ -1,6 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -16,7 +17,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def numberIntToStringCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def numberIntToStringCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", StringType))),
     Seq(Map("a" -> 1)),
     Seq("""{"a":1}"""),
@@ -25,7 +26,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def numberDecToStringCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def numberDecToStringCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", StringType))),
     Seq(Map("a" -> 1.1)),
     Seq("""{"a":1.1}"""),
@@ -34,7 +35,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def boolToStringCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def boolToStringCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", StringType))),
     Seq(Map("a" -> true)),
     Seq("""{"a":true}"""),
@@ -43,7 +44,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def objectToStringCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def objectToStringCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", StringType))),
     Seq(Map("a" -> Map("b" -> "c"))),
     Seq("""{"a":{"b":"c"}}"""),
@@ -52,7 +53,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def arrayToStringCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def arrayToStringCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", StringType))),
     Seq(Map("a" -> Array(1, 2))),
     Seq("""{"a":[1,2]}"""),
@@ -61,7 +62,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullToIntegerCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def nullToIntegerCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", IntegerType, nullable = false))),
     Seq(Map("a" -> null)),
     Seq("""{"a":null}"""),
@@ -70,7 +71,7 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullToDoubleCast(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def nullToDoubleCast(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", DoubleType, nullable = false))),
     Seq(Map("a" -> null)),
     Seq("""{"a":null}"""),
@@ -79,14 +80,14 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullAsBoolean(contentType: String): Unit = doTestBadRecordImplicitCast(
+  def nullAsBoolean(contentType: String): Unit = doTestImplicitCast(
     StructType(Array(StructField("a", BooleanType, nullable = false))),
     Seq(Map("a" -> null)),
     Seq("""{"a":null}"""),
     contentType
   )
 
-  private def doTestBadRecordImplicitCast(
+  private def doTestImplicitCast(
                                            schema: StructType,
                                            data: Iterable[Map[String, Any]],
                                            jsonData: Seq[String],
@@ -95,7 +96,7 @@ class DeserializationCastTest extends BaseSparkTest {
     import spark.implicits._
     val dfFromJson: DataFrame = spark.read.schema(schema).json(jsonData.toDS)
     dfFromJson.show()
-    val df = BaseSparkTest.createDF(collectionName, data, schema, contentType)
+    val df = BaseSparkTest.createDF(collectionName, data, schema, Map(ArangoOptions.CONTENT_TYPE -> contentType))
     assertThat(df.collect()).isEqualTo(dfFromJson.collect())
   }
 }
