@@ -1,7 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import com.arangodb.entity.CursorEntity.Warning
-import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
@@ -17,7 +16,8 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends PartitionReader[InternalRow] with Logging {
 
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, schema)
+  private val actualSchema = StructType(schema.filterNot(_.name == "columnNameOfCorruptRecord"))
+  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,

@@ -35,6 +35,7 @@ class BaseSparkTest {
   }
 
   def isSingle: Boolean = BaseSparkTest.isSingle
+
   def isCluster: Boolean = !BaseSparkTest.isSingle
 }
 
@@ -171,6 +172,13 @@ object BaseSparkTest {
     df.createOrReplaceTempView(name)
     df
   }
+
+  def createQueryDF(query: String, schema: StructType, additionalOptions: Map[String, String] = Map.empty): DataFrame =
+    spark.read
+      .format(arangoDatasource)
+      .options(options ++ additionalOptions + (ArangoOptions.QUERY -> query))
+      .schema(schema)
+      .load()
 
   def dropTable(name: String): Unit = {
     db.collection(name).drop()

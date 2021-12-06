@@ -114,8 +114,12 @@ class BadRecordsTest extends BaseSparkTest {
     import spark.implicits._
     val dfFromJson: DataFrame = spark.read.schema(schema).options(opts).json(jsonData.toDS)
     dfFromJson.show()
-    val df = BaseSparkTest.createDF(collectionName, data, schema, opts)
-    assertThat(df.collect()).isEqualTo(dfFromJson.collect())
+
+    val tableDF = BaseSparkTest.createDF(collectionName, data, schema, opts)
+    assertThat(tableDF.collect()).isEqualTo(dfFromJson.collect())
+
+    val queryDF = BaseSparkTest.createQueryDF(s"RETURN ${jsonData.head}", schema, opts)
+    assertThat(queryDF.collect()).isEqualTo(dfFromJson.collect())
   }
 
 }

@@ -6,7 +6,6 @@ import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.ExprUtils
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.types.StructType
@@ -30,9 +29,6 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
     "columnNameOfCorruptRecord")
   private val client = ArangoClient(options)
   private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx.filters, actualSchema)
-
-  // FIXME: mv in driver
-  ExprUtils.verifyColumnNameOfCorruptRecord(ctx.requiredSchema, "columnNameOfCorruptRecord")
 
   var rowIterator: Iterator[InternalRow] = _
 
