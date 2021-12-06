@@ -2,8 +2,10 @@ package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.catalyst.util.{BadRecordException, DropMalformedMode, FailFastMode, ParseMode}
 import org.apache.spark.sql.types._
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -70,26 +72,49 @@ class BadRecordsTest extends BaseSparkTest {
                              jsonData: Seq[String],
                              contentType: String
                            ) = {
+    // PERMISSIVE
     doTestBadRecord(schema, data, jsonData, Map(ArangoOptions.CONTENT_TYPE -> contentType))
+
+    // PERMISSIVE with columnNameOfCorruptRecord
     doTestBadRecord(
-      schema.add(StructField("columnNameOfCorruptRecord", StringType)), data, jsonData,
+      schema.add(StructField("columnNameOfCorruptRecord", StringType)),
+      data,
+      jsonData,
       Map(
         ArangoOptions.CONTENT_TYPE -> contentType,
         "columnNameOfCorruptRecord" -> "columnNameOfCorruptRecord"
       )
     )
+
+    // DROPMALFORMED
+    doTestBadRecord(schema, data, jsonData,
+      Map(
+        ArangoOptions.CONTENT_TYPE -> contentType,
+        ArangoOptions.PARSE_MODE -> DropMalformedMode.name
+      )
+    )
+
+    // FAILFAST
+    val df = BaseSparkTest.createDF(collectionName, data, schema, Map(
+      ArangoOptions.CONTENT_TYPE -> contentType,
+      ArangoOptions.PARSE_MODE -> FailFastMode.name
+    ))
+    val thrown = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = df.collect()
+    })
+    assertThat(thrown.getCause).hasCauseInstanceOf(classOf[BadRecordException])
   }
 
   private def doTestBadRecord(
                                schema: StructType,
                                data: Iterable[Map[String, Any]],
                                jsonData: Seq[String],
-                               options: Map[String, String] = Map.empty
+                               opts: Map[String, String] = Map.empty
                              ) = {
     import spark.implicits._
-    val dfFromJson: DataFrame = spark.read.schema(schema).options(options).json(jsonData.toDS)
+    val dfFromJson: DataFrame = spark.read.schema(schema).options(opts).json(jsonData.toDS)
     dfFromJson.show()
-    val df = BaseSparkTest.createDF(collectionName, data, schema, options)
+    val df = BaseSparkTest.createDF(collectionName, data, schema, opts)
     assertThat(df.collect()).isEqualTo(dfFromJson.collect())
   }
 

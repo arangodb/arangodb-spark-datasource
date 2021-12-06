@@ -11,6 +11,7 @@ import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.types._
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
@@ -25,15 +26,21 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Part
   private val client = ArangoClient(options)
   private val iterator = client.readQuery()
 
-  private var current: VPackSlice = _
+  var rowIterator: Iterator[InternalRow] = _
 
   // warnings of non stream AQL cursors are all returned along with the first batch
   if (!options.readOptions.stream) logWarns()
 
-  override def next: Boolean =
+  @tailrec
+  final override def next: Boolean =
     if (iterator.hasNext) {
-      current = iterator.next()
-      true
+      val current = iterator.next()
+      rowIterator = safeParser.parse(options.readOptions.contentType match {
+        case ContentType.VPack => current.toByteArray
+        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+      })
+      if (rowIterator.hasNext) true
+      else next
     } else {
       // FIXME: https://arangodb.atlassian.net/browse/BTS-671
       // stream AQL cursors' warnings are only returned along with the final batch
@@ -41,10 +48,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Part
       false
     }
 
-  override def get: InternalRow = safeParser.parse(options.readOptions.contentType match {
-    case ContentType.VPack => current.toByteArray
-    case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
-  }).next()
+  override def get: InternalRow = rowIterator.next()
 
   override def close(): Unit = {
     iterator.close()
