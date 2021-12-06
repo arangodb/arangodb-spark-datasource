@@ -1,12 +1,9 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.SparkException
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
-import org.apache.spark.sql.catalyst.util.BadRecordException
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -40,31 +37,6 @@ class ReadTest extends BaseSparkTest {
     assertThat(litalien.gender).isEqualTo("female")
     assertThat(litalien.likes).isEqualTo(Seq("swimming", "chess"))
     assertThat(litalien.birthday).isEqualTo("1944-06-19")
-  }
-
-  @ParameterizedTest
-  @MethodSource(Array("provideProtocolAndContentType"))
-  def readCollectionWithBadRecords(protocol: String, contentType: String): Unit = {
-    val thrown = catchThrowable(new ThrowingCallable() {
-      override def call(): Unit =
-        spark.read
-          .format(BaseSparkTest.arangoDatasource)
-          .options(options + (
-            ArangoOptions.COLLECTION -> "users",
-            ArangoOptions.PROTOCOL -> protocol,
-            ArangoOptions.CONTENT_TYPE -> contentType
-          ))
-          .schema(new StructType(
-            Array(
-              StructField("likes", IntegerType)
-            )
-          ))
-          .load()
-          .show()
-    })
-
-    assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause).isInstanceOf(classOf[BadRecordException])
   }
 
   @Test
