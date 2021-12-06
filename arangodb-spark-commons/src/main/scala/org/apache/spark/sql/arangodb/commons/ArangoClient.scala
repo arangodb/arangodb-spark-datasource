@@ -12,7 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
-import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
+import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
+import org.apache.spark.sql.types.StructType
 
 import java.util
 import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapConverter}
@@ -38,12 +39,12 @@ class ArangoClient(options: ArangoOptions) extends Logging {
 
   def shutdown(): Unit = arangoDB.shutdown()
 
-  def readCollectionPartition(shardId: String, ctx: PushDownCtx): ArangoCursor[VPackSlice] = {
+  def readCollectionPartition(shardId: String, filters: Array[PushableFilter], schema: StructType): ArangoCursor[VPackSlice] = {
     val query =
       s"""
          |FOR d IN @@col
-         |${PushdownUtils.generateFilterClause(ctx.filters)}
-         |RETURN ${PushdownUtils.generateColumnsFilter(ctx.requiredSchema, "d")}"""
+         |${PushdownUtils.generateFilterClause(filters)}
+         |RETURN ${PushdownUtils.generateColumnsFilter(schema, "d")}"""
         .stripMargin
         .replaceAll("\n", " ")
     val params = Map[String, AnyRef]("@col" -> options.readOptions.collection.get)

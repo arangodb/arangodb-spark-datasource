@@ -1,14 +1,15 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import com.arangodb.entity.CursorEntity.Warning
-import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.expressions.ExprUtils
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
+import org.apache.spark.sql.types.StructType
 
 import java.nio.charset.StandardCharsets
 import scala.annotation.tailrec
@@ -20,14 +21,18 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
 
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, ctx.requiredSchema)
+  private val actualSchema = StructType(ctx.requiredSchema.filterNot(_.name == "columnNameOfCorruptRecord"))
+  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,
     ctx.requiredSchema,
     "columnNameOfCorruptRecord")
   private val client = ArangoClient(options)
-  private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx)
+  private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx.filters, actualSchema)
+
+  // FIXME: mv in driver
+  ExprUtils.verifyColumnNameOfCorruptRecord(ctx.requiredSchema, "columnNameOfCorruptRecord")
 
   var rowIterator: Iterator[InternalRow] = _
 
