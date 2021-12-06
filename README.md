@@ -62,9 +62,9 @@ To use in external Spark cluster, submit your application with the following par
 ### SSL
 
 To use TLS secured connections to ArangoDB, set `ssl.enabled` to `true` and either:
+- provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 - start Spark driver and workers with properly configured JVM default TrustStore, see 
   [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
-- provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 
 ### Supported deployment topologies
 
@@ -345,8 +345,8 @@ df.write
 ## Current limitations
 
 - on batch reading, bad records are not tolerated and will make the job fail 
-- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each the read task
-- for `content-type=vpack` deserialization casts don't work well, i.e. reading a document having a numeric value field
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task
+- for `content-type=vpack` deserialization casts don't work well, i.e. reading a document having a numeric field
   whereas the related read schema requires a string value for such field
 
 ## Demo
