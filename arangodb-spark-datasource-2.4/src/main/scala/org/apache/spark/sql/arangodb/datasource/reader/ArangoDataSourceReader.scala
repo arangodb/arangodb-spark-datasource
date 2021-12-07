@@ -1,13 +1,14 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.arangodb.commons.filter.{FilterSupport, PushableFilter}
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ReadMode}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, SupportsPushDownFilters, SupportsPushDownRequiredColumns}
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{StringType, StructType}
 
 import java.util
 import scala.collection.JavaConverters.seqAsJavaListConverter
@@ -16,6 +17,8 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoOptions) ex
   with SupportsPushDownFilters
   with SupportsPushDownRequiredColumns
   with Logging {
+
+  verifyColumnNameOfCorruptRecord(tableSchema, "columnNameOfCorruptRecord")
 
   // fully or partially applied filters
   private var appliedPushableFilters: Array[PushableFilter] = Array()
@@ -62,6 +65,22 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoOptions) ex
 
   override def pruneColumns(requiredSchema: StructType): Unit = {
     this.requiredSchema = requiredSchema
+  }
+
+  /**
+   * A convenient function for schema validation in datasources supporting
+   * `columnNameOfCorruptRecord` as an option.
+   */
+  private def verifyColumnNameOfCorruptRecord(
+                                               schema: StructType,
+                                               columnNameOfCorruptRecord: String): Unit = {
+    schema.getFieldIndex(columnNameOfCorruptRecord).foreach { corruptFieldIndex =>
+      val f = schema(corruptFieldIndex)
+      if (f.dataType != StringType || !f.nullable) {
+        throw new AnalysisException(
+          "The field for corrupt records must be string type and nullable")
+      }
+    }
   }
 
 }

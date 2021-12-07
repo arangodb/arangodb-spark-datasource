@@ -1,34 +1,47 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import com.arangodb.entity.CursorEntity.Warning
-import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.execution.datasources.FailureSafeParser
 import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
 import org.apache.spark.sql.types._
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
 class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends InputPartitionReader[InternalRow]
   with Logging {
 
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, schema)
+  private val actualSchema = StructType(schema.filterNot(_.name == "columnNameOfCorruptRecord"))
+  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
+  private val safeParser = new FailureSafeParser[Array[Byte]](
+    parser.parse(_).toSeq,
+    options.readOptions.parseMode,
+    schema,
+    "columnNameOfCorruptRecord")
   private val client = ArangoClient(options)
   private val iterator = client.readQuery()
 
-  private var current: VPackSlice = _
+  var rowIterator: Iterator[InternalRow] = _
 
   // warnings of non stream AQL cursors are all returned along with the first batch
   if (!options.readOptions.stream) logWarns()
 
-  override def next: Boolean =
+  @tailrec
+  final override def next: Boolean =
     if (iterator.hasNext) {
-      current = iterator.next()
-      true
+      val current = iterator.next()
+      rowIterator = safeParser.parse(options.readOptions.contentType match {
+        case ContentType.VPack => current.toByteArray
+        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+      })
+      if (rowIterator.hasNext) true
+      else next
     } else {
       // FIXME: https://arangodb.atlassian.net/browse/BTS-671
       // stream AQL cursors' warnings are only returned along with the final batch
@@ -36,10 +49,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Inpu
       false
     }
 
-  override def get: InternalRow = options.readOptions.contentType match {
-    case ContentType.VPack => parser.parse(current.toByteArray).head
-    case ContentType.Json => parser.parse(current.toString.getBytes(StandardCharsets.UTF_8)).head
-  }
+  override def get: InternalRow = rowIterator.next()
 
   override def close(): Unit = {
     iterator.close()
