@@ -87,6 +87,7 @@ object ArangoOptions {
   val FILL_BLOCK_CACHE = "fill.cache"
   val STREAM = "stream"
   val PARSE_MODE = "mode"
+  val CORRUPT_RECORDS_COLUMN = "columnNameOfCorruptRecord"
 
   // write options
   val NUMBER_OF_SHARDS = "table.shards"
@@ -178,6 +179,7 @@ class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(opti
   val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
   val stream: Boolean = options.getOrElse(ArangoOptions.STREAM, "true").toBoolean
   val parseMode: ParseMode = options.get(ArangoOptions.PARSE_MODE).map(ParseMode.fromString).getOrElse(PermissiveMode)
+  val columnNameOfCorruptRecord: String = options.getOrElse(ArangoOptions.CORRUPT_RECORDS_COLUMN, "")
 }
 
 class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {

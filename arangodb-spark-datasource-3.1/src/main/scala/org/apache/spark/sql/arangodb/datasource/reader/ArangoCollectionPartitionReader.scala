@@ -20,13 +20,13 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
 
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
-  private val actualSchema = StructType(ctx.requiredSchema.filterNot(_.name == "columnNameOfCorruptRecord"))
+  private val actualSchema = StructType(ctx.requiredSchema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
   private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,
     ctx.requiredSchema,
-    "columnNameOfCorruptRecord")
+    options.readOptions.columnNameOfCorruptRecord)
   private val client = ArangoClient(options)
   private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx.filters, actualSchema)
 

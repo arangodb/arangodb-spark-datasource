@@ -78,12 +78,12 @@ class BadRecordsTest extends BaseSparkTest {
 
     // PERMISSIVE with columnNameOfCorruptRecord
     doTestBadRecord(
-      schema.add(StructField("columnNameOfCorruptRecord", StringType)),
+      schema.add(StructField("corruptRecord", StringType)),
       data,
       jsonData,
       Map(
         ArangoOptions.CONTENT_TYPE -> contentType,
-        "columnNameOfCorruptRecord" -> "columnNameOfCorruptRecord"
+        ArangoOptions.CORRUPT_RECORDS_COLUMN -> "corruptRecord"
       )
     )
 

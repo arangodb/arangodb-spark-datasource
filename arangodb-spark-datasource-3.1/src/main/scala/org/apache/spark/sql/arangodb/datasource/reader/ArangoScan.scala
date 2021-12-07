@@ -7,7 +7,7 @@ import org.apache.spark.sql.connector.read.{Batch, InputPartition, PartitionRead
 import org.apache.spark.sql.types.StructType
 
 class ArangoScan(ctx: PushDownCtx, options: ArangoOptions) extends Scan with Batch {
-  ExprUtils.verifyColumnNameOfCorruptRecord(ctx.requiredSchema, "columnNameOfCorruptRecord")
+  ExprUtils.verifyColumnNameOfCorruptRecord(ctx.requiredSchema, options.readOptions.columnNameOfCorruptRecord)
 
   override def readSchema(): StructType = ctx.requiredSchema
 

@@ -18,7 +18,7 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoOptions) ex
   with SupportsPushDownRequiredColumns
   with Logging {
 
-  verifyColumnNameOfCorruptRecord(tableSchema, "columnNameOfCorruptRecord")
+  verifyColumnNameOfCorruptRecord(tableSchema, options.readOptions.columnNameOfCorruptRecord)
 
   // fully or partially applied filters
   private var appliedPushableFilters: Array[PushableFilter] = Array()
