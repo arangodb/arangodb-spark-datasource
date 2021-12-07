@@ -141,11 +141,10 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 - `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`)
 - `stream`: whether the query should be executed lazily, default `true`
 - `mode`: allows a mode for dealing with corrupt records during parsing:
-  - `PERMISSIVE` : when it meets a corrupted record, puts the malformed string into a field
-    configured by columnNameOfCorruptRecord, and sets malformed fields to null. To keep corrupt
-    records, an user can set a string type field named columnNameOfCorruptRecord in an
-    user-defined schema. If a schema does not have the field, it drops corrupt records during
-    parsing. When inferring a schema, it implicitly adds a columnNameOfCorruptRecord field in
+  - `PERMISSIVE` : when it meets a corrupted record, puts the malformed string into a field configured by 
+    `columnNameOfCorruptRecord`, and sets malformed fields to null. To keep corrupt records, a user can set a string 
+    type field named columnNameOfCorruptRecord in a user-defined schema. If a schema does not have the field, it drops 
+    corrupt records during parsing. When inferring a schema, it implicitly adds a `columnNameOfCorruptRecord` field in
     an output schema
   - `DROPMALFORMED`: ignores the whole corrupted records
   - `FAILFAST`: throws an exception when it meets corrupted records
@@ -355,10 +354,10 @@ df.write
 
 - on corrupted records in batch reading, partial results are not supported. All fields other than the field configured 
   by `columnNameOfCorruptRecord` are set to `null`
-- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task
-- for `content-type=vpack` deserialization casts don't work well, i.e. reading a document having a numeric field
-  whereas the related read schema requires a string value for such field
-- when reading or writing, dates and timestamps fields interpreted to be of UTC time zone
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (BTS-671)
+- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with 
+  a numeric value whereas the related read schema requires a string value for such field
+- dates and timestamps fields are interpreted to be in UTC time zone
 
 ## Demo
 
