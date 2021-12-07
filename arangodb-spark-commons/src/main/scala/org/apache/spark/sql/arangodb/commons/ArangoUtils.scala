@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.commons
 
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Encoders, SparkSession}
 
 /**
@@ -17,10 +17,15 @@ object ArangoUtils {
     client.shutdown()
 
     val spark = SparkSession.getActiveSession.get
-    spark
+    val schema = spark
       .read
       .json(spark.createDataset(sampleEntries)(Encoders.STRING))
       .schema
+
+    if (options.readOptions.columnNameOfCorruptRecord.isEmpty)
+      schema
+    else
+      schema.add(StructField(options.readOptions.columnNameOfCorruptRecord, StringType, nullable = true))
   }
 
 }
