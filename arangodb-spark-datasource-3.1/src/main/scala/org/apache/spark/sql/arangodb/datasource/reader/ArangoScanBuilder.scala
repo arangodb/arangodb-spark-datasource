@@ -22,26 +22,30 @@ class ArangoScanBuilder(options: ArangoOptions, tableSchema: StructType) extends
   override def build(): Scan = new ArangoScan(new PushDownCtx(requiredSchema, appliedPushableFilters), options)
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
+    // filters related to columnNameOfCorruptRecord are not pushed down
+    val isCorruptRecordFilter = (f: Filter) => f.references.contains(options.readOptions.columnNameOfCorruptRecord)
+    val ignoredFilters = filters.filter(isCorruptRecordFilter)
     val filtersBySupport = filters
+      .filterNot(isCorruptRecordFilter)
       .map(f => (f, PushableFilter(f, tableSchema)))
       .groupBy(_._2.support())
 
     val fullSupp = filtersBySupport.getOrElse(FilterSupport.FULL, Array())
     val partialSupp = filtersBySupport.getOrElse(FilterSupport.PARTIAL, Array())
-    val noneSupp = filtersBySupport.getOrElse(FilterSupport.NONE, Array())
+    val noneSupp = filtersBySupport.getOrElse(FilterSupport.NONE, Array()).map(_._1) ++ ignoredFilters
 
     val appliedFilters = fullSupp ++ partialSupp
     appliedPushableFilters = appliedFilters.map(_._2)
     appliedSparkFilters = appliedFilters.map(_._1)
 
     if (fullSupp.nonEmpty)
-      logInfo(s"Fully supported filters (applied in AQL):\n\t${fullSupp.map(_._1).mkString("\n\t")}")
+      logInfo(s"Filters fully applied in AQL:\n\t${fullSupp.map(_._1).mkString("\n\t")}")
     if (partialSupp.nonEmpty)
-      logInfo(s"Partially supported filters (applied in AQL and Spark):\n\t${partialSupp.map(_._1).mkString("\n\t")}")
+      logInfo(s"Filters partially applied in AQL:\n\t${partialSupp.map(_._1).mkString("\n\t")}")
     if (noneSupp.nonEmpty)
-      logInfo(s"Not supported filters (applied in Spark):\n\t${noneSupp.map(_._1).mkString("\n\t")}")
+      logInfo(s"Filters not applied in AQL:\n\t${noneSupp.mkString("\n\t")}")
 
-    (partialSupp ++ noneSupp).map(_._1)
+    partialSupp.map(_._1) ++ noneSupp
   }
 
   override def pushedFilters(): Array[Filter] = appliedSparkFilters

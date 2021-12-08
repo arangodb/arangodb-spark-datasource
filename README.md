@@ -352,8 +352,6 @@ df.write
 
 ## Current limitations
 
-- on corrupted records in batch reading, partial results are not supported. All fields other than the field configured 
-  by `columnNameOfCorruptRecord` are set to `null`
 - in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (BTS-671)
 - for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with 
   a numeric value whereas the related read schema requires a string value for such field

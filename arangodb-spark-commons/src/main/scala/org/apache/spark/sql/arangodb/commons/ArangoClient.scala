@@ -15,8 +15,7 @@ import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
 import org.apache.spark.sql.types.StructType
 
-import java.util
-import scala.collection.JavaConverters.{asScalaIteratorConverter, mapAsJavaMapConverter}
+import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 class ArangoClient(options: ArangoOptions) extends Logging {
 
@@ -66,7 +65,7 @@ class ArangoClient(options: ArangoOptions) extends Logging {
         classOf[VPackSlice])
   }
 
-  def readCollectionSample(): util.List[String] = {
+  def readCollectionSample(): Seq[String] = {
     val query = "FOR d IN @@col LIMIT @size RETURN d"
     val params = Map(
       "@col" -> options.readOptions.collection.get,
@@ -75,22 +74,28 @@ class ArangoClient(options: ArangoOptions) extends Logging {
       .asInstanceOf[Map[String, AnyRef]]
     val opts = aqlOptions()
     logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
+
+    import scala.collection.JavaConverters.iterableAsScalaIterableConverter
     arangoDB
       .db(options.readOptions.db)
       .query(query, params.asJava, opts, classOf[String])
       .asListRemaining()
+      .asScala
+      .toSeq
   }
 
-  def readQuerySample(): util.List[String] = {
+  def readQuerySample(): Seq[String] = {
     val query = options.readOptions.query.get
     logDebug(s"Executing AQL query: \n\t$query")
-    arangoDB
+    val cursor = arangoDB
       .db(options.readOptions.db)
       .query(
         query,
         aqlOptions(),
         classOf[String])
-      .asListRemaining()
+
+    import scala.collection.JavaConverters.asScalaIteratorConverter
+    cursor.asScala.take(options.readOptions.sampleSize).toSeq
   }
 
   def collectionExists(): Boolean = arangoDB
@@ -138,6 +143,7 @@ class ArangoClient(options: ArangoOptions) extends Logging {
     request.setBody(data)
     val response = arangoDB.execute(request)
 
+    import scala.collection.JavaConverters.asScalaIteratorConverter
     // FIXME
     // in case there are no errors, response body is an empty object
     // In cluster 3.8.1 this is not true due to: https://arangodb.atlassian.net/browse/BTS-592
