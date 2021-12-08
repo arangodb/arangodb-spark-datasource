@@ -1,15 +1,17 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import com.arangodb.entity.CursorEntity.Warning
-import com.arangodb.velocypack.VPackSlice
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.execution.datasources.FailureSafeParser
 import org.apache.spark.sql.sources.v2.reader.InputPartitionReader
+import org.apache.spark.sql.types.StructType
 
 import java.nio.charset.StandardCharsets
+import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
@@ -21,19 +23,31 @@ class ArangoCollectionPartitionReader(
 
   // override endpoints with partition endpoint
   private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, ctx.requiredSchema)
+  private val actualSchema = StructType(ctx.requiredSchema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
+  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
+  private val safeParser = new FailureSafeParser[Array[Byte]](
+    parser.parse(_).toSeq,
+    options.readOptions.parseMode,
+    ctx.requiredSchema,
+    options.readOptions.columnNameOfCorruptRecord)
   private val client = ArangoClient(options)
-  private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx)
+  private val iterator = client.readCollectionPartition(inputPartition.shardId, ctx.filters, actualSchema)
 
-  private var current: VPackSlice = _
+  var rowIterator: Iterator[InternalRow] = _
 
   // warnings of non stream AQL cursors are all returned along with the first batch
   if (!options.readOptions.stream) logWarns()
 
-  override def next: Boolean =
+  @tailrec
+  final override def next: Boolean =
     if (iterator.hasNext) {
-      current = iterator.next()
-      true
+      val current = iterator.next()
+      rowIterator = safeParser.parse(options.readOptions.contentType match {
+        case ContentType.VPack => current.toByteArray
+        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+      })
+      if (rowIterator.hasNext) true
+      else next
     } else {
       // FIXME: https://arangodb.atlassian.net/browse/BTS-671
       // stream AQL cursors' warnings are only returned along with the final batch
@@ -41,10 +55,7 @@ class ArangoCollectionPartitionReader(
       false
     }
 
-  override def get: InternalRow = options.readOptions.contentType match {
-    case ContentType.VPack => parser.parse(current.toByteArray).head
-    case ContentType.Json => parser.parse(current.toString.getBytes(StandardCharsets.UTF_8)).head
-  }
+  override def get: InternalRow = rowIterator.next()
 
   override def close(): Unit = {
     iterator.close()

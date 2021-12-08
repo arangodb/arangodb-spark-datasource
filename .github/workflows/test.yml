@@ -9,6 +9,7 @@ on:
     types: [ opened, synchronize, reopened ]
     branches:
       - main
+      - devel
 
 jobs:
 

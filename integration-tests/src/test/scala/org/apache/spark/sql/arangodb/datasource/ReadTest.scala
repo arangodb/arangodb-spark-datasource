@@ -1,15 +1,14 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.SparkException
+import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoOptions
-import org.apache.spark.sql.catalyst.util.BadRecordException
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
-import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable
+import org.apache.spark.sql.types.{NumericType, StringType, StructField, StructType}
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.{MethodSource, ValueSource}
 
 class ReadTest extends BaseSparkTest {
 
@@ -40,31 +39,6 @@ class ReadTest extends BaseSparkTest {
     assertThat(litalien.gender).isEqualTo("female")
     assertThat(litalien.likes).isEqualTo(Seq("swimming", "chess"))
     assertThat(litalien.birthday).isEqualTo("1944-06-19")
-  }
-
-  @ParameterizedTest
-  @MethodSource(Array("provideProtocolAndContentType"))
-  def readCollectionWithBadRecords(protocol: String, contentType: String): Unit = {
-    val thrown = catchThrowable(new ThrowingCallable() {
-      override def call(): Unit =
-        spark.read
-          .format(BaseSparkTest.arangoDatasource)
-          .options(options + (
-            ArangoOptions.COLLECTION -> "users",
-            ArangoOptions.PROTOCOL -> protocol,
-            ArangoOptions.CONTENT_TYPE -> contentType
-          ))
-          .schema(new StructType(
-            Array(
-              StructField("likes", IntegerType)
-            )
-          ))
-          .load()
-          .show()
-    })
-
-    assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause).isInstanceOf(classOf[BadRecordException])
   }
 
   @Test
@@ -110,6 +84,62 @@ class ReadTest extends BaseSparkTest {
     assertThat(lastNameSchema.dataType).isInstanceOf(classOf[StringType])
     assertThat(lastNameSchema.nullable).isTrue
   }
+
+  @ParameterizedTest
+  @ValueSource(strings = Array("vpack", "json"))
+  def inferCollectionSchemaWithCorruptRecordColumn(contentType: String): Unit = {
+    assumeTrue(isSingle)
+
+    val additionalOptions = Map(
+      ArangoOptions.CORRUPT_RECORDS_COLUMN -> "badRecord",
+      ArangoOptions.SAMPLE_SIZE -> "2",
+      ArangoOptions.CONTENT_TYPE -> contentType
+    )
+
+    doInferCollectionSchemaWithCorruptRecordColumn(
+      BaseSparkTest.createQueryDF(
+        """FOR d IN [{"v":1},{"v":2},{"v":"3"}] RETURN d""",
+        schema = null,
+        additionalOptions
+      )
+    )
+
+    doInferCollectionSchemaWithCorruptRecordColumn(
+      BaseSparkTest.createDF(
+        "badData",
+        Seq(
+          Map("v" -> 1),
+          Map("v" -> 2),
+          Map("v" -> "3")
+        ),
+        schema = null,
+        additionalOptions
+      )
+    )
+  }
+
+  def doInferCollectionSchemaWithCorruptRecordColumn(df: DataFrame): Unit = {
+    val vSchema = df.schema("v")
+    assertThat(vSchema).isInstanceOf(classOf[StructField])
+    assertThat(vSchema.name).isEqualTo("v")
+    assertThat(vSchema.dataType).isInstanceOf(classOf[NumericType])
+    assertThat(vSchema.nullable).isTrue
+
+    val badRecordSchema = df.schema("badRecord")
+    assertThat(badRecordSchema).isInstanceOf(classOf[StructField])
+    assertThat(badRecordSchema.name).isEqualTo("badRecord")
+    assertThat(badRecordSchema.dataType).isInstanceOf(classOf[StringType])
+    assertThat(badRecordSchema.nullable).isTrue
+
+    val badRecords = df.filter("badRecord IS NOT NULL").persist()
+      .select("badRecord")
+      .collect()
+      .map(_ (0).asInstanceOf[String])
+
+    assertThat(badRecords).hasSize(1)
+    assertThat(badRecords.head).contains(""""v":"3""")
+  }
+
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))

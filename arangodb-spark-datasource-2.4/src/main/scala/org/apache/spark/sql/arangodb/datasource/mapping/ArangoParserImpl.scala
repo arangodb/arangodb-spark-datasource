@@ -42,5 +42,5 @@ class VPackArangoParser(schema: DataType)
   extends ArangoParserImpl(
     schema,
     createOptions(new VPackFactory()),
-    (bytes: Array[Byte]) => UTF8String.fromString(new VPackParser.Builder().build().toJson(new VPackSlice(bytes)))
+    (bytes: Array[Byte]) => UTF8String.fromString(new VPackParser.Builder().build().toJson(new VPackSlice(bytes), true))
   )

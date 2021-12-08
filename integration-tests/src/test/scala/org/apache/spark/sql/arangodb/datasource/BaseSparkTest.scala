@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.{AfterEach, BeforeAll}
@@ -34,6 +35,7 @@ class BaseSparkTest {
   }
 
   def isSingle: Boolean = BaseSparkTest.isSingle
+
   def isCluster: Boolean = !BaseSparkTest.isSingle
 }
 
@@ -153,7 +155,7 @@ object BaseSparkTest {
     usersSchema
   )
 
-  def createDF(name: String, docs: Iterable[Any], schema: StructType): DataFrame = {
+  def createDF(name: String, docs: Iterable[Any], schema: StructType, additionalOptions: Map[String, String] = Map.empty): DataFrame = {
     val col = db.collection(name)
     if (col.exists()) {
       col.truncate()
@@ -164,12 +166,19 @@ object BaseSparkTest {
 
     val df = spark.read
       .format(arangoDatasource)
-      .options(options + ("table" -> name))
+      .options(options ++ additionalOptions + (ArangoOptions.COLLECTION -> name))
       .schema(schema)
       .load()
     df.createOrReplaceTempView(name)
     df
   }
+
+  def createQueryDF(query: String, schema: StructType, additionalOptions: Map[String, String] = Map.empty): DataFrame =
+    spark.read
+      .format(arangoDatasource)
+      .options(options ++ additionalOptions + (ArangoOptions.QUERY -> query))
+      .schema(schema)
+      .load()
 
   def dropTable(name: String): Unit = {
     db.collection(name).drop()

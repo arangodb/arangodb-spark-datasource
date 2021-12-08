@@ -62,9 +62,9 @@ To use in external Spark cluster, submit your application with the following par
 ### SSL
 
 To use TLS secured connections to ArangoDB, set `ssl.enabled` to `true` and either:
+- provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 - start Spark driver and workers with properly configured JVM default TrustStore, see 
   [link](https://spark.apache.org/docs/latest/security.html#ssl-configuration)
-- provide base64 encoded certificate as `ssl.cert.value` configuration entry and optionally set `ssl.*`, or
 
 ### Supported deployment topologies
 
@@ -140,7 +140,15 @@ usersDF.filter(col("birthday") === "1982-12-15").show()
 - `batch.size`: reading batch size, default `1000`
 - `fill.cache`: whether the query should store the data it reads in the RocksDB block cache (`true`|`false`)
 - `stream`: whether the query should be executed lazily, default `true`
-
+- `mode`: allows a mode for dealing with corrupt records during parsing:
+  - `PERMISSIVE` : when it meets a corrupted record, puts the malformed string into a field configured by 
+    `columnNameOfCorruptRecord`, and sets malformed fields to null. To keep corrupt records, a user can set a string 
+    type field named columnNameOfCorruptRecord in a user-defined schema. If a schema does not have the field, it drops 
+    corrupt records during parsing. When inferring a schema, it implicitly adds a `columnNameOfCorruptRecord` field in
+    an output schema
+  - `DROPMALFORMED`: ignores the whole corrupted records
+  - `FAILFAST`: throws an exception when it meets corrupted records
+- `columnNameOfCorruptRecord`: allows renaming the new field having malformed string created by `PERMISSIVE` mode
 
 ### Predicate and Projection Pushdown
 
@@ -255,7 +263,8 @@ fail. To makes the job more resilient to temporary errors (i.e. connectivity pro
 will be retried (with another coordinator) if the configured `overwrite.mode` allows for idempotent requests, namely: 
 - `replace`
 - `ignore`
-- `update`
+- `update` with `keep.null=true`
+
 These configurations of `overwrite.mode` would also be compatible with speculative execution of tasks.
 
 A failing batch-saving request is retried at most once for every coordinator. After that, if still failing, the write 
@@ -343,8 +352,12 @@ df.write
 
 ## Current limitations
 
-- on batch reading, bad records are not tolerated and will make the job fail 
-- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each the read task
+- In Spark 2.4, on corrupted records in batch reading, partial results are not supported. All fields other than the
+  field configured by `columnNameOfCorruptRecord` are set to `null`
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (BTS-671)
+- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with 
+  a numeric value whereas the related read schema requires a string value for such field
+- dates and timestamps fields are interpreted to be in UTC time zone
 
 ## Demo
 
