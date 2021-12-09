@@ -36,8 +36,8 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Part
     if (iterator.hasNext) {
       val current = iterator.next()
       rowIterator = safeParser.parse(options.readOptions.contentType match {
-        case ContentType.VPack => current.toByteArray
-        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+        case ContentType.VPACK => current.toByteArray
+        case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
       })
       if (rowIterator.hasNext) true
       else next

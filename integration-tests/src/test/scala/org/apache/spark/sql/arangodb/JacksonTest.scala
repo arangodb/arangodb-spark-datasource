@@ -57,12 +57,12 @@ class JacksonTest {
 
   @Test
   def jsonRoudTrip(): Unit = {
-    roundTrip(ContentType.Json, jsonBytes)
+    roundTrip(ContentType.JSON, jsonBytes)
   }
 
   @Test
   def vpackRoudTrip(): Unit = {
-    roundTrip(ContentType.VPack, vpackBytes)
+    roundTrip(ContentType.VPACK, vpackBytes)
   }
 
   private def roundTrip(contentType: ContentType, data: Array[Byte]): Unit = {

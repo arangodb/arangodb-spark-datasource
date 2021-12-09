@@ -110,10 +110,10 @@ class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
   private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "http"))
   private val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
   private val arangoProtocol = (protocol, contentType) match {
-    case (Protocol.VST, ContentType.VPack) => com.arangodb.Protocol.VST
-    case (Protocol.VST, ContentType.Json) => throw new IllegalArgumentException("Json over VST is not supported")
-    case (Protocol.HTTP, ContentType.VPack) => com.arangodb.Protocol.HTTP_VPACK
-    case (Protocol.HTTP, ContentType.Json) => com.arangodb.Protocol.HTTP_JSON
+    case (Protocol.VST, ContentType.VPACK) => com.arangodb.Protocol.VST
+    case (Protocol.VST, ContentType.JSON) => throw new IllegalArgumentException("Json over VST is not supported")
+    case (Protocol.HTTP, ContentType.VPACK) => com.arangodb.Protocol.HTTP_VPACK
+    case (Protocol.HTTP, ContentType.JSON) => com.arangodb.Protocol.HTTP_JSON
   }
   private val sslEnabled: Boolean = options.getOrElse(ArangoOptions.SSL_ENABLED, "false").toBoolean
   private val sslCert: Option[String] = options.get(ArangoOptions.SSL_CERT)
@@ -210,50 +210,68 @@ object ReadMode {
   case object Query extends ReadMode
 }
 
-sealed trait ContentType
+sealed trait ContentType {
+  val name: String
+}
 
 object ContentType {
-  case object Json extends ContentType
+  case object JSON extends ContentType {
+    override val name: String = "json"
+  }
 
-  case object VPack extends ContentType
+  case object VPACK extends ContentType {
+    override val name: String = "vpack"
+  }
 
   def apply(value: String): ContentType = value match {
-    case "json" => Json
-    case "vpack" => VPack
+    case JSON.name => JSON
+    case VPACK.name => VPACK
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.CONTENT_TYPE}: $value")
   }
 }
 
-sealed trait Protocol
+sealed trait Protocol {
+  val name: String
+}
 
 object Protocol {
-  case object VST extends Protocol
+  case object VST extends Protocol {
+    override val name: String = "vst"
+  }
 
-  case object HTTP extends Protocol
+  case object HTTP extends Protocol {
+    override val name: String = "http"
+  }
 
   def apply(value: String): Protocol = value match {
-    case "vst" => VST
-    case "http" => HTTP
+    case VST.name => VST
+    case HTTP.name => HTTP
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
   }
 }
 
 sealed trait CollectionType {
+  val name: String
+
   def get(): entity.CollectionType
 }
 
 object CollectionType {
   case object DOCUMENT extends CollectionType {
+    override val name: String = "document"
+
     override def get() = entity.CollectionType.DOCUMENT
   }
 
   case object EDGE extends CollectionType {
+    override val name: String = "edge"
+
     override def get() = entity.CollectionType.EDGES
   }
 
   def apply(value: String): CollectionType = value match {
-    case "document" => DOCUMENT
-    case "edge" => EDGE
+    case DOCUMENT.name => DOCUMENT
+    case EDGE.name => EDGE
     case _ => throw new IllegalArgumentException(s"${ArangoOptions.COLLECTION_TYPE}: $value")
   }
 }

@@ -72,8 +72,8 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
     vpackGenerator.close()
     vpackGenerator.flush()
     val payload = options.writeOptions.contentType match {
-      case ContentType.VPack => new VPackSlice(outVPack.toByteArray)
-      case ContentType.Json => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
+      case ContentType.VPACK => new VPackSlice(outVPack.toByteArray)
+      case ContentType.JSON => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
     }
     saveDocuments(payload)
   }
