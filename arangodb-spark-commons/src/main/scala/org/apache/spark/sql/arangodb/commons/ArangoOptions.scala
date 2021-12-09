@@ -20,15 +20,15 @@
 
 package org.apache.spark.sql.arangodb.commons
 
-import com.arangodb.{ArangoDB, entity}
 import com.arangodb.model.OverwriteMode
-import org.apache.spark.sql.catalyst.util.{ParseMode, PermissiveMode}
+import com.arangodb.{ArangoDB, entity}
+import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, ParseMode, PermissiveMode}
 
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.util
-import java.util.{Base64, Locale}
+import java.util.Base64
 import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 
@@ -37,7 +37,7 @@ import scala.collection.JavaConverters.mapAsScalaMapConverter
  * @author Michele Rastelli
  */
 class ArangoOptions(opts: Map[String, String]) extends Serializable {
-  private val options: Map[String, String] = opts.map(e => (e._1.toLowerCase(Locale.US), e._2))
+  private val options: Map[String, String] = CaseInsensitiveMap(opts)
 
   lazy val driverOptions: ArangoDriverOptions = new ArangoDriverOptions(options)
   lazy val readOptions: ArangoReadOptions = new ArangoReadOptions(options)
@@ -89,7 +89,7 @@ object ArangoOptions {
   val FILL_BLOCK_CACHE = "fill.cache"
   val STREAM = "stream"
   val PARSE_MODE = "mode"
-  val CORRUPT_RECORDS_COLUMN = "columnnameofcorruptrecord"
+  val CORRUPT_RECORDS_COLUMN = "columnNameOfCorruptRecord"
 
   // write options
   val NUMBER_OF_SHARDS = "table.shards"
