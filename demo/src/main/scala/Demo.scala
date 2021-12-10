@@ -54,7 +54,7 @@ object Demo {
     usersDF.createOrReplaceTempView("users")
     val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
     californians.show()
-    californians.write.format("com.arangodb.spark").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
+    californians.write.format("com.arangodb.spark").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirmTruncate" -> "true")).save()
 
     spark.stop()
   }
