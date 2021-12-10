@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoUtils}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ArangoUtils}
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoDataSourceReader
 import org.apache.spark.sql.arangodb.datasource.writer.ArangoDataSourceWriter
 import org.apache.spark.sql.sources.DataSourceRegister

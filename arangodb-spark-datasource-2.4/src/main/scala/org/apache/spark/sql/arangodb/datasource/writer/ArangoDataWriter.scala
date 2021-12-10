@@ -49,8 +49,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private def createClient() = ArangoClient(options.updated(ArangoDBConf.ENDPOINTS, endpoints(endpointIdx)))
 
   private def canRetry: Boolean =
-    if (options.writeOptions.overwriteMode.isEmpty) false
-    else options.writeOptions.overwriteMode.get match {
+    options.writeOptions.overwriteMode match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
       case OverwriteMode.update => options.writeOptions.keepNull
@@ -60,7 +59,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private def initBatch(): Unit = {
     batchCount = 0
     outVPack = new ByteArrayOutputStream()
-    vpackGenerator = ArangoGeneratorProvider().of(options.writeOptions.contentType, schema, outVPack)
+    vpackGenerator = ArangoGeneratorProvider().of(options.driverOptions.contentType, schema, outVPack)
     vpackGenerator.writeStartArray()
   }
 
@@ -68,9 +67,9 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
     vpackGenerator.writeEndArray()
     vpackGenerator.close()
     vpackGenerator.flush()
-    val payload = options.writeOptions.contentType match {
-      case ContentType.VPack => new VPackSlice(outVPack.toByteArray)
-      case ContentType.Json => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
+    val payload = options.driverOptions.contentType match {
+      case ContentType.VPACK => new VPackSlice(outVPack.toByteArray)
+      case ContentType.JSON => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
     }
     saveDocuments(payload)
   }
@@ -85,7 +84,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
         client.shutdown()
         failures += 1
         endpointIdx += 1
-        if (canRetry && failures < options.driverOptions.endpoints.size) {
+        if (canRetry && failures < options.driverOptions.endpoints.length) {
           client = createClient()
           saveDocuments(payload)
         } else throw e

@@ -18,7 +18,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Input
   with Logging {
 
   private val actualSchema = StructType(schema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
+  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse(_).toSeq,
     options.readOptions.parseMode,
@@ -36,9 +36,9 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Input
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(options.readOptions.contentType match {
-        case ContentType.VPack => current.toByteArray
-        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+      rowIterator = safeParser.parse(options.driverOptions.contentType match {
+        case ContentType.VPACK => current.toByteArray
+        case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
       })
       if (rowIterator.hasNext) true
       else next

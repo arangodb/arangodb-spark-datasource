@@ -20,35 +20,30 @@ object ArangoDBConf {
   val USER = "user"
   val userConf: ConfigEntry[String] = ConfigBuilder(USER)
     .doc("db user")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("root")
 
   val PASSWORD = "password"
   val passwordConf: OptionalConfigEntry[String] = ConfigBuilder(PASSWORD)
     .doc("db password")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val ENDPOINTS = "endpoints"
   val endpointsConf: OptionalConfigEntry[String] = ConfigBuilder(ENDPOINTS)
     .doc("A comma-separated list of coordinators, eg. c1:8529,c2:8529")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val ACQUIRE_HOST_LIST = "acquireHostList"
   val acquireHostListConf: ConfigEntry[Boolean] = ConfigBuilder(ACQUIRE_HOST_LIST)
     .doc("acquire the list of all known hosts in the cluster")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(false)
 
   val PROTOCOL = "protocol"
   val protocolConf: ConfigEntry[String] = ConfigBuilder(PROTOCOL)
     .doc("communication protocol")
-    .version("1.0.0")
     .stringConf
     .checkValues(Set(Protocol.HTTP.name, Protocol.VST.name))
     .createWithDefault(Protocol.HTTP.name)
@@ -56,7 +51,6 @@ object ArangoDBConf {
   val CONTENT_TYPE = "contentType"
   val contentTypeConf: ConfigEntry[String] = ConfigBuilder(CONTENT_TYPE)
     .doc("content type for driver communication")
-    .version("1.0.0")
     .stringConf
     .checkValues(Set(ContentType.VPACK.name, ContentType.JSON.name))
     .createWithDefault(ContentType.JSON.name)
@@ -64,105 +58,90 @@ object ArangoDBConf {
   val SSL_ENABLED = "ssl.enabled"
   val sslEnabledConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_ENABLED)
     .doc("SSL secured driver connection")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(false)
 
   val SSL_CERT_VALUE = "ssl.cert.value"
   val sslCertValueConf: OptionalConfigEntry[String] = ConfigBuilder(SSL_CERT_VALUE)
     .doc("base64 encoded certificate")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val SSL_CERT_TYPE = "ssl.cert.type"
   val sslCertTypeConf: ConfigEntry[String] = ConfigBuilder(SSL_CERT_TYPE)
     .doc("certificate type")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("X.509")
 
   val SSL_CERT_ALIAS = "ssl.cert.alias"
   val sslCertAliasConf: ConfigEntry[String] = ConfigBuilder(SSL_CERT_ALIAS)
     .doc("certificate alias name")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("arangodb")
 
   val SSL_ALGORITHM = "ssl.algorithm"
   val sslAlgorithmConf: ConfigEntry[String] = ConfigBuilder(SSL_ALGORITHM)
     .doc("trust manager algorithm")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("SunX509")
 
   val SSL_KEYSTORE_TYPE = "ssl.keystore.type"
   val sslKeystoreTypeConf: ConfigEntry[String] = ConfigBuilder(SSL_KEYSTORE_TYPE)
     .doc("keystore type")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("jks")
 
   val SSL_PROTOCOL = "ssl.protocol"
   val sslProtocolConf: ConfigEntry[String] = ConfigBuilder(SSL_PROTOCOL)
     .doc("SSLContext protocol")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("TLS")
 
   val DB = "database"
   val dbConf: ConfigEntry[String] = ConfigBuilder(DB)
     .doc("database name")
-    .version("1.0.0")
     .stringConf
     .createWithDefault("_system")
 
   val COLLECTION = "table"
   val collectionConf: OptionalConfigEntry[String] = ConfigBuilder(COLLECTION)
     .doc("ArangoDB collection name")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val BATCH_SIZE = "batchSize"
   val batchSizeConf: ConfigEntry[Int] = ConfigBuilder(BATCH_SIZE)
     .doc("batch size")
-    .version("1.0.0")
     .intConf
     .createWithDefault(10000)
 
   val QUERY = "query"
   val queryConf: OptionalConfigEntry[String] = ConfigBuilder(QUERY)
     .doc("custom AQL read query")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val SAMPLE_SIZE = "sampleSize"
   val sampleSizeConf: ConfigEntry[Int] = ConfigBuilder(SAMPLE_SIZE)
     .doc("sample size prefetched for schema inference")
-    .version("1.0.0")
     .intConf
     .createWithDefault(1000)
 
   val FILL_BLOCK_CACHE = "fillBlockCache"
   val fillBlockCacheConf: ConfigEntry[Boolean] = ConfigBuilder(FILL_BLOCK_CACHE)
     .doc("whether the query should store the data it reads in the RocksDB block cache")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(false)
 
   val STREAM = "stream"
   val streamConf: ConfigEntry[Boolean] = ConfigBuilder(STREAM)
     .doc("whether the query should be executed lazily")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(true)
 
   val PARSE_MODE = "mode"
   val parseModeConf: ConfigEntry[String] = ConfigBuilder(PARSE_MODE)
     .doc("allows a mode for dealing with corrupt records during parsing")
-    .version("1.0.0")
     .stringConf
     .checkValues(Set(PermissiveMode.name, DropMalformedMode.name, FailFastMode.name))
     .createWithDefault(PermissiveMode.name)
@@ -170,21 +149,18 @@ object ArangoDBConf {
   val COLUMN_NAME_OF_CORRUPT_RECORD = "columnNameOfCorruptRecord"
   val columnNameOfCorruptRecordConf: OptionalConfigEntry[String] = ConfigBuilder(COLUMN_NAME_OF_CORRUPT_RECORD)
     .doc("allows renaming the new field having malformed string created by PERMISSIVE mode")
-    .version("1.0.0")
     .stringConf
     .createOptional
 
   val NUMBER_OF_SHARDS = "table.shards"
   val numberOfShardsConf: ConfigEntry[Int] = ConfigBuilder(NUMBER_OF_SHARDS)
     .doc("number of shards of the created collection (in case of SaveMode Append or Overwrite)")
-    .version("1.0.0")
     .intConf
     .createWithDefault(1)
 
   val COLLECTION_TYPE = "table.type"
   val collectionTypeConf: ConfigEntry[String] = ConfigBuilder(COLLECTION_TYPE)
     .doc("type of the created collection (in case of SaveMode Append or Overwrite)")
-    .version("1.0.0")
     .stringConf
     .checkValues(Set(CollectionType.DOCUMENT.name, CollectionType.EDGE.name))
     .createWithDefault(CollectionType.DOCUMENT.name)
@@ -192,21 +168,18 @@ object ArangoDBConf {
   val WAIT_FOR_SYNC = "waitForSync"
   val waitForSyncConf: ConfigEntry[Boolean] = ConfigBuilder(WAIT_FOR_SYNC)
     .doc("whether to wait until the documents have been synced to disk")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(false)
 
   val CONFIRM_TRUNCATE = "confirmTruncate"
   val confirmTruncateConf: ConfigEntry[Boolean] = ConfigBuilder(CONFIRM_TRUNCATE)
     .doc("confirm to truncate table when using SaveMode.Overwrite mode")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(false)
 
   val OVERWRITE_MODE = "overwriteMode"
   val overwriteModeConf: ConfigEntry[String] = ConfigBuilder(OVERWRITE_MODE)
     .doc("configures the behavior in case a document with the specified _key value exists already")
-    .version("1.0.0")
     .stringConf
     .checkValues(Set(
       OverwriteMode.ignore.getValue,
@@ -219,14 +192,12 @@ object ArangoDBConf {
   val MERGE_OBJECTS = "mergeObjects"
   val mergeObjectsConf: ConfigEntry[Boolean] = ConfigBuilder(MERGE_OBJECTS)
     .doc("in case overwrite.mode is set to update, controls whether objects (not arrays) will be merged")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(true)
 
   val KEEP_NULL = "keepNull"
   val keepNullConf: ConfigEntry[Boolean] = ConfigBuilder(KEEP_NULL)
     .doc("whether null values are saved within the document or used to delete corresponding existing attributes")
-    .version("1.0.0")
     .booleanConf
     .createWithDefault(true)
 
@@ -379,10 +350,10 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    * Return all the configuration definitions that have been defined in [[ArangoDBConf]]. Each
    * definition contains key, defaultValue and doc.
    */
-  def getAllDefinedConfigs: Seq[(String, String, String, String)] =
+  def getAllDefinedConfigs: Seq[(String, String, String)] =
     confEntries.values.filter(_.isPublic).map { entry =>
       val displayValue = Option(getConfString(entry.key, null)).getOrElse(entry.defaultValueString)
-      (entry.key, displayValue, entry.doc, entry.version)
+      (entry.key, displayValue, entry.doc)
     }.toSeq
 
   /**

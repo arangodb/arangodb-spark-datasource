@@ -11,9 +11,9 @@ import org.apache.spark.sql.types.DataType
 import org.apache.spark.unsafe.types.UTF8String
 
 abstract sealed class ArangoParserImpl(
-                                    schema: DataType,
-                                    options: JSONOptions,
-                                    recordLiteral: Array[Byte] => UTF8String)
+                                        schema: DataType,
+                                        options: JSONOptions,
+                                        recordLiteral: Array[Byte] => UTF8String)
   extends JacksonParser(schema, options) with ArangoParser {
   def parse(data: Array[Byte]): Seq[InternalRow] = super.parse(
     data,
@@ -24,8 +24,8 @@ abstract sealed class ArangoParserImpl(
 
 class ArangoParserProviderImpl extends ArangoParserProvider {
   override def of(contentType: ContentType, schema: DataType): ArangoParserImpl = contentType match {
-    case ContentType.Json => new JsonArangoParser(schema)
-    case ContentType.VPack => new VPackArangoParser(schema)
+    case ContentType.JSON => new JsonArangoParser(schema)
+    case ContentType.VPACK => new VPackArangoParser(schema)
     case _ => throw new IllegalArgumentException
   }
 }
