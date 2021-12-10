@@ -1,17 +1,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>1.0.0</version>
+
     <name>${project.artifactId}</name>
     <description>ArangoDB Spark Connector</description>
+    <url>https://github.com/arangodb/arangodb-spark-datasource</url>
+
+    <scm>
+        <url>https://github.com/arangodb/arangodb-spark-datasource</url>
+    </scm>
 
     <modules>
         <module>arangodb-spark-commons</module>
         <module>arangodb-spark-datasource-${spark.compat.version}</module>
-        <module>integration-tests</module>
     </modules>
 
     <licenses>
@@ -73,8 +79,19 @@
                 <spark.version>3.1.2</spark.version>
                 <spark.compat.version>3.1</spark.compat.version>
                 <jackson.vpack.variant/>
-                <jackson.vpack.version>2.0.0</jackson.vpack.version>
+                <jackson.vpack.version>3.0.0</jackson.vpack.version>
             </properties>
+        </profile>
+        <profile>
+            <id>no-deploy</id>
+            <activation>
+                <property>
+                    <name>!deploy</name>
+                </property>
+            </activation>
+            <modules>
+                <module>integration-tests</module>
+            </modules>
         </profile>
         <profile>
             <id>deploy-gh</id>
@@ -95,7 +112,7 @@
             <id>deploy-ossrh</id>
             <activation>
                 <property>
-                    <name>!deployGH</name>
+                    <name>deploy</name>
                 </property>
             </activation>
             <distributionManagement>
@@ -108,6 +125,23 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <stagingProfileId>84aff6e87e214c</stagingProfileId>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -115,7 +149,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.13.0</version>
+            <version>6.14.0</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
@@ -252,6 +286,9 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
                 <version>1.2.7</version>
+                <configuration>
+                    <flattenMode>oss</flattenMode>
+                </configuration>
                 <executions>
                     <execution>
                         <id>flatten</id>
@@ -273,6 +310,35 @@
                         <goals>
                             <goal>sign</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- empty javadoc to publish on maven central repository -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${basedir}/javadoc</classesDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

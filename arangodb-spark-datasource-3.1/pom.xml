@@ -5,11 +5,26 @@
     <parent>
         <artifactId>arangodb-spark-datasource</artifactId>
         <groupId>com.arangodb</groupId>
-        <version>0.3.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>arangodb-spark-datasource-3.1_${scala.compat.version}</artifactId>
+
+    <name>arangodb-spark-datasource-3.1</name>
+    <description>ArangoDB Spark Datasource for Spark 3.1</description>
+    <url>https://github.com/arangodb/arangodb-spark-datasource</url>
+
+    <developers>
+        <developer>
+            <name>Michele Rastelli</name>
+            <url>https://github.com/rashtao</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/arangodb/arangodb-spark-datasource</url>
+    </scm>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -40,6 +55,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+                </configuration>
             </plugin>
         </plugins>
     </build>
