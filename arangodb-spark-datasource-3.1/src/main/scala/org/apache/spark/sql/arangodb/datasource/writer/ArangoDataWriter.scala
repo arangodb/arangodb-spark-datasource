@@ -2,6 +2,7 @@ package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGeneratorProvider}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
@@ -12,7 +13,9 @@ import org.apache.spark.sql.types.StructType
 import java.io.ByteArrayOutputStream
 import scala.annotation.tailrec
 
-class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int) extends DataWriter[InternalRow] {
+class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int)
+  extends DataWriter[InternalRow] with Logging {
+
   private var failures = 0
   private var endpointIdx = partitionId
   private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
@@ -83,11 +86,11 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
       failures = 0
     } catch {
       case e: Exception =>
-        // TODO: log warn e
         client.shutdown()
         failures += 1
         endpointIdx += 1
         if (canRetry && failures < options.driverOptions.endpoints.length) {
+          logWarning("Got exception while saving documents: ", e)
           client = createClient()
           saveDocuments(payload)
         } else throw e
