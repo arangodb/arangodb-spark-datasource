@@ -4,7 +4,7 @@ import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.CollectionCreateOptions
 import com.arangodb.spark.DefaultSource
-import com.arangodb.{ArangoDB, ArangoDatabase}
+import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
@@ -50,13 +50,15 @@ object BaseSparkTest {
 
   val arangoDatasource: String = classOf[DefaultSource].getName
   private val database = "sparkConnectorTest"
-  private val user = "root"
-  private val password = "test"
+  private val user = "sparkUser"
+  private val password = "sparkTest"
+  private val rootUser = "root"
+  private val rootPassword = "test"
   val endpoints = "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = new ArangoDB.Builder()
-    .user(user)
-    .password(password)
+    .user(rootUser)
+    .password(rootPassword)
     .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
     .serializer(new ArangoJack() {
       //noinspection ConvertExpressionToSAM
@@ -180,7 +182,17 @@ object BaseSparkTest {
 
   @BeforeAll
   def beforeAll(): Unit = {
-    if (!db.exists())
+    try {
+      arangoDB.getUser(user)
+    } catch {
+      case e: ArangoDBException =>
+        if (e.getResponseCode == 404 && e.getErrorNum == 1703)
+          arangoDB.createUser(user, password)
+        else throw e
+    }
+    if (!db.exists()) {
       db.create()
+    }
+    db.grantAccess(user)
   }
 }
