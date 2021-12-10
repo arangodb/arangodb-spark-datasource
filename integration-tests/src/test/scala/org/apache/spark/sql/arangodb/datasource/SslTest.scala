@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
+import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -67,7 +67,7 @@ class SslTest {
   @Test
   def sslTest(): Unit = {
     val df = spark.read
-      .format(BaseSparkTest.arangoDatasource)
+      .format(classOf[DefaultSource].getName)
       .options(options + ("table" -> "sslTest"))
       .load()
     df.show()
@@ -118,7 +118,6 @@ object SslTest {
     })
     .build()
   private val db: ArangoDatabase = createDB()
-  private val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
   private val options = Map(
     "ssl.enabled" -> "true",
     "ssl.cert.value" -> b64cert,
@@ -153,7 +152,7 @@ object SslTest {
     col.insertDocuments(docs)
 
     val df = spark.read
-      .format(BaseSparkTest.arangoDatasource)
+      .format(classOf[DefaultSource].getName)
       .options(options + ("table" -> name))
       .schema(schema)
       .load()
