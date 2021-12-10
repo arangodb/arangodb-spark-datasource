@@ -4,14 +4,10 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-/**
- * FIXME: many vpack tests fail
- */
-@Disabled
 class DeserializationCastTest extends BaseSparkTest {
   private val collectionName = "deserializationCast"
 
@@ -93,6 +89,12 @@ class DeserializationCastTest extends BaseSparkTest {
                                   jsonData: Seq[String],
                                   contentType: String
                                 ) = {
+
+    /**
+     * FIXME: many vpack tests fail
+     */
+    assumeTrue(contentType != "vpack")
+
     import spark.implicits._
     val dfFromJson: DataFrame = spark.read.schema(schema).json(jsonData.toDS)
     dfFromJson.show()

@@ -87,13 +87,6 @@ object BaseSparkTest {
       } else {
         endpoints
       }
-    },
-    "topology" -> {
-      if (isSingle) {
-        "single"
-      } else {
-        "cluster"
-      }
     }
   )
 

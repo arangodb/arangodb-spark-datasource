@@ -125,14 +125,7 @@ object SslTest {
     "database" -> database,
     "user" -> user,
     "password" -> password,
-    "endpoints" -> endpoints,
-    "topology" -> {
-      if (isSingle) {
-        "single"
-      } else {
-        "cluster"
-      }
-    }
+    "endpoints" -> endpoints
   )
 
   private val spark: SparkSession = SparkSession.builder()
