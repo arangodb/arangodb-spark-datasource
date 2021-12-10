@@ -294,8 +294,8 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
   import ArangoDBConf._
 
   private val options = CaseInsensitiveMap(opts)
+  options.foreach(i => checkConf(i._1, i._2))
   private val settings = options.asJava
-  settings.forEach(checkConf(_, _))
 
   @transient protected val reader = new ConfigReader(settings)
 
