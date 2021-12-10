@@ -1,8 +1,9 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
+import com.arangodb.model.OverwriteMode
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBMultiException, DataWriteAbortException}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.{SPARK_VERSION, SparkException}
@@ -56,10 +57,10 @@ class AbortTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType,
-          ArangoOptions.OVERWRITE_MODE -> "replace"
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
         ))
         .save()
     })
@@ -83,11 +84,11 @@ class AbortTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Overwrite)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType,
-          ArangoOptions.CONFIRM_TRUNCATE -> "true",
-          ArangoOptions.OVERWRITE_MODE -> "replace"
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
         ))
         .save()
     })
@@ -113,10 +114,10 @@ class AbortTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.ErrorIfExists)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType,
-          ArangoOptions.OVERWRITE_MODE -> "replace"
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
         ))
         .save()
     })
@@ -142,10 +143,10 @@ class AbortTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Ignore)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType,
-          ArangoOptions.OVERWRITE_MODE -> "replace"
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
         ))
         .save()
     })

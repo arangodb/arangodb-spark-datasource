@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types.{NumericType, StringType, StructField, StructType}
 import org.assertj.core.api.Assertions.assertThat
@@ -18,9 +18,9 @@ class ReadTest extends BaseSparkTest {
     val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        ArangoOptions.COLLECTION -> "users",
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> "users",
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .schema(BaseSparkTest.usersSchema)
       .load()
@@ -60,9 +60,9 @@ class ReadTest extends BaseSparkTest {
     val usersDF = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        ArangoOptions.COLLECTION -> "users",
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> "users",
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .load()
 
@@ -91,9 +91,9 @@ class ReadTest extends BaseSparkTest {
     assumeTrue(isSingle)
 
     val additionalOptions = Map(
-      ArangoOptions.CORRUPT_RECORDS_COLUMN -> "badRecord",
-      ArangoOptions.SAMPLE_SIZE -> "2",
-      ArangoOptions.CONTENT_TYPE -> contentType
+      ArangoDBConf.COLUMN_NAME_OF_CORRUPT_RECORD -> "badRecord",
+      ArangoDBConf.SAMPLE_SIZE -> "2",
+      ArangoDBConf.CONTENT_TYPE -> contentType
     )
 
     doInferCollectionSchemaWithCorruptRecordColumn(
@@ -153,9 +153,9 @@ class ReadTest extends BaseSparkTest {
     val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
       .options(options + (
-        ArangoOptions.QUERY -> query,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.QUERY -> query,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .load()
 

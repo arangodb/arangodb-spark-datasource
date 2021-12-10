@@ -1,12 +1,18 @@
 package org.apache.spark.sql.arangodb.commons
 
+import com.arangodb.{ArangoDB, entity}
 import com.arangodb.model.OverwriteMode
 import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config._
 import org.apache.spark.sql.AnalysisException
-import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, DropMalformedMode, FailFastMode, PermissiveMode}
+import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, DropMalformedMode, FailFastMode, ParseMode, PermissiveMode}
 
+import java.io.ByteArrayInputStream
+import java.security.KeyStore
+import java.security.cert.CertificateFactory
 import java.util
+import java.util.Base64
+import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.collection.JavaConverters.{mapAsJavaMapConverter, mapAsScalaMapConverter}
 
 object ArangoDBConf {
@@ -31,13 +37,6 @@ object ArangoDBConf {
     .version("1.0.0")
     .stringConf
     .createOptional
-
-  val DB = "database"
-  val dbConf: ConfigEntry[String] = ConfigBuilder(DB)
-    .doc("database name")
-    .version("1.0.0")
-    .stringConf
-    .createWithDefault("_system")
 
   val ACQUIRE_HOST_LIST = "acquireHostList"
   val acquireHostListConf: ConfigEntry[Boolean] = ConfigBuilder(ACQUIRE_HOST_LIST)
@@ -111,6 +110,13 @@ object ArangoDBConf {
     .stringConf
     .createWithDefault("TLS")
 
+  val DB = "database"
+  val dbConf: ConfigEntry[String] = ConfigBuilder(DB)
+    .doc("database name")
+    .version("1.0.0")
+    .stringConf
+    .createWithDefault("_system")
+
   val COLLECTION = "table"
   val collectionConf: OptionalConfigEntry[String] = ConfigBuilder(COLLECTION)
     .doc("ArangoDB collection name")
@@ -161,8 +167,8 @@ object ArangoDBConf {
     .checkValues(Set(PermissiveMode.name, DropMalformedMode.name, FailFastMode.name))
     .createWithDefault(PermissiveMode.name)
 
-  val CORRUPT_RECORD_COLUMN = "columnNameOfCorruptRecord"
-  val corruptRecordColumnConf: OptionalConfigEntry[String] = ConfigBuilder(CORRUPT_RECORD_COLUMN)
+  val COLUMN_NAME_OF_CORRUPT_RECORD = "columnNameOfCorruptRecord"
+  val columnNameOfCorruptRecordConf: OptionalConfigEntry[String] = ConfigBuilder(COLUMN_NAME_OF_CORRUPT_RECORD)
     .doc("allows renaming the new field having malformed string created by PERMISSIVE mode")
     .version("1.0.0")
     .stringConf
@@ -230,7 +236,6 @@ object ArangoDBConf {
     USER -> userConf,
     PASSWORD -> passwordConf,
     ENDPOINTS -> endpointsConf,
-    DB -> dbConf,
     ACQUIRE_HOST_LIST -> acquireHostListConf,
     PROTOCOL -> protocolConf,
     CONTENT_TYPE -> contentTypeConf,
@@ -243,6 +248,7 @@ object ArangoDBConf {
     SSL_PROTOCOL -> sslProtocolConf,
 
     // read/write config
+    DB -> dbConf,
     COLLECTION -> collectionConf,
     BATCH_SIZE -> batchSizeConf,
 
@@ -252,7 +258,7 @@ object ArangoDBConf {
     FILL_BLOCK_CACHE -> fillBlockCacheConf,
     STREAM -> streamConf,
     PARSE_MODE -> parseModeConf,
-    CORRUPT_RECORD_COLUMN -> corruptRecordColumnConf,
+    COLUMN_NAME_OF_CORRUPT_RECORD -> columnNameOfCorruptRecordConf,
 
     // write config
     NUMBER_OF_SHARDS -> numberOfShardsConf,
@@ -419,13 +425,16 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val endpoints: Array[String] = getRequiredConf(endpointsConf).split(",")
 
-  val db: String = getConf(dbConf)
-
   val acquireHostList: Boolean = getConf(acquireHostListConf)
 
-  val protocol: Protocol = Protocol(getConf(protocolConf))
-
   val contentType: ContentType = ContentType(getConf(contentTypeConf))
+
+  private val arangoProtocol = (Protocol(getConf(protocolConf)), contentType) match {
+    case (Protocol.VST, ContentType.VPACK) => com.arangodb.Protocol.VST
+    case (Protocol.VST, ContentType.JSON) => throw new IllegalArgumentException("Json over VST is not supported")
+    case (Protocol.HTTP, ContentType.VPACK) => com.arangodb.Protocol.HTTP_VPACK
+    case (Protocol.HTTP, ContentType.JSON) => com.arangodb.Protocol.HTTP_JSON
+  }
 
   val sslEnabled: Boolean = getConf(sslEnabledConf)
 
@@ -441,12 +450,48 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val sslProtocol: String = getConf(sslProtocolConf)
 
+  def builder(): ArangoDB.Builder = {
+    val builder = new ArangoDB.Builder()
+      .useProtocol(arangoProtocol)
+      .user(user)
+    password.foreach(builder.password)
+
+    if (sslEnabled) {
+      builder
+        .useSsl(true)
+        .sslContext(getSslContext)
+    }
+
+    endpoints
+      .map(_.split(":"))
+      .foreach(host => builder.host(host(0), host(1).toInt))
+    builder
+  }
+
+  def getSslContext: SSLContext = sslCertValue match {
+    case Some(b64cert) =>
+      val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
+      val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
+      val ks = KeyStore.getInstance(sslKeystoreType)
+      ks.load(null)
+      ks.setCertificateEntry(sslCertAlias, cert)
+      val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
+      tmf.init(ks)
+      val sc = SSLContext.getInstance(sslProtocol)
+      sc.init(null, tmf.getTrustManagers, null)
+      sc
+    case None => SSLContext.getDefault
+  }
+
+
 }
 
 
 class ArangoDBReadConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   import ArangoDBConf._
+
+  val db: String = getConf(dbConf)
 
   val collection: Option[String] = getConf(collectionConf)
 
@@ -460,9 +505,9 @@ class ArangoDBReadConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val stream: Boolean = getConf(streamConf)
 
-  val parseMode: String = getConf(parseModeConf)
+  val parseMode: ParseMode = ParseMode.fromString(getConf(parseModeConf))
 
-  val corruptRecordColumn: String = getConf(corruptRecordColumnConf).getOrElse("")
+  val columnNameOfCorruptRecord: String = getConf(columnNameOfCorruptRecordConf).getOrElse("")
 
   val readMode: ReadMode =
     if (query.isDefined) ReadMode.Query
@@ -476,19 +521,21 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   import ArangoDBConf._
 
+  val db: String = getConf(dbConf)
+
   val collection: String = getRequiredConf(collectionConf)
 
   val batchSize: Int = getConf(batchSizeConf)
 
   val numberOfShards: Int = getConf(numberOfShardsConf)
 
-  val collectionType: String = getConf(collectionTypeConf)
+  val collectionType: entity.CollectionType = CollectionType(getConf(collectionTypeConf)).get()
 
   val waitForSync: Boolean = getConf(waitForSyncConf)
 
   val confirmTruncate: Boolean = getConf(confirmTruncateConf)
 
-  val overwriteMode: String = getConf(overwriteModeConf)
+  val overwriteMode: OverwriteMode = OverwriteMode.valueOf(getConf(overwriteModeConf))
 
   val mergeObjects: Boolean = getConf(mergeObjectsConf)
 

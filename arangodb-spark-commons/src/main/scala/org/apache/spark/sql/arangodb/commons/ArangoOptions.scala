@@ -20,181 +20,7 @@
 
 package org.apache.spark.sql.arangodb.commons
 
-import com.arangodb.model.OverwriteMode
-import com.arangodb.{ArangoDB, entity}
-import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, ParseMode, PermissiveMode}
-
-import java.io.ByteArrayInputStream
-import java.security.KeyStore
-import java.security.cert.CertificateFactory
-import java.util
-import java.util.Base64
-import javax.net.ssl.{SSLContext, TrustManagerFactory}
-import scala.collection.JavaConverters.mapAsScalaMapConverter
-
-
-/**
- * @author Michele Rastelli
- */
-class ArangoOptions(opts: Map[String, String]) extends Serializable {
-  private val options: Map[String, String] = CaseInsensitiveMap(opts)
-
-  lazy val driverOptions: ArangoDriverOptions = new ArangoDriverOptions(options)
-  lazy val readOptions: ArangoReadOptions = new ArangoReadOptions(options)
-  lazy val writeOptions: ArangoWriteOptions = new ArangoWriteOptions(options)
-
-  def updated(kv: (String, String)): ArangoOptions = new ArangoOptions(options + kv)
-
-  def updated(other: ArangoOptions): ArangoOptions = new ArangoOptions(options ++ other.options)
-}
-
-object ArangoOptions {
-
-  // driver options
-  val USER = "user"
-  val PASSWORD = "password"
-  val ENDPOINTS = "endpoints"
-  val PROTOCOL = "protocol"
-
-  val SSL_ENABLED = "ssl.enabled"
-
-  // Base64 encoded certificate
-  val SSL_CERT = "ssl.cert.value"
-
-  // certificate type, default "X.509"
-  val SSL_CERT_TYPE = "ssl.cert.type"
-
-  // certificate alias name
-  val SSL_CERT_ALIAS = "ssl.cert.alias"
-
-  // trustmanager algorithm, default "SunX509"
-  val SSL_ALGORITHM = "ssl.algorithm"
-
-  // keystore type, default "jks"
-  val SSL_KEYSTORE = "ssl.keystore.type"
-
-  // SSLContext protocol, default "TLS"
-  val SSL_PROTOCOL = "ssl.protocol"
-
-  // read/write options
-  val DB = "database"
-  val COLLECTION = "table"
-  val BATCH_SIZE = "batch.size"
-  val CONTENT_TYPE = "content-type"
-  val ACQUIRE_HOST_LIST = "acquire-host-list"
-
-  // read options
-  val QUERY = "query"
-  val SAMPLE_SIZE = "sample.size"
-  val FILL_BLOCK_CACHE = "fill.cache"
-  val STREAM = "stream"
-  val PARSE_MODE = "mode"
-  val CORRUPT_RECORDS_COLUMN = "columnNameOfCorruptRecord"
-
-  // write options
-  val NUMBER_OF_SHARDS = "table.shards"
-  val COLLECTION_TYPE = "table.type"
-  val WAIT_FOR_SYNC = "wait.sync"
-  val CONFIRM_TRUNCATE = "confirm.truncate"
-  val OVERWRITE_MODE = "overwrite.mode"
-  val KEEP_NULL = "keep.null"
-  val MERGE_OBJECTS = "merge.objects"
-
-  def apply(options: Map[String, String]): ArangoOptions = new ArangoOptions(options)
-
-  def apply(options: util.Map[String, String]): ArangoOptions = ArangoOptions(options.asScala.toMap)
-
-}
-
-class ArangoDriverOptions(options: Map[String, String]) extends Serializable {
-  private val protocol = Protocol(options.getOrElse(ArangoOptions.PROTOCOL, "http"))
-  private val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
-  private val arangoProtocol = (protocol, contentType) match {
-    case (Protocol.VST, ContentType.VPACK) => com.arangodb.Protocol.VST
-    case (Protocol.VST, ContentType.JSON) => throw new IllegalArgumentException("Json over VST is not supported")
-    case (Protocol.HTTP, ContentType.VPACK) => com.arangodb.Protocol.HTTP_VPACK
-    case (Protocol.HTTP, ContentType.JSON) => com.arangodb.Protocol.HTTP_JSON
-  }
-  private val sslEnabled: Boolean = options.getOrElse(ArangoOptions.SSL_ENABLED, "false").toBoolean
-  private val sslCert: Option[String] = options.get(ArangoOptions.SSL_CERT)
-  private val sslCertType: String = options.getOrElse(ArangoOptions.SSL_CERT_TYPE, "X.509")
-  private val sslCertAlias: String = options.getOrElse(ArangoOptions.SSL_CERT_ALIAS, "arangodb")
-  private val sslAlgorithm: String = options.getOrElse(ArangoOptions.SSL_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm)
-  private val sslKeystore: String = options.getOrElse(ArangoOptions.SSL_KEYSTORE, KeyStore.getDefaultType)
-  private val sslProtocol: String = options.getOrElse(ArangoOptions.SSL_PROTOCOL, "TLS")
-
-  val endpoints: Seq[String] = options(ArangoOptions.ENDPOINTS).split(",")
-  val acquireHostList: Boolean = options.getOrElse(ArangoOptions.ACQUIRE_HOST_LIST, "false").toBoolean
-
-  def builder(): ArangoDB.Builder = {
-    val builder = new ArangoDB.Builder()
-      .useProtocol(arangoProtocol)
-
-    if (sslEnabled) {
-      builder
-        .useSsl(true)
-        .sslContext(getSslContext)
-    }
-
-    options.get(ArangoOptions.USER).foreach(builder.user)
-    options.get(ArangoOptions.PASSWORD).foreach(builder.password)
-    endpoints
-      .map(_.split(":"))
-      .foreach(host => builder.host(host(0), host(1).toInt))
-    builder
-  }
-
-  def getSslContext: SSLContext = sslCert match {
-    case Some(b64cert) =>
-      val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
-      val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
-      val ks = KeyStore.getInstance(sslKeystore)
-      ks.load(null)
-      ks.setCertificateEntry(sslCertAlias, cert)
-      val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
-      tmf.init(ks)
-      val sc = SSLContext.getInstance(sslProtocol)
-      sc.init(null, tmf.getTrustManagers, null)
-      sc
-    case None => SSLContext.getDefault
-  }
-
-}
-
-abstract class CommonOptions(options: Map[String, String]) extends Serializable {
-  val db: String = options.getOrElse(ArangoOptions.DB, "_system")
-  val contentType: ContentType = ContentType(options.getOrElse(ArangoOptions.CONTENT_TYPE, "vpack"))
-
-  protected def getRequired(key: String): String = options
-    .getOrElse(key, throw new IllegalArgumentException(s"Required $key configuration parameter not found"))
-}
-
-class ArangoReadOptions(options: Map[String, String]) extends CommonOptions(options) {
-  val batchSize: Option[Int] = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt)
-  val sampleSize: Int = options.get(ArangoOptions.SAMPLE_SIZE).map(_.toInt).getOrElse(1000)
-  val collection: Option[String] = options.get(ArangoOptions.COLLECTION)
-  val query: Option[String] = options.get(ArangoOptions.QUERY)
-  val readMode: ReadMode =
-    if (query.isDefined) ReadMode.Query
-    else if (collection.isDefined) ReadMode.Collection
-    else throw new IllegalArgumentException("Either collection or query must be defined")
-  val fillBlockCache: Option[Boolean] = options.get(ArangoOptions.FILL_BLOCK_CACHE).map(_.toBoolean)
-  val stream: Boolean = options.getOrElse(ArangoOptions.STREAM, "true").toBoolean
-  val parseMode: ParseMode = options.get(ArangoOptions.PARSE_MODE).map(ParseMode.fromString).getOrElse(PermissiveMode)
-  val columnNameOfCorruptRecord: String = options.getOrElse(ArangoOptions.CORRUPT_RECORDS_COLUMN, "")
-}
-
-class ArangoWriteOptions(options: Map[String, String]) extends CommonOptions(options) {
-  val batchSize: Int = options.get(ArangoOptions.BATCH_SIZE).map(_.toInt).getOrElse(1000)
-  val collection: String = getRequired(ArangoOptions.COLLECTION)
-  val numberOfShards: Option[Int] = options.get(ArangoOptions.NUMBER_OF_SHARDS).map(_.toInt)
-  val collectionType: Option[CollectionType] = options.get(ArangoOptions.COLLECTION_TYPE).map(CollectionType(_))
-  val waitForSync: Option[Boolean] = options.get(ArangoOptions.WAIT_FOR_SYNC).map(_.toBoolean)
-  val confirmTruncate: Boolean = options.getOrElse(ArangoOptions.CONFIRM_TRUNCATE, "false").toBoolean
-  val overwriteMode: Option[OverwriteMode] = options.get(ArangoOptions.OVERWRITE_MODE).map(OverwriteMode.valueOf)
-  val keepNull: Boolean = options.getOrElse(ArangoOptions.KEEP_NULL, "true").toBoolean
-  val mergeObjects: Option[Boolean] = options.get(ArangoOptions.MERGE_OBJECTS).map(_.toBoolean)
-}
+import com.arangodb.entity
 
 sealed trait ReadMode
 
@@ -226,7 +52,7 @@ object ContentType {
   def apply(value: String): ContentType = value match {
     case JSON.name => JSON
     case VPACK.name => VPACK
-    case _ => throw new IllegalArgumentException(s"${ArangoOptions.CONTENT_TYPE}: $value")
+    case _ => throw new IllegalArgumentException(s"${ArangoDBConf.CONTENT_TYPE}: $value")
   }
 }
 
@@ -246,7 +72,7 @@ object Protocol {
   def apply(value: String): Protocol = value match {
     case VST.name => VST
     case HTTP.name => HTTP
-    case _ => throw new IllegalArgumentException(s"${ArangoOptions.PROTOCOL}: $value")
+    case _ => throw new IllegalArgumentException(s"${ArangoDBConf.PROTOCOL}: $value")
   }
 }
 
@@ -272,6 +98,6 @@ object CollectionType {
   def apply(value: String): CollectionType = value match {
     case DOCUMENT.name => DOCUMENT
     case EDGE.name => EDGE
-    case _ => throw new IllegalArgumentException(s"${ArangoOptions.COLLECTION_TYPE}: $value")
+    case _ => throw new IllegalArgumentException(s"${ArangoDBConf.COLLECTION_TYPE}: $value")
   }
 }

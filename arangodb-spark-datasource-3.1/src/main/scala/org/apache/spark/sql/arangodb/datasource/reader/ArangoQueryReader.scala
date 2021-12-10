@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.reader
 import com.arangodb.entity.CursorEntity.Warning
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
@@ -14,10 +14,10 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
-class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends PartitionReader[InternalRow] with Logging {
+class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends PartitionReader[InternalRow] with Logging {
 
   private val actualSchema = StructType(schema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
+  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,
@@ -35,7 +35,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoOptions) extends Part
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(options.readOptions.contentType match {
+      rowIterator = safeParser.parse(options.driverOptions.contentType match {
         case ContentType.VPACK => current.toByteArray
         case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
       })

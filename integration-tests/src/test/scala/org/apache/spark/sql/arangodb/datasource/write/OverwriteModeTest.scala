@@ -2,9 +2,10 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import com.arangodb.entity.BaseDocument
+import com.arangodb.model.OverwriteMode
 import org.apache.spark.SparkException
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
@@ -54,10 +55,10 @@ class OverwriteModeTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType,
-          ArangoOptions.OVERWRITE_MODE -> "conflict"
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.conflict.getValue
         ))
         .save()
     })
@@ -80,10 +81,10 @@ class OverwriteModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "ignore"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.ignore.getValue
       ))
       .save()
 
@@ -104,10 +105,10 @@ class OverwriteModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "replace"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
       ))
       .save()
 
@@ -128,10 +129,10 @@ class OverwriteModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "update"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.update.getValue
       ))
       .save()
 
@@ -154,10 +155,10 @@ class OverwriteModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "update"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.update.getValue
       ))
       .save()
 

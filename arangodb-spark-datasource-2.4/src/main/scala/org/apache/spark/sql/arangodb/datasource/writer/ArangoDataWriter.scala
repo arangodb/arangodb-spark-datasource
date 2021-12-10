@@ -4,7 +4,7 @@ import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGeneratorProvider}
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.writer.{DataWriter, WriterCommitMessage}
 import org.apache.spark.sql.types.StructType
@@ -12,7 +12,7 @@ import org.apache.spark.sql.types.StructType
 import java.io.ByteArrayOutputStream
 import scala.annotation.tailrec
 
-class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: Int) extends DataWriter[InternalRow] {
+class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int) extends DataWriter[InternalRow] {
   private var failures = 0
   private var endpointIdx = partitionId
   private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
@@ -46,7 +46,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoOptions, partitionId: 
       "Task cannot be retried. To make batch writes idempotent, so that they can be retried, consider using " +
         "'keep.null=true' (default) and 'overwrite.mode=(ignore|replace|update)'.")
 
-  private def createClient() = ArangoClient(options.updated(ArangoOptions.ENDPOINTS, endpoints(endpointIdx)))
+  private def createClient() = ArangoClient(options.updated(ArangoDBConf.ENDPOINTS, endpoints(endpointIdx)))
 
   private def canRetry: Boolean =
     if (options.writeOptions.overwriteMode.isEmpty) false

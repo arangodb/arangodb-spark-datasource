@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 import com.arangodb.ArangoCollection
 import com.arangodb.entity.CollectionType
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -42,11 +42,11 @@ class CreateCollectionTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.NUMBER_OF_SHARDS -> "5",
-        ArangoOptions.COLLECTION_TYPE -> "edge"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.NUMBER_OF_SHARDS -> "5",
+        ArangoDBConf.COLLECTION_TYPE -> org.apache.spark.sql.arangodb.commons.CollectionType.EDGE.name
       ))
       .save()
 
@@ -63,12 +63,12 @@ class CreateCollectionTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.CONFIRM_TRUNCATE -> "true",
-        ArangoOptions.NUMBER_OF_SHARDS -> "5",
-        ArangoOptions.COLLECTION_TYPE -> "edge"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+        ArangoDBConf.NUMBER_OF_SHARDS -> "5",
+        ArangoDBConf.COLLECTION_TYPE -> org.apache.spark.sql.arangodb.commons.CollectionType.EDGE.name
       ))
       .save()
 

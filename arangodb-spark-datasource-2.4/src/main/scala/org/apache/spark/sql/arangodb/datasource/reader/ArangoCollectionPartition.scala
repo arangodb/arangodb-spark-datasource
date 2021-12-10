@@ -1,6 +1,5 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.reader.{InputPartition, InputPartitionReader}
@@ -17,7 +16,7 @@ class ArangoCollectionPartition(
                                  val shardId: String,
                                  val endpoint: String,
                                  val ctx: PushDownCtx,
-                                 val options: ArangoOptions
+                                 val options: ArangoDBConf
                                ) extends InputPartition[InternalRow] {
   override def createPartitionReader(): InputPartitionReader[InternalRow] =
     new ArangoCollectionPartitionReader(this, ctx, options)
@@ -28,7 +27,7 @@ class ArangoCollectionPartition(
  */
 class SingletonPartition(
                           val schema: StructType,
-                          val options: ArangoOptions
+                          val options: ArangoDBConf
                         ) extends InputPartition[InternalRow] {
   override def createPartitionReader(): InputPartitionReader[InternalRow] =
     new ArangoQueryReader(schema, options)

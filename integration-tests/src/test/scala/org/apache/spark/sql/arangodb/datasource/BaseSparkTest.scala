@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.{AfterEach, BeforeAll}
@@ -166,7 +166,7 @@ object BaseSparkTest {
 
     val df = spark.read
       .format(arangoDatasource)
-      .options(options ++ additionalOptions + (ArangoOptions.COLLECTION -> name))
+      .options(options ++ additionalOptions + (ArangoDBConf.COLLECTION -> name))
       .schema(schema)
       .load()
     df.createOrReplaceTempView(name)
@@ -176,7 +176,7 @@ object BaseSparkTest {
   def createQueryDF(query: String, schema: StructType, additionalOptions: Map[String, String] = Map.empty): DataFrame =
     spark.read
       .format(arangoDatasource)
-      .options(options ++ additionalOptions + (ArangoOptions.QUERY -> query))
+      .options(options ++ additionalOptions + (ArangoDBConf.QUERY -> query))
       .schema(schema)
       .load()
 

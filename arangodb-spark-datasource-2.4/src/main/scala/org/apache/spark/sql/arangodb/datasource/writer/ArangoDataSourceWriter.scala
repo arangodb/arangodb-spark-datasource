@@ -2,12 +2,12 @@ package org.apache.spark.sql.arangodb.datasource.writer
 
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.{AnalysisException, SaveMode}
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.writer.{DataSourceWriter, DataWriterFactory, WriterCommitMessage}
 import org.apache.spark.sql.types.StructType
 
-class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoOptions) extends DataSourceWriter {
+class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf) extends DataSourceWriter {
   private val client = ArangoClient(options)
   private var createdCollection = false
 
@@ -16,7 +16,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       throw new AnalysisException(
         "You are attempting to use overwrite mode which will truncate this collection prior to inserting data. If " +
           "you just want to change data already in the collection set save mode 'append' and " +
-          "'overwrite.mode=(replace|update)'. To actually truncate set 'confirm.truncate=true'.")
+          s"'overwrite.mode=(replace|update)'. To actually truncate set '${ArangoDBConf.CONFIRM_TRUNCATE}=true'.")
     }
 
     if (client.collectionExists()) {

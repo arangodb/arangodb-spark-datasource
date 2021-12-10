@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ArangoUtils}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoUtils}
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoDataSourceReader
 import org.apache.spark.sql.arangodb.datasource.writer.ArangoDataSourceWriter
 import org.apache.spark.sql.sources.DataSourceRegister
@@ -18,18 +18,18 @@ class DefaultSource extends DataSourceV2 with DataSourceRegister
 
   private var inferredSchema: StructType = _
 
-  private def inferSchema(options: ArangoOptions): StructType = {
+  private def inferSchema(options: ArangoDBConf): StructType = {
     if (inferredSchema == null) {
       inferredSchema = ArangoUtils.inferSchema(options)
     }
     inferredSchema
   }
 
-  private def extractOptions(options: DataSourceOptions): ArangoOptions = {
-    val opts: ArangoOptions = ArangoOptions(options.asMap())
+  private def extractOptions(options: DataSourceOptions): ArangoDBConf = {
+    val opts: ArangoDBConf = ArangoDBConf(options.asMap())
     if (opts.driverOptions.acquireHostList) {
       val hosts = ArangoClient.acquireHostList(opts)
-      opts.updated(ArangoOptions.ENDPOINTS, hosts.mkString(","))
+      opts.updated(ArangoDBConf.ENDPOINTS, hosts.mkString(","))
     } else {
       opts
     }
