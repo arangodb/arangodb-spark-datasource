@@ -1,9 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
-import com.arangodb.entity.CollectionType
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -46,14 +45,14 @@ class CreateCollectionTest extends BaseSparkTest {
         ArangoDBConf.PROTOCOL -> protocol,
         ArangoDBConf.CONTENT_TYPE -> contentType,
         ArangoDBConf.NUMBER_OF_SHARDS -> "5",
-        ArangoDBConf.COLLECTION_TYPE -> org.apache.spark.sql.arangodb.commons.CollectionType.EDGE.name
+        ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
       ))
       .save()
 
     if (isCluster) {
       assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
     }
-    assertThat(collection.getProperties.getType.getType).isEqualTo(CollectionType.EDGES.getType)
+    assertThat(collection.getProperties.getType.getType).isEqualTo(com.arangodb.entity.CollectionType.EDGES.getType)
   }
 
   @ParameterizedTest
@@ -68,14 +67,14 @@ class CreateCollectionTest extends BaseSparkTest {
         ArangoDBConf.CONTENT_TYPE -> contentType,
         ArangoDBConf.CONFIRM_TRUNCATE -> "true",
         ArangoDBConf.NUMBER_OF_SHARDS -> "5",
-        ArangoDBConf.COLLECTION_TYPE -> org.apache.spark.sql.arangodb.commons.CollectionType.EDGE.name
+        ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
       ))
       .save()
 
     if (isCluster) {
       assertThat(collection.getProperties.getNumberOfShards).isEqualTo(5)
     }
-    assertThat(collection.getProperties.getType.getType).isEqualTo(CollectionType.EDGES.getType)
+    assertThat(collection.getProperties.getType.getType).isEqualTo(com.arangodb.entity.CollectionType.EDGES.getType)
   }
 
 }
