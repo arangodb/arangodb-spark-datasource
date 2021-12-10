@@ -293,26 +293,25 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
 
   import ArangoDBConf._
 
-  private val options = CaseInsensitiveMap(opts)
-  options.foreach(i => checkConf(i._1, i._2))
-  private val settings = options.asJava
+  private val settings = CaseInsensitiveMap(opts)
+  settings.foreach(i => checkConf(i._1, i._2))
 
-  @transient protected val reader = new ConfigReader(settings)
+  @transient protected val reader = new ConfigReader(settings.asJava)
 
-  lazy val driverOptions: ArangoDBDriverConf = new ArangoDBDriverConf(options)
-  lazy val readOptions: ArangoDBReadConf = new ArangoDBReadConf(options)
-  lazy val writeOptions: ArangoDBWriteConf = new ArangoDBWriteConf(options)
+  lazy val driverOptions: ArangoDBDriverConf = new ArangoDBDriverConf(settings)
+  lazy val readOptions: ArangoDBReadConf = new ArangoDBReadConf(settings)
+  lazy val writeOptions: ArangoDBWriteConf = new ArangoDBWriteConf(settings)
 
-  def updated(kv: (String, String)): ArangoDBConf = new ArangoDBConf(options + kv)
+  def updated(kv: (String, String)): ArangoDBConf = new ArangoDBConf(settings + kv)
 
-  def updated(other: ArangoDBConf): ArangoDBConf = new ArangoDBConf(options ++ other.options)
+  def updated(other: ArangoDBConf): ArangoDBConf = new ArangoDBConf(settings ++ other.settings)
 
   protected def getRequiredConf[T](entry: OptionalConfigEntry[T]): T =
     getConf(entry).getOrElse(throw new IllegalArgumentException(s"Required ${entry.key} configuration parameter"))
 
   /** Return the value of Spark ArangoDB configuration property for the given key. */
   @throws[NoSuchElementException]("if key is not set")
-  def getConfString(key: String): String = Option(settings.get(key)).getOrElse(throw new NoSuchElementException(key))
+  def getConfString(key: String): String = settings.get(key).getOrElse(throw new NoSuchElementException(key))
 
   /**
    * Return the value of Spark ArangoDB configuration property for the given key. If the key is not set
@@ -320,7 +319,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    * desired one.
    */
   def getConf[T](entry: ConfigEntry[T], defaultValue: T): T =
-    Option(settings.get(entry.key)).map(entry.valueConverter).getOrElse(defaultValue)
+    settings.get(entry.key).map(entry.valueConverter).getOrElse(defaultValue)
 
   /**
    * Return the value of Spark ArangoDB configuration property for the given key. If the key is not set
@@ -338,13 +337,13 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    * Return the `string` value of Spark ArangoDB configuration property for the given key. If the key is
    * not set, return `defaultValue`.
    */
-  def getConfString(key: String, defaultValue: String): String = Option(settings.get(key)).getOrElse(defaultValue)
+  def getConfString(key: String, defaultValue: String): String = settings.get(key).getOrElse(defaultValue)
 
   /**
    * Return all the configuration properties that have been set (i.e. not the default).
    * This creates a new copy of the config properties in the form of a Map.
    */
-  def getAllConfigs: Map[String, String] = settings.asScala.toMap
+  def getAllConfigs: Map[String, String] = settings.toMap
 
   /**
    * Return all the configuration definitions that have been defined in [[ArangoDBConf]]. Each
