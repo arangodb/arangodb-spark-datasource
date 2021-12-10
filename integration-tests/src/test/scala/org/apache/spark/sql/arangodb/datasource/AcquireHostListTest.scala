@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import com.arangodb.spark.DefaultSource
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.junit.jupiter.api.{Disabled, Test}
@@ -16,7 +17,7 @@ class AcquireHostListTest {
   @Test
   def read(): Unit = {
     spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format(classOf[DefaultSource].getName)
       .options(Map(
         ArangoDBConf.COLLECTION -> "_fishbowl",
         ArangoDBConf.ENDPOINTS -> "172.17.0.1:8529",

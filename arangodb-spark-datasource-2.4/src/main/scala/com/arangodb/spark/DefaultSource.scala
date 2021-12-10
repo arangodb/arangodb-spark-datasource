@@ -1,4 +1,4 @@
-package org.apache.spark.sql.arangodb.datasource
+package com.arangodb.spark
 
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ArangoUtils}

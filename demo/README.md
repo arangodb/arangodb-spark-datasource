@@ -64,7 +64,7 @@ Run sample code:
 
 ```scala
 val options = Map("user" -> "root", "password" -> "test", "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549")
-val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
+val usersDF = spark.read.format("com.arangodb.spark").options(options + ("table" -> "users")).load()
 usersDF.show()
 usersDF.printSchema()
 usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "1944-06-19").show()
@@ -73,7 +73,7 @@ usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "194
 usersDF.createOrReplaceTempView("users")
 val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
 californians.show()
-californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
+californians.write.format("com.arangodb.spark").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 ```
 
 Submit demo program:
@@ -122,7 +122,7 @@ Run sample code:
 
 ```scala
 val options = Map("user" -> "root", "password" -> "test", "endpoints" -> "172.17.0.1:8529,172.17.0.1:8539,172.17.0.1:8549")
-val usersDF = spark.read.format("org.apache.spark.sql.arangodb.datasource").options(options + ("table" -> "users")).load()
+val usersDF = spark.read.format("com.arangodb.spark").options(options + ("table" -> "users")).load()
 usersDF.show()
 usersDF.printSchema()
 usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "1944-06-19").show()
@@ -131,7 +131,7 @@ usersDF.filter(col("name.first") === "Prudence").filter(col("birthday") === "194
 usersDF.createOrReplaceTempView("users")
 val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
 californians.show()
-californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
+californians.write.format("com.arangodb.spark").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 ```
 
 Submit demo program:

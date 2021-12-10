@@ -1,1 +1,1 @@
-org.apache.spark.sql.arangodb.datasource.DefaultSource
+com.arangodb.spark.DefaultSource

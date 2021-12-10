@@ -42,7 +42,7 @@ object Demo {
     )
 
     val usersDF = spark.read
-      .format("org.apache.spark.sql.arangodb.datasource")
+      .format("com.arangodb.spark")
       .options(options + ("table" -> "users"))
       .schema(schema)
       .load()
@@ -54,7 +54,7 @@ object Demo {
     usersDF.createOrReplaceTempView("users")
     val californians = spark.sql("SELECT * FROM users WHERE contact.address.state = 'CA'")
     californians.show()
-    californians.write.format("org.apache.spark.sql.arangodb.datasource").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
+    californians.write.format("com.arangodb.spark").mode(org.apache.spark.sql.SaveMode.Overwrite).options(options + ("table" -> "californians", "confirm.truncate" -> "true")).save()
 
     spark.stop()
   }

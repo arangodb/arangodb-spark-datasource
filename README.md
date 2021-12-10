@@ -75,7 +75,7 @@ The connector implements support to batch reading from ArangoDB collection.
 
 ```scala
 val df: DataFrame = spark.read
-  .format("org.apache.spark.sql.arangodb.datasource")
+  .format("com.arangodb.spark")
   .options(options) // Map[String, String]
   .schema(schema) // StructType
   .load()
@@ -106,7 +106,7 @@ val spark: SparkSession = SparkSession.builder()
   .getOrCreate()
 
 val df: DataFrame = spark.read
-  .format("org.apache.spark.sql.arangodb.datasource")
+  .format("com.arangodb.spark")
   .options(Map(
     "password" -> "test",
     "endpoints" -> "c1:8529,c2:8529,c3:8529",
@@ -194,7 +194,7 @@ import org.apache.spark.sql.DataFrame
 
 val df: DataFrame = //...
 df.write
-  .format("org.apache.spark.sql.arangodb.datasource")
+  .format("com.arangodb.spark")
   .mode(SaveMode.Append)
   .options(Map(
     "password" -> "test",
@@ -336,7 +336,7 @@ To connect to SSL secured deployments using X.509 base64 encoded CA certificate 
 
 // read
 val myDF = spark.read
-        .format("org.apache.spark.sql.arangodb.datasource")
+        .format("com.arangodb.spark")
         .options(options)
         .load()
 
@@ -344,7 +344,7 @@ val myDF = spark.read
 import org.apache.spark.sql.DataFrame
 val df: DataFrame = //...
 df.write
-          .format("org.apache.spark.sql.arangodb.datasource")
+          .format("com.arangodb.spark")
           .options(options)
           .save()
 ```

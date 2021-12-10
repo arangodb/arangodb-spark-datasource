@@ -3,6 +3,7 @@ package org.apache.spark.sql.arangodb.datasource
 import com.arangodb.entity.ServerRole
 import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.CollectionCreateOptions
+import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -47,7 +48,7 @@ object BaseSparkTest {
     Arguments.of("http", "json")
   )
 
-  val arangoDatasource = "org.apache.spark.sql.arangodb.datasource"
+  val arangoDatasource: String = classOf[DefaultSource].getName
   private val database = "sparkConnectorTest"
   private val user = "root"
   private val password = "test"
