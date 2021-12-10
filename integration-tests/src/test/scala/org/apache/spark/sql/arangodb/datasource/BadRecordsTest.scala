@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.{SPARK_VERSION, SparkException}
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.catalyst.util.{BadRecordException, DropMalformedMode, FailFastMode, ParseMode}
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
@@ -74,7 +74,7 @@ class BadRecordsTest extends BaseSparkTest {
                              contentType: String
                            ) = {
     // PERMISSIVE
-    doTestBadRecord(schema, data, jsonData, Map(ArangoOptions.CONTENT_TYPE -> contentType))
+    doTestBadRecord(schema, data, jsonData, Map(ArangoDBConf.CONTENT_TYPE -> contentType))
 
     // PERMISSIVE with columnNameOfCorruptRecord
     doTestBadRecord(
@@ -82,23 +82,23 @@ class BadRecordsTest extends BaseSparkTest {
       data,
       jsonData,
       Map(
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.CORRUPT_RECORDS_COLUMN -> "corruptRecord"
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.COLUMN_NAME_OF_CORRUPT_RECORD -> "corruptRecord"
       )
     )
 
     // DROPMALFORMED
     doTestBadRecord(schema, data, jsonData,
       Map(
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.PARSE_MODE -> DropMalformedMode.name
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.PARSE_MODE -> DropMalformedMode.name
       )
     )
 
     // FAILFAST
     val df = BaseSparkTest.createDF(collectionName, data, schema, Map(
-      ArangoOptions.CONTENT_TYPE -> contentType,
-      ArangoOptions.PARSE_MODE -> FailFastMode.name
+      ArangoDBConf.CONTENT_TYPE -> contentType,
+      ArangoDBConf.PARSE_MODE -> FailFastMode.name
     ))
     val thrown = catchThrowable(new ThrowingCallable() {
       override def call(): Unit = df.collect()

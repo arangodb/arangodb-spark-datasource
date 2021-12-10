@@ -8,7 +8,7 @@ import org.apache.spark.sql.{Encoders, SparkSession}
  */
 object ArangoUtils {
 
-  def inferSchema(options: ArangoOptions): StructType = {
+  def inferSchema(options: ArangoDBConf): StructType = {
     val client = ArangoClient(options)
     val sampleEntries = options.readOptions.readMode match {
       case ReadMode.Query => client.readQuerySample()

@@ -4,7 +4,7 @@ import com.arangodb.entity.CursorEntity.Warning
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions, ContentType}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
@@ -15,13 +15,13 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 
-class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition, ctx: PushDownCtx, opts: ArangoOptions)
+class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition, ctx: PushDownCtx, opts: ArangoDBConf)
   extends PartitionReader[InternalRow] with Logging {
 
   // override endpoints with partition endpoint
-  private val options = opts.updated(ArangoOptions.ENDPOINTS, inputPartition.endpoint)
+  private val options = opts.updated(ArangoDBConf.ENDPOINTS, inputPartition.endpoint)
   private val actualSchema = StructType(ctx.requiredSchema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
-  private val parser = ArangoParserProvider().of(options.readOptions.contentType, actualSchema)
+  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,
@@ -39,9 +39,9 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(options.readOptions.contentType match {
-        case ContentType.VPack => current.toByteArray
-        case ContentType.Json => current.toString.getBytes(StandardCharsets.UTF_8)
+      rowIterator = safeParser.parse(options.driverOptions.contentType match {
+        case ContentType.VPACK => current.toByteArray
+        case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
       })
       if (rowIterator.hasNext) true
       else next

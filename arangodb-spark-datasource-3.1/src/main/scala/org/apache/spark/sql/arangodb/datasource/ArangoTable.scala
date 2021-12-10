@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.sql.arangodb.commons.{ArangoOptions, ArangoUtils}
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ArangoUtils}
 import org.apache.spark.sql.arangodb.datasource.reader.ArangoScanBuilder
 import org.apache.spark.sql.arangodb.datasource.writer.ArangoWriterBuilder
 import org.apache.spark.sql.connector.catalog.{SupportsRead, SupportsWrite, Table, TableCapability}
@@ -12,7 +12,7 @@ import org.apache.spark.sql.util.CaseInsensitiveStringMap
 import java.util
 import scala.collection.JavaConverters.setAsJavaSetConverter
 
-class ArangoTable(private var tableSchema: StructType, options: ArangoOptions) extends Table with SupportsRead with SupportsWrite {
+class ArangoTable(private var tableSchema: StructType, options: ArangoDBConf) extends Table with SupportsRead with SupportsWrite {
 
   override def name(): String = this.getClass.toString
 
@@ -34,8 +34,8 @@ class ArangoTable(private var tableSchema: StructType, options: ArangoOptions) e
   ).asJava
 
   override def newScanBuilder(scanOptions: CaseInsensitiveStringMap): ScanBuilder =
-    new ArangoScanBuilder(options.updated(ArangoOptions(scanOptions)), schema())
+    new ArangoScanBuilder(options.updated(ArangoDBConf(scanOptions)), schema())
 
   override def newWriteBuilder(info: LogicalWriteInfo): WriteBuilder =
-    new ArangoWriterBuilder(info.schema(), options.updated(ArangoOptions(info.options())))
+    new ArangoWriterBuilder(info.schema(), options.updated(ArangoDBConf(info.options())))
 }

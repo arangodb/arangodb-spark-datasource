@@ -1,10 +1,10 @@
 package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.entity.ErrorEntity
-import com.arangodb.internal.{ArangoRequestParam, ArangoResponseField}
 import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
+import com.arangodb.internal.{ArangoRequestParam, ArangoResponseField}
 import com.arangodb.mapping.ArangoJack
-import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions, OverwriteMode}
+import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException}
@@ -17,12 +17,13 @@ import org.apache.spark.sql.types.StructType
 
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
-class ArangoClient(options: ArangoOptions) extends Logging {
+class ArangoClient(options: ArangoDBConf) extends Logging {
 
   private def aqlOptions(): AqlQueryOptions = {
-    val opt = new AqlQueryOptions().stream(options.readOptions.stream)
-    options.readOptions.fillBlockCache.foreach(opt.fillBlockCache(_))
-    options.readOptions.batchSize.foreach(opt.batchSize(_))
+    val opt = new AqlQueryOptions()
+      .stream(options.readOptions.stream)
+      .fillBlockCache(options.readOptions.fillBlockCache)
+      .batchSize(options.readOptions.batchSize)
     opt
   }
 
@@ -105,8 +106,8 @@ class ArangoClient(options: ArangoOptions) extends Logging {
 
   def createCollection(): Unit = {
     val opts = new CollectionCreateOptions()
-    options.writeOptions.numberOfShards.foreach(opts.numberOfShards(_))
-    options.writeOptions.collectionType.foreach(ct => opts.`type`(ct.get()))
+      .numberOfShards(options.writeOptions.numberOfShards)
+      .`type`(options.writeOptions.collectionType)
 
     arangoDB
       .db(options.writeOptions.db)
@@ -131,14 +132,10 @@ class ArangoClient(options: ArangoOptions) extends Logging {
       s"/_api/document/${options.writeOptions.collection}")
 
     request.putQueryParam("silent", true)
-    options.writeOptions.waitForSync.foreach(request.putQueryParam("waitForSync", _))
-    options.writeOptions.overwriteMode.foreach(it => {
-      request.putQueryParam("overwriteMode", it)
-      if (it == OverwriteMode.update) {
-        request.putQueryParam("keepNull", options.writeOptions.keepNull)
-        options.writeOptions.mergeObjects.foreach(request.putQueryParam("mergeObjects", _))
-      }
-    })
+    request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
+    request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
+    request.putQueryParam("keepNull", options.writeOptions.keepNull)
+    request.putQueryParam("mergeObjects", options.writeOptions.mergeObjects)
 
     request.setBody(data)
     val response = arangoDB.execute(request)
@@ -162,9 +159,9 @@ class ArangoClient(options: ArangoOptions) extends Logging {
 
 object ArangoClient {
 
-  def apply(options: ArangoOptions): ArangoClient = new ArangoClient(options)
+  def apply(options: ArangoDBConf): ArangoClient = new ArangoClient(options)
 
-  def getCollectionShardIds(options: ArangoOptions): Array[String] = {
+  def getCollectionShardIds(options: ArangoDBConf): Array[String] = {
     try {
       val client = ArangoClient(options).arangoDB
       val res = client.execute(new Request(
@@ -183,7 +180,7 @@ object ArangoClient {
     }
   }
 
-  def acquireHostList(options: ArangoOptions): Iterable[String] = {
+  def acquireHostList(options: ArangoDBConf): Iterable[String] = {
     val client = ArangoClient(options).arangoDB
     val response = client.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
     val field = response.getBody.get("endpoints")

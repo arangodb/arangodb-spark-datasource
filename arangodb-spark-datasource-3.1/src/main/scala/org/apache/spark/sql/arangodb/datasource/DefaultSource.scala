@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoOptions}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf}
 import org.apache.spark.sql.connector.catalog.{Table, TableProvider}
 import org.apache.spark.sql.connector.expressions.Transform
 import org.apache.spark.sql.sources.DataSourceRegister
@@ -13,11 +13,11 @@ class DefaultSource extends TableProvider with DataSourceRegister {
 
   private var table: ArangoTable = _
 
-  private def extractOptions(options: util.Map[String, String]): ArangoOptions = {
-    val opts: ArangoOptions = ArangoOptions(options)
+  private def extractOptions(options: util.Map[String, String]): ArangoDBConf = {
+    val opts: ArangoDBConf = ArangoDBConf(options)
     if (opts.driverOptions.acquireHostList) {
       val hosts = ArangoClient.acquireHostList(opts)
-      opts.updated(ArangoOptions.ENDPOINTS, hosts.mkString(","))
+      opts.updated(ArangoDBConf.ENDPOINTS, hosts.mkString(","))
     } else {
       opts
     }

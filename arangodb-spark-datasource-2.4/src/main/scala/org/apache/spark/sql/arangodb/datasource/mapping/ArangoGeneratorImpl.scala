@@ -10,9 +10,9 @@ import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGen
 import java.io.OutputStream
 
 abstract sealed class ArangoGeneratorImpl(
-                                       schema: DataType,
-                                       writer: OutputStream,
-                                       options: JSONOptions)
+                                           schema: DataType,
+                                           writer: OutputStream,
+                                           options: JSONOptions)
   extends JacksonGenerator(
     schema,
     options.buildJsonFactory().createGenerator(writer),
@@ -20,8 +20,8 @@ abstract sealed class ArangoGeneratorImpl(
 
 class ArangoGeneratorProviderImpl extends ArangoGeneratorProvider {
   override def of(contentType: ContentType, schema: StructType, outputStream: OutputStream): ArangoGeneratorImpl = contentType match {
-    case ContentType.Json => new JsonArangoGenerator(schema, outputStream)
-    case ContentType.VPack => new VPackArangoGenerator(schema, outputStream)
+    case ContentType.JSON => new JsonArangoGenerator(schema, outputStream)
+    case ContentType.VPACK => new VPackArangoGenerator(schema, outputStream)
     case _ => throw new IllegalArgumentException
   }
 }

@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.junit.jupiter.api.{Disabled, Test}
 
 @Disabled("manual test only")
@@ -18,10 +18,10 @@ class AcquireHostListTest {
     spark.read
       .format("org.apache.spark.sql.arangodb.datasource")
       .options(Map(
-        ArangoOptions.COLLECTION -> "_fishbowl",
-        ArangoOptions.ENDPOINTS -> "172.17.0.1:8529",
-        ArangoOptions.ACQUIRE_HOST_LIST -> "true",
-        ArangoOptions.PASSWORD -> "test"
+        ArangoDBConf.COLLECTION -> "_fishbowl",
+        ArangoDBConf.ENDPOINTS -> "172.17.0.1:8529",
+        ArangoDBConf.ACQUIRE_HOST_LIST -> "true",
+        ArangoDBConf.PASSWORD -> "test"
       ))
       .load()
       .show()

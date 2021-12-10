@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import org.apache.spark.SPARK_VERSION
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
@@ -48,9 +48,9 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .save()
 
@@ -66,9 +66,9 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .save()
 
@@ -83,15 +83,15 @@ class SaveModeTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Overwrite)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType
         ))
         .save()
     })
 
     assertThat(thrown).isInstanceOf(classOf[AnalysisException])
-    assertThat(thrown.getMessage).contains(ArangoOptions.CONFIRM_TRUNCATE)
+    assertThat(thrown.getMessage).contains(ArangoDBConf.CONFIRM_TRUNCATE)
   }
 
   @ParameterizedTest
@@ -101,10 +101,10 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.CONFIRM_TRUNCATE -> "true"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true"
       ))
       .save()
 
@@ -121,10 +121,10 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.CONFIRM_TRUNCATE -> "true"
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true"
       ))
       .save()
 
@@ -142,9 +142,9 @@ class SaveModeTest extends BaseSparkTest {
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.ErrorIfExists)
         .options(options + (
-          ArangoOptions.COLLECTION -> collectionName,
-          ArangoOptions.PROTOCOL -> protocol,
-          ArangoOptions.CONTENT_TYPE -> contentType
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType
         ))
         .save()
     })
@@ -162,9 +162,9 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.ErrorIfExists)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .save()
 
@@ -180,9 +180,9 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Ignore)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .save()
 
@@ -200,9 +200,9 @@ class SaveModeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Ignore)
       .options(options + (
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
       ))
       .save()
 

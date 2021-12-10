@@ -1,11 +1,11 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import com.arangodb.model.OverwriteMode
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest.arangoDatasource
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.{AfterAll, BeforeAll}
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -25,11 +25,11 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.COLLECTION -> (ReadWriteDataTypeTest.collectionName + "_2"),
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.OVERWRITE_MODE -> "replace",
-        ArangoOptions.CONFIRM_TRUNCATE -> "true"
+        ArangoDBConf.COLLECTION -> (ReadWriteDataTypeTest.collectionName + "_2"),
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true"
       ))
       .save()
 

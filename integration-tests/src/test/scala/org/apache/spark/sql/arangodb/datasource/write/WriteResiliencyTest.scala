@@ -1,8 +1,9 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
+import com.arangodb.model.OverwriteMode
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoOptions
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -45,12 +46,12 @@ class WriteResiliencyTest extends BaseSparkTest {
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
       .options(options + (
-        ArangoOptions.ENDPOINTS -> (BaseSparkTest.endpoints + ",wrongHost:8529"),
-        ArangoOptions.COLLECTION -> collectionName,
-        ArangoOptions.PROTOCOL -> protocol,
-        ArangoOptions.CONTENT_TYPE -> contentType,
-        ArangoOptions.CONFIRM_TRUNCATE -> "true",
-        ArangoOptions.OVERWRITE_MODE -> "replace"
+        ArangoDBConf.ENDPOINTS -> (BaseSparkTest.endpoints + ",wrongHost:8529"),
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
       ))
       .save()
 

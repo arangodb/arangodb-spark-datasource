@@ -25,8 +25,8 @@ abstract sealed class ArangoParserImpl(
 
 class ArangoParserProviderImpl extends ArangoParserProvider {
   override def of(contentType: ContentType, schema: DataType): ArangoParserImpl = contentType match {
-    case ContentType.Json => new JsonArangoParser(schema)
-    case ContentType.VPack => new VPackArangoParser(schema)
+    case ContentType.JSON => new JsonArangoParser(schema)
+    case ContentType.VPACK => new VPackArangoParser(schema)
     case _ => throw new IllegalArgumentException
   }
 }
