@@ -1,4 +1,22 @@
-# [UNDER DEVELOPMENT] arangodb-spark-datasource
+# arangodb-spark-datasource
+
+## Overview
+
+ArangoDB Spark Datasource allows batch reading and writing Spark DataFrame data from and to ArangoDB, by implementing
+the Spark Data Source V2 API.
+
+Reading tasks are parallelized according to the number of shards of the related ArangoDB collection, and the writing
+ones depending on the source Dataframe partitions. The network traffic is heavenly load balanced across the available DB
+coordinators.
+
+Filter predicates and column selections are pushed down to the DB by dynamically generating AQL queries which will fetch
+only the strictly required data, thus saving network and computational resources both on the Spark and the DB side.
+
+The connector is usable from all the Spark supported client languages, namely Scala, Python, Java, and R.
+
+This library works with all the non-EOLed ArangoDB versions,
+see [link](https://www.arangodb.com/subscriptions/end-of-life-notice/).
+
 
 ## Supported versions
 
