@@ -359,12 +359,14 @@ df.write
 
 ## Current limitations
 
-- In Spark 2.4, on corrupted records in batch reading, partial results are not supported. All fields other than the
-  field configured by `columnNameOfCorruptRecord` are set to `null`
-- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (BTS-671)
-- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with 
+- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with
   a numeric value whereas the related read schema requires a string value for such field
 - dates and timestamps fields are interpreted to be in UTC time zone
+- In Spark 2.4, on corrupted records in batch reading, partial results are not supported. All fields other than the
+  field configured by `columnNameOfCorruptRecord` are set to `null` (SPARK-26303)
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (
+  BTS-671)
+
 
 ## Demo
 
