@@ -1,4 +1,22 @@
-# [UNDER DEVELOPMENT] arangodb-spark-datasource
+# arangodb-spark-datasource
+
+## Overview
+
+ArangoDB Spark Datasource allows batch reading and writing Spark DataFrame data from and to ArangoDB, by implementing
+the Spark Data Source V2 API.
+
+Reading tasks are parallelized according to the number of shards of the related ArangoDB collection, and the writing
+ones depending on the source Dataframe partitions. The network traffic is heavenly load balanced across the available DB
+coordinators.
+
+Filter predicates and column selections are pushed down to the DB by dynamically generating AQL queries which will fetch
+only the strictly required data, thus saving network and computational resources both on the Spark and the DB side.
+
+The connector is usable from all the Spark supported client languages, namely Scala, Python, Java, and R.
+
+This library works with all the non-EOLed ArangoDB versions,
+see [link](https://www.arangodb.com/subscriptions/end-of-life-notice/).
+
 
 ## Supported versions
 
@@ -23,23 +41,12 @@ To import ArangoDB Spark Datasource in a maven project:
       <version>1.0.0</version>
     </dependency>
   </dependencies>
-
-  <repositories>
-      <repository>
-          <id>snapshots-repo</id>
-          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-          <snapshots>
-              <enabled>true</enabled>
-          </snapshots>
-      </repository>
-  </repositories>
 ```
 
 To use in external Spark cluster, submit your application with the following parameter:
 
 ```shell
-    --packages="com.arangodb:arangodb-spark-datasource-${sparkVersion}_${scalaVersion}:1.0.0" \
-    --repositories="https://oss.sonatype.org/content/repositories/snapshots"
+    --packages="com.arangodb:arangodb-spark-datasource-${sparkVersion}_${scalaVersion}:1.0.0"
 ```
 
 ## General Configuration
@@ -352,12 +359,14 @@ df.write
 
 ## Current limitations
 
-- In Spark 2.4, on corrupted records in batch reading, partial results are not supported. All fields other than the
-  field configured by `columnNameOfCorruptRecord` are set to `null`
-- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (BTS-671)
-- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with 
+- for `content-type=vpack`, implicit deserialization casts don't work well, i.e. reading a document having a field with
   a numeric value whereas the related read schema requires a string value for such field
 - dates and timestamps fields are interpreted to be in UTC time zone
+- In Spark 2.4, on corrupted records in batch reading, partial results are not supported. All fields other than the
+  field configured by `columnNameOfCorruptRecord` are set to `null` (SPARK-26303)
+- in read jobs using `stream=true` (default), possible AQL warnings are only logged at the end of each read task (
+  BTS-671)
+
 
 ## Demo
 
