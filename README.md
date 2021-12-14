@@ -185,6 +185,34 @@ relevant documents fields will be returned.
 Predicate and projection pushdown can greatly improve query performance by reducing the amount of data transferred 
 between ArangoDB and Spark.
 
+The following code snippet shows an example of filter predicates and column selection pushdown:
+
+```scala
+case class User(name: String, age: Int)
+
+import spark.implicits._
+val ds: Dataset[User] = spark.read
+    .format("com.arangodb.spark")
+    .option("password", "test")
+    .option("endpoints", "172.17.0.1:8529")
+    .option("table", "users")
+    .schema(Encoders.product[User].schema)
+    .load()
+    .as[User]
+
+ds
+    .select("name")
+    .filter("age >= 18 AND age < 22")
+    .show
+```
+
+The selection of the column `name` and the 2 filter predicates are internally used to generate an optimized AQL query,
+which in this case will be:
+
+```text
+FOR d IN @@col FILTER `d`.`age` >= 18 AND `d`.`age` < 22 RETURN {`name`:`d`.`name`}
+    with params: Map(@col -> users)
+```
 
 ### Read Resiliency
 
@@ -325,6 +353,46 @@ and filter pushdown:
   - `MapType` (only with key type `StringType`)
   - `StructType`
 
+The following code snippet shows an example of the supported data types:
+
+```scala
+  case class Order(
+                    userId: String,
+                    price: Double,
+                    shipped: Boolean,
+                    totItems: Int,
+                    creationDate: Date,
+                    lastModifiedTs: Timestamp,
+                    itemIds: List[String],
+                    qty: Map[String, Int]
+                  )
+
+val ds: Dataset[Order] = spark.read
+        .format("com.arangodb.spark")
+        .option("password", "test")
+        .option("endpoints", "172.17.0.1:8529")
+        .option("table", "orders")
+        .schema(Encoders.product[Order].schema)
+        .load()
+        .as[Order]
+```
+
+Invoking `ds.printSchema()` would show the following:
+
+```text
+root
+ |-- userId: string (nullable = true)
+ |-- price: double (nullable = false)
+ |-- shipped: boolean (nullable = false)
+ |-- totItems: integer (nullable = false)
+ |-- creationDate: date (nullable = true)
+ |-- lastModifiedTs: timestamp (nullable = true)
+ |-- itemIds: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+ |-- qty: map (nullable = true)
+ |    |-- key: string
+ |    |-- value: integer (valueContainsNull = false)
+```
 
 ## Connect to ArangoDB Oasis
 
