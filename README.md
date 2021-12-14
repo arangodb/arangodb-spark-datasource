@@ -353,6 +353,46 @@ and filter pushdown:
   - `MapType` (only with key type `StringType`)
   - `StructType`
 
+The following code snippet shows an example of the supported data types:
+
+```scala
+  case class Order(
+                    userId: String,
+                    price: Double,
+                    shipped: Boolean,
+                    totItems: Int,
+                    creationDate: Date,
+                    lastModifiedTs: Timestamp,
+                    itemIds: List[String],
+                    qty: Map[String, Int]
+                  )
+
+val ds: Dataset[Order] = spark.read
+        .format("com.arangodb.spark")
+        .option("password", "test")
+        .option("endpoints", "172.17.0.1:8529")
+        .option("table", "orders")
+        .schema(Encoders.product[Order].schema)
+        .load()
+        .as[Order]
+```
+
+Invoking `ds.printSchema()` would show the following:
+
+```text
+root
+ |-- userId: string (nullable = true)
+ |-- price: double (nullable = false)
+ |-- shipped: boolean (nullable = false)
+ |-- totItems: integer (nullable = false)
+ |-- creationDate: date (nullable = true)
+ |-- lastModifiedTs: timestamp (nullable = true)
+ |-- itemIds: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+ |-- qty: map (nullable = true)
+ |    |-- key: string
+ |    |-- value: integer (valueContainsNull = false)
+```
 
 ## Connect to ArangoDB Oasis
 
