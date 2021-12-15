@@ -122,6 +122,12 @@ jobs:
         run: mvn -version
       - name: Test
         run: mvn -e --no-transfer-progress -Pscala-2.12 -Pspark-${{matrix.spark-version}} test
+      - name: Install
+        run: mvn -Pscala-2.12 -Pspark-${{matrix.spark-version}} -DskipTests=true -Dgpg.skip=true install
+      - name: Import db data
+        run: ./demo/docker/import.sh
+      - name: Deployment Test
+        run: mvn -f ./demo/pom.xml -Pscala-2.12 -Pspark-${{matrix.spark-version}} test
       - name: Collect docker logs on failure
         if: ${{ cancelled() || failure() }}
         uses: jwalton/gh-docker-logs@v1
