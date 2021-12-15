@@ -25,10 +25,7 @@ STARTER_MODE=cluster ./docker/start_db.sh
 Import users sample data:
 
 ```shell
-curl -u root:test http://172.17.0.1:8529/_api/collection -d '{"name": "users", "numberOfShards": 6}'
-docker run --rm -v $(pwd)/docker/import:/import arangodb \
-  arangoimport --server.endpoint=http+tcp://172.17.0.1:8529 --server.password=test \
-  --file "/import/users/users.json" --type json --collection "users"
+./docker/import.sh
 ```
 
 ## Spark 2.4
