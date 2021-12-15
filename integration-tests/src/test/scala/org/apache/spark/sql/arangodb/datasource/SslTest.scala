@@ -9,7 +9,8 @@ import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerP
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.junit.jupiter.api.{AfterEach, BeforeEach, Disabled, Test}
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import org.junit.jupiter.api.{AfterEach, BeforeEach, Test}
 
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
@@ -19,7 +20,7 @@ import java.time.LocalDate
 import java.util.Base64
 import javax.net.ssl.{SSLContext, TrustManagerFactory}
 
-@Disabled("manual test only")
+@EnabledIfSystemProperty(named = "SslTest", matches = "true")
 class SslTest {
   private val arangoDB: ArangoDB = SslTest.arangoDB
   private val db: ArangoDatabase = SslTest.db
@@ -101,6 +102,7 @@ object SslTest {
     .password(password)
     .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
     .serializer(new ArangoJack() {
+      //noinspection ConvertExpressionToSAM
       configure(new ArangoJack.ConfigureFunction {
         override def configure(mapper: ObjectMapper): Unit = mapper
           .registerModule(DefaultScalaModule)
