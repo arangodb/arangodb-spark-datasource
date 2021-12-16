@@ -191,10 +191,8 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
       - name: Info
         run: mvn -version
-      - name: Test
-        run: mvn -e --no-transfer-progress -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dspark.version=${{matrix.spark-full-version}} test
       - name: Install
-        run: mvn -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -DskipTests=true -Dgpg.skip=true install
+        run: mvn -e --no-transfer-progress -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dspark.version=${{matrix.spark-full-version}} -Dgpg.skip=true install
       - name: Import db data
         run: ./demo/docker/import.sh
       - name: Deployment Test
