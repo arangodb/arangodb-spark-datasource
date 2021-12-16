@@ -33,7 +33,7 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.3
+          - docker.io/arangodb/arangodb:3.8.4
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
@@ -96,7 +96,7 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.3
+          - docker.io/arangodb/arangodb:3.8.4
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
@@ -142,7 +142,7 @@ jobs:
           path: ./logs.tgz
 
   test-older-spark-versions:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:
@@ -230,7 +230,7 @@ jobs:
         java-version:
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.3
+          - docker.io/arangodb/arangodb:3.8.4
 
     steps:
       - uses: actions/checkout@v2

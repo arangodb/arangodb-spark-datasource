@@ -36,23 +36,24 @@ Start Spark cluster:
 ./docker/start_spark_2.4.sh 
 ```
 
-Build the `demo` project (with Java 8):
+Test the Spark application in embedded mode:
 ```shell
-mvn -Pspark-2.4 -Pscala-$SCALA_VERSION package
+mvn -Pspark-2.4 -Pscala-$SCALA_VERSION test
 ```
 
-Run the Spark application in embedded mode:
+Package the application:
 ```shell
-mvn -Pspark-2.4 -Pscala-$SCALA_VERSION exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+mvn -Pspark-2.4 -Pscala-$SCALA_VERSION -DskipTests=true package
 ```
 
 Run Spark Shell:
 
 ```shell
 docker run -it --rm \
+  -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  bde2020/spark-base:2.4.5-hadoop2.7 \
-  ./spark/bin/spark-shell --master spark://spark-master:7077 \
+  docker.io/bitnami/spark:2.4.6 \
+  ./bin/spark-shell --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-2.4_$SCALA_VERSION:$ARANGO_SPARK_VERSION"
 ```
 
@@ -76,12 +77,13 @@ Submit demo program:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd)/..:/arangodb-spark-datasource \
+  -v $(pwd):/demo \
+  -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  bde2020/spark-base:2.4.5-hadoop2.7 \
-  ./spark/bin/spark-submit --master spark://spark-master:7077 \
+  docker.io/bitnami/spark:2.4.6 \
+  ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-2.4_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
-    --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
+    --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
 ## Spark 3.1
@@ -92,23 +94,24 @@ Start Spark cluster:
 ./docker/start_spark_3.1.sh 
 ```
 
-Build the `demo` project:
+Test the Spark application in embedded mode: 
 ```shell
-mvn -Pspark-3.1 -Pscala-$SCALA_VERSION package
+mvn -Pspark-3.1 -Pscala-$SCALA_VERSION test
 ```
 
-Run the Spark application in embedded mode:
+Package the application:
 ```shell
-mvn -Pspark-3.1 -Pscala-$SCALA_VERSION exec:java -Dexec.classpathScope="test" -Dexec.mainClass="Demo"
+mvn -Pspark-3.1 -Pscala-$SCALA_VERSION -DskipTests=true package
 ```
 
 Run Spark Shell:
 
 ```shell
 docker run -it --rm \
+  -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  bde2020/spark-base:3.1.1-hadoop3.2 \
-  ./spark/bin/spark-shell --master spark://spark-master:7077 \
+  docker.io/bitnami/spark:3.1.2 \
+  ./bin/spark-shell --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.1_$SCALA_VERSION:$ARANGO_SPARK_VERSION"
 ```
 
@@ -132,10 +135,11 @@ Submit demo program:
 
 ```shell
 docker run -it --rm \
-  -v $(pwd)/..:/arangodb-spark-datasource \
+  -v $(pwd):/demo \
+  -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  bde2020/spark-base:3.1.1-hadoop3.2 \
-  ./spark/bin/spark-submit --master spark://spark-master:7077 \
+  docker.io/bitnami/spark:3.1.2 \
+  ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.1_$SCALA_VERSION:$ARANGO_SPARK_VERSION" \
-    --class Demo /arangodb-spark-datasource/demo/target/demo-$ARANGO_SPARK_VERSION.jar
+    --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
