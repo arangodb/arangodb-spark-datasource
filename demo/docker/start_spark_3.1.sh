@@ -8,6 +8,7 @@ docker run -d --network arangodb --ip 172.28.10.1 --name spark-master -h spark-m
   -e SPARK_RPC_ENCRYPTION_ENABLED=no \
   -e SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no \
   -e SPARK_SSL_ENABLED=no \
+  -v $(pwd)/docker/import:/import \
   docker.io/bitnami/spark:3.1.2
 
 docker run -d --network arangodb --ip 172.28.10.11 --name spark-worker-1 -h spark-worker-1 \
@@ -19,6 +20,7 @@ docker run -d --network arangodb --ip 172.28.10.11 --name spark-worker-1 -h spar
   -e SPARK_RPC_ENCRYPTION_ENABLED=no \
   -e SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no \
   -e SPARK_SSL_ENABLED=no \
+  -v $(pwd)/docker/import:/import \
   docker.io/bitnami/spark:3.1.2
 
 docker run -d --network arangodb --ip 172.28.10.12 --name spark-worker-2 -h spark-worker-2 \
@@ -30,6 +32,7 @@ docker run -d --network arangodb --ip 172.28.10.12 --name spark-worker-2 -h spar
   -e SPARK_RPC_ENCRYPTION_ENABLED=no \
   -e SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no \
   -e SPARK_SSL_ENABLED=no \
+  -v $(pwd)/docker/import:/import \
   docker.io/bitnami/spark:3.1.2
 
 docker run -d --network arangodb --ip 172.28.10.13 --name spark-worker-3 -h spark-worker-3 \
@@ -41,4 +44,5 @@ docker run -d --network arangodb --ip 172.28.10.13 --name spark-worker-3 -h spar
   -e SPARK_RPC_ENCRYPTION_ENABLED=no \
   -e SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no \
   -e SPARK_SSL_ENABLED=no \
+  -v $(pwd)/docker/import:/import \
   docker.io/bitnami/spark:3.1.2
