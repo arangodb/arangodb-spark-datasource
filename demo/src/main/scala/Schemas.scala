@@ -3,6 +3,7 @@ import org.apache.spark.sql.types.{DateType, IntegerType, StringType, StructFiel
 object Schemas {
   val movieSchema: StructType = StructType(Array(
     StructField("_id", StringType, nullable = false),
+    StructField("_key", StringType, nullable = false),
     StructField("description", StringType),
     StructField("genre", StringType),
     StructField("homepage", StringType),
@@ -20,6 +21,7 @@ object Schemas {
 
   val personSchema: StructType = StructType(Array(
     StructField("_id", StringType, nullable = false),
+    StructField("_key", StringType, nullable = false),
     StructField("biography", StringType),
     StructField("birthday", DateType),
     StructField("birthplace", StringType),
@@ -30,6 +32,7 @@ object Schemas {
 
   val actsInSchema: StructType = StructType(Array(
     StructField("_id", StringType, nullable = false),
+    StructField("_key", StringType, nullable = false),
     StructField("_from", StringType, nullable = false),
     StructField("_to", StringType, nullable = false),
     StructField("name", StringType)
@@ -37,6 +40,7 @@ object Schemas {
 
   val directedSchema: StructType = StructType(Array(
     StructField("_id", StringType, nullable = false),
+    StructField("_key", StringType, nullable = false),
     StructField("_from", StringType, nullable = false),
     StructField("_to", StringType, nullable = false)
   ))

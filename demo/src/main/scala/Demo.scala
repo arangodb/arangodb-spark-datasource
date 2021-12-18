@@ -1,6 +1,6 @@
-import Schemas.{actsInSchema, directedSchema, movieSchema, personSchema}
+import Schemas.movieSchema
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{DateType, LongType, StringType, StructField, StructType, TimestampType}
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 object Demo {
@@ -26,10 +26,16 @@ object Demo {
   def main(args: Array[String]): Unit = {
     writeDemo()
     readDemo()
+    readWriteDemo()
     spark.stop
   }
 
   def writeDemo(): Unit = {
+    println("------------------")
+    println("--- WRITE DEMO ---")
+    println("------------------")
+
+    println("Reading JSON files...")
     val nodesDF = spark.read.json("docker/import/nodes.jsonl")
       .withColumn("releaseDate", unixTsToSparkDate(col("releaseDate")))
       .withColumn("birthday", unixTsToSparkDate(col("birthday")))
@@ -38,38 +44,32 @@ object Demo {
       .withColumn("_from", concat(lit("persons/"), col("_from")))
       .withColumn("_to", concat(lit("movies/"), col("_to")))
 
-    saveDF(
-      nodesDF.where("type = 'Person'"),
-      tableName = "persons",
-      tableType = "document"
-    )
+    val personsDF = dropNullColumns(nodesDF.where("type = 'Person'")).persist()
+    val moviesDF = dropNullColumns(nodesDF.where("type = 'Movie'")).persist()
+    val directedDF = dropNullColumns(edgesDF.where("`$label` = 'DIRECTED'")).persist()
+    val actedInDF = dropNullColumns(edgesDF.where("`$label` = 'ACTS_IN'")).persist()
 
-    saveDF(
-      nodesDF.where("type = 'Movie'"),
-      tableName = "movies",
-      tableType = "document"
-    )
+    println("Writing 'persons' collection...")
+    saveDF(personsDF, "persons")
 
-    saveDF(
-      df = edgesDF.where("`$label` = 'DIRECTED'"),
-      tableName = "directed",
-      tableType = "edge"
-    )
+    println("Writing 'movies' collection...")
+    saveDF(moviesDF, "movies")
 
-    saveDF(
-      df = edgesDF.where("`$label` = 'ACTS_IN'"),
-      tableName = "actedIn",
-      tableType = "edge"
-    )
+    println("Writing 'directed' edge collection...")
+    saveDF(directedDF, "directed", "edge")
+
+    println("Writing 'actedIn' edge collection...")
+    saveDF(actedInDF, "actedIn", "edge")
   }
 
   def unixTsToSparkTs(c: Column): Column = (c.cast(LongType) / 1000).cast(TimestampType)
 
   def unixTsToSparkDate(c: Column): Column = unixTsToSparkTs(c).cast(DateType)
 
-  def saveDF(df: DataFrame, tableName: String, tableType: String): Unit =
+  def dropNullColumns(df: DataFrame): DataFrame = df.drop(getEmptyColNames(df): _*)
+
+  def saveDF(df: DataFrame, tableName: String, tableType: String = "document"): Unit =
     df
-      .drop(getEmptyColNames(df): _*)
       .write
       .mode("overwrite")
       .format("com.arangodb.spark")
@@ -85,59 +85,36 @@ object Demo {
     }
 
   def readDemo(): Unit = {
-    val moviesDF = readTable("movies", movieSchema)
-    val personsDF = readTable("persons", personSchema)
-    val actedInDF = readTable("actedIn", actsInSchema)
-    val directedDF = readTable("directed", directedSchema)
+    println("-----------------")
+    println("--- READ DEMO ---")
+    println("-----------------")
 
-    // History movies or Documentaries about World War released from 2000-01-01
+    val moviesDF = readTable("movies", movieSchema)
+
+    println("Read table: history movies or documentaries about 'World War' released from 2000-01-01")
     moviesDF
       .select("title", "releaseDate", "genre", "description")
-      .filter("releaseDate > '2000'")
-      .filter("genre IN ('History', 'Documentary')")
-      .filter("description LIKE '%World War%'")
+      .filter("genre IN ('History', 'Documentary') AND description LIKE '%World War%' AND releaseDate > '2000'")
       .show(20, 200)
 
-    // actors in Titanic with roles
-    moviesDF
-      .join(actedInDF, moviesDF("_id") === actedInDF("_to"))
-      .join(personsDF, actedInDF("_from") === personsDF("_id"))
-      .filter(moviesDF("_id") === "movies/6002")
-      .select(personsDF("name"), actedInDF("name").as("role"))
-      .show(100, 100)
-
-    // actors in Titanic with roles (AQL query)
+    println("Read query: actors of movies directed by Clint Eastwood with related movie title and interpreted role")
     readQuery(
-      """WITH persons
-        |  FOR v, e, p IN 1 INBOUND "movies/6002" actedIn
-        |  RETURN {name: v.name, role: e.name}
-        |""".stripMargin, schema = StructType(Array(
+      """WITH movies, persons
+        |FOR v, e, p IN 2 ANY "persons/1062" OUTBOUND directed, INBOUND actedIn
+        |   RETURN {movie: p.vertices[1].title, name: v.name, role: p.edges[1].name}
+        |""".stripMargin,
+      schema = StructType(Array(
+        StructField("movie", StringType),
         StructField("name", StringType),
         StructField("role", StringType)
       ))
-    ).show(200, 100)
-
-    // actors of movies directed by Clint Eastwood with related movie title
-    readQuery(
-      """WITH movies, persons
-        |FOR v, e, p IN 2 ANY "persons/1062" directed, actedIn
-        |   FILTER IS_SAME_COLLECTION(directed, p.edges[0])
-        |   RETURN {name: v.name, movie: p.vertices[1].title}
-        |""".stripMargin,
-      schema = StructType(Array(
-        StructField("name", StringType),
-        StructField("movie", StringType)
-      ))
-    ).show(200, 100)
+    ).show(20, 200)
   }
 
   def readTable(tableName: String, schema: StructType): DataFrame = {
     spark.read
       .format("com.arangodb.spark")
-      .options(options ++ Map(
-        "table" -> tableName,
-        "mode" -> "FAILFAST" // fail on bad records
-      ))
+      .options(options + ("table" -> tableName))
       .schema(schema)
       .load
   }
@@ -148,6 +125,18 @@ object Demo {
       .options(options + ("query" -> query))
       .schema(schema)
       .load
+  }
+
+  def readWriteDemo(): Unit = {
+    println("-----------------------")
+    println("--- READ-WRITE DEMO ---")
+    println("-----------------------")
+
+    println("Reading 'movies' collection and writing 'actionMovies' collection...")
+    val actionMoviesDF = readTable("movies", movieSchema)
+      .select("_key", "title", "releaseDate", "runtime", "description")
+      .filter("genre = 'Action'")
+    saveDF(actionMoviesDF, "actionMovies")
   }
 
 }
