@@ -23,7 +23,7 @@ Start Spark cluster:
 
 Test the Spark application in embedded mode: 
 ```shell
-mvn -Pspark-3.1 -Pscala-2.12 test
+mvn -Pspark-3.1 -Pscala-2.12 -DimportPath=docker/import test
 ```
 
 Package the application:

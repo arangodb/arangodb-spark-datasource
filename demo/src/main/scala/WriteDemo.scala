@@ -15,13 +15,15 @@ object WriteDemo {
     println("--- WRITE DEMO ---")
     println("------------------")
 
+    val importPath = System.getProperty("importPath", "/demo/docker/import")
+
     println("Reading JSON files...")
-    val nodesDF = Demo.spark.read.json("docker/import/nodes.jsonl")
+    val nodesDF = Demo.spark.read.json(importPath + "/nodes.jsonl")
       .withColumn("releaseDate", unixTsToSparkDate(col("releaseDate")))
       .withColumn("birthday", unixTsToSparkDate(col("birthday")))
       .withColumn("lastModified", unixTsToSparkTs(col("lastModified")))
       .persist()
-    val edgesDF = Demo.spark.read.json("docker/import/edges.jsonl")
+    val edgesDF = Demo.spark.read.json(importPath + "/edges.jsonl")
       .withColumn("_from", concat(lit("persons/"), col("_from")))
       .withColumn("_to", concat(lit("movies/"), col("_to")))
       .persist()
