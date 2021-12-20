@@ -21,9 +21,20 @@ Start Spark cluster:
 ./docker/start_spark_3.1.sh 
 ```
 
-Test the Spark application in embedded mode: 
+Test the Spark application in embedded mode:
 ```shell
 mvn -Pspark-3.1 -Pscala-2.12 -DimportPath=docker/import test
+```
+
+Test the Spark application against ArangoDB Oasis deployment:
+```shell
+mvn -Pspark-3.1 -Pscala-2.12 \
+  -DimportPath=docker/import \
+  -Dpassword=<root-password> \
+  -Dendpoints=<endpoint> \
+  -Dssl.enabled=true \
+  -Dssl.cert.value=<base64-encoded-cert> \
+  test
 ```
 
 Package the application:
