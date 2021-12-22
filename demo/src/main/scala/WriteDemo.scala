@@ -26,10 +26,18 @@ object WriteDemo {
       .withColumn("_to", concat(lit("movies/"), col("_to")))
       .persist()
 
-    val personsDF = dropNullColumns(nodesDF.where("type = 'Person'"))
-    val moviesDF = dropNullColumns(nodesDF.where("type = 'Movie'"))
-    val directedDF = dropNullColumns(edgesDF.where("`$label` = 'DIRECTED'"))
-    val actedInDF = dropNullColumns(edgesDF.where("`$label` = 'ACTS_IN'"))
+    val personsDF = nodesDF
+      .select(Schemas.personSchema.fieldNames.filter(_ != "_id").map(col): _*)
+      .where("type = 'Person'")
+    val moviesDF = nodesDF
+      .select(Schemas.movieSchema.fieldNames.filter(_ != "_id").map(col): _*)
+      .where("type = 'Movie'")
+    val directedDF = edgesDF
+      .select(Schemas.directedSchema.fieldNames.filter(_ != "_id").map(col): _*)
+      .where("`$label` = 'DIRECTED'")
+    val actedInDF = edgesDF
+      .select(Schemas.actsInSchema.fieldNames.filter(_ != "_id").map(col): _*)
+      .where("`$label` = 'ACTS_IN'")
 
     println("Writing 'persons' collection...")
     saveDF(personsDF, "persons")
@@ -48,8 +56,6 @@ object WriteDemo {
 
   def unixTsToSparkDate(c: Column): Column = unixTsToSparkTs(c).cast(DateType)
 
-  def dropNullColumns(df: DataFrame): DataFrame = df.drop(getEmptyColNames(df): _*)
-
   def saveDF(df: DataFrame, tableName: String, tableType: String = "document"): Unit =
     df
       .write
@@ -61,8 +67,4 @@ object WriteDemo {
       ))
       .save()
 
-  def getEmptyColNames(df: DataFrame): Array[String] =
-    df.columns.filter { colName =>
-      df.filter(df(colName).isNotNull).count() == 0
-    }
 }
