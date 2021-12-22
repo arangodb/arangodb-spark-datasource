@@ -1,5 +1,25 @@
 # ArangoDB Spark Datasource Demo
 
+This demo is composed of 3 parts:
+
+- `WriteDemo`: reads the input json files as Spark Dataframes, applies conversions to map the data to Spark data types
+  and writes the records into ArangoDB collections
+- `ReadDemo`: reads the ArangoDB collections created above as Spark Dataframes, specifying columns selection and records
+  filters predicates or custom AQL queries
+- `ReadWriteDemo`: reads the ArangoDB collections created above as Spark Dataframes, applies projections and filtering,
+  writes to a new ArangoDB collection
+
+
+## Requirements
+
+This demo requires:
+- JDK 1.8 or 11
+- `maven`
+- `docker`
+
+
+## Prepare the environment
+
 Set environment variables:
 
 ```shell
@@ -21,6 +41,9 @@ Start Spark cluster:
 ./docker/start_spark_3.1.sh 
 ```
 
+
+## Run embedded
+
 Test the Spark application in embedded mode:
 ```shell
 mvn -Pspark-3.1 -Pscala-2.12 -DimportPath=docker/import test
@@ -36,6 +59,9 @@ mvn -Pspark-3.1 -Pscala-2.12 \
   -Dssl.cert.value=<base64-encoded-cert> \
   test
 ```
+
+
+## Submit to Spark cluster
 
 Package the application:
 ```shell
