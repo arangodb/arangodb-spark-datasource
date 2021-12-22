@@ -193,10 +193,8 @@ jobs:
         run: mvn -version
       - name: Install
         run: mvn -e --no-transfer-progress -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dspark.version=${{matrix.spark-full-version}} -Dgpg.skip=true install
-      - name: Import db data
-        run: ./demo/docker/import.sh
       - name: Deployment Test
-        run: mvn -f ./demo/pom.xml -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dspark.version=${{matrix.spark-full-version}} test
+        run: mvn -f ./demo/pom.xml -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dspark.version=${{matrix.spark-full-version}} -DimportPath=docker/import test
       - name: Collect docker logs on failure
         if: ${{ cancelled() || failure() }}
         uses: jwalton/gh-docker-logs@v1
