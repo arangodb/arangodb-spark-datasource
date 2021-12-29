@@ -49,8 +49,11 @@
         <sonar.coverage.jacoco.xmlReportPaths>integration-tests/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.scala.scalastyle.reportPaths>
-            arangodb-spark-commons/target/scalastyle-output.xml,arangodb-spark-datasource-3.1/target/scalastyle-output.xml
+            ${project.build.directory}/scalastyle-output.xml
         </sonar.scala.scalastyle.reportPaths>
+        <sonar.scala.scapegoat.reportPath>
+            ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
+        </sonar.scala.scapegoat.reportPath>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
@@ -194,6 +197,12 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.sksamuel.scapegoat</groupId>
+            <artifactId>scalac-scapegoat-plugin_${scala.version}</artifactId>
+            <version>1.4.11</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Test -->
         <dependency>
@@ -269,7 +278,16 @@
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
                         <arg>-target:jvm-1.8</arg>
+                        <arg>-P:scapegoat:dataDir:${project.build.directory}/scapegoat</arg>
+                        <arg>-P:scapegoat:overrideLevels:all=Warning</arg>
                     </args>
+                    <compilerPlugins>
+                        <compilerPlugin>
+                            <groupId>com.sksamuel.scapegoat</groupId>
+                            <artifactId>scalac-scapegoat-plugin_${scala.version}</artifactId>
+                            <version>1.4.11</version>
+                        </compilerPlugin>
+                    </compilerPlugins>
                 </configuration>
             </plugin>
             <plugin>
@@ -298,7 +316,7 @@
                     <includeTestSourceDirectory>false</includeTestSourceDirectory>
                     <sourceDirectory>${project.basedir}/src/main/scala</sourceDirectory>
                     <configLocation>${project.basedir}/../lib/scalastyle_config.xml</configLocation>
-                    <outputFile>${project.basedir}/target/scalastyle-output.xml</outputFile>
+                    <outputFile>${project.build.directory}/scalastyle-output.xml</outputFile>
                     <outputEncoding>UTF-8</outputEncoding>
                 </configuration>
                 <executions>
