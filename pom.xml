@@ -51,9 +51,9 @@
         <sonar.scala.scalastyle.reportPaths>
             ${project.build.directory}/scalastyle-output.xml
         </sonar.scala.scalastyle.reportPaths>
-        <sonar.scala.scapegoat.reportPath>
+        <sonar.scala.scapegoat.reportPaths>
             ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
-        </sonar.scala.scapegoat.reportPath>
+        </sonar.scala.scapegoat.reportPaths>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
