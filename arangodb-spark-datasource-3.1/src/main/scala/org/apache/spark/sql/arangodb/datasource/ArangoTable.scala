@@ -28,7 +28,7 @@ class ArangoTable(private var tableSchema: StructType, options: ArangoDBConf) ex
     TableCapability.BATCH_WRITE,
     //    TableCapability.STREAMING_WRITE,
     TableCapability.ACCEPT_ANY_SCHEMA,
-    TableCapability.TRUNCATE,
+    TableCapability.TRUNCATE
     //    TableCapability.OVERWRITE_BY_FILTER,
     //    TableCapability.OVERWRITE_DYNAMIC,
   ).asJava

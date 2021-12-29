@@ -29,6 +29,7 @@
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <sonar.coverage.jacoco.xmlReportPaths>../integration-tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <scalastyle.skip>false</scalastyle.skip>
     </properties>
 
     <dependencies>
