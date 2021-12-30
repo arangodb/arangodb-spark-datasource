@@ -110,10 +110,11 @@ object ArangoDBConf {
     .createOptional
 
   val BATCH_SIZE = "batchSize"
+  val DEFAULT_BATCH_SIZE = 10000
   val batchSizeConf: ConfigEntry[Int] = ConfigBuilder(BATCH_SIZE)
     .doc("batch size")
     .intConf
-    .createWithDefault(10000)
+    .createWithDefault(DEFAULT_BATCH_SIZE)
 
   val QUERY = "query"
   val queryConf: OptionalConfigEntry[String] = ConfigBuilder(QUERY)
@@ -122,10 +123,11 @@ object ArangoDBConf {
     .createOptional
 
   val SAMPLE_SIZE = "sampleSize"
+  val DEFAULT_SAMPLE_SIZE = 1000
   val sampleSizeConf: ConfigEntry[Int] = ConfigBuilder(SAMPLE_SIZE)
     .doc("sample size prefetched for schema inference")
     .intConf
-    .createWithDefault(1000)
+    .createWithDefault(DEFAULT_SAMPLE_SIZE)
 
   val FILL_BLOCK_CACHE = "fillBlockCache"
   val fillBlockCacheConf: ConfigEntry[Boolean] = ConfigBuilder(FILL_BLOCK_CACHE)
@@ -153,10 +155,11 @@ object ArangoDBConf {
     .createOptional
 
   val NUMBER_OF_SHARDS = "table.shards"
+  val DEFAULT_NUMBER_OF_SHARDS = 1
   val numberOfShardsConf: ConfigEntry[Int] = ConfigBuilder(NUMBER_OF_SHARDS)
     .doc("number of shards of the created collection (in case of SaveMode Append or Overwrite)")
     .intConf
-    .createWithDefault(1)
+    .createWithDefault(DEFAULT_NUMBER_OF_SHARDS)
 
   val COLLECTION_TYPE = "table.type"
   val collectionTypeConf: ConfigEntry[String] = ConfigBuilder(COLLECTION_TYPE)

@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.commons.filter
 
 import org.apache.spark.sql.arangodb.commons.PushdownUtils.getStructField
 import org.apache.spark.sql.sources._
-import org.apache.spark.sql.types.{DateType, StringType, StructType, TimestampType}
+import org.apache.spark.sql.types.{DataType, DateType, StringType, StructType, TimestampType}
 
 sealed trait PushableFilter extends Serializable {
   def support(): FilterSupport
@@ -117,14 +117,14 @@ private class EqualToFilter(attribute: String, value: Any, schema: StructType) e
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(${getValue(t, value)})"""
-    case t => s"""`$v`.$escapedFieldName == ${getValue(t, value)}"""
+    case t: DataType => s"""`$v`.$escapedFieldName == ${getValue(t, value)}"""
   }
 }
 
@@ -137,14 +137,14 @@ private class GreaterThanFilter(attribute: String, value: Any, schema: StructTyp
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) > DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})""" // microseconds are ignored in AQL
-    case t => s"""`$v`.$escapedFieldName > ${getValue(t, value)}"""
+    case t: DataType => s"""`$v`.$escapedFieldName > ${getValue(t, value)}"""
   }
 }
 
@@ -157,14 +157,14 @@ private class GreaterThanOrEqualFilter(attribute: String, value: Any, schema: St
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) >= DATE_TIMESTAMP(${getValue(t, value)})"""
-    case t => s"""`$v`.$escapedFieldName >= ${getValue(t, value)}"""
+    case t: DataType => s"""`$v`.$escapedFieldName >= ${getValue(t, value)}"""
   }
 }
 
@@ -177,14 +177,14 @@ private class LessThanFilter(attribute: String, value: Any, schema: StructType) 
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) < DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})""" // microseconds are ignored in AQL
-    case t => s"""`$v`.$escapedFieldName < ${getValue(t, value)}"""
+    case t: DataType => s"""`$v`.$escapedFieldName < ${getValue(t, value)}"""
   }
 }
 
@@ -197,14 +197,14 @@ private class LessThanOrEqualFilter(attribute: String, value: Any, schema: Struc
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
     case t: DateType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})"""
     case t: TimestampType => s"""DATE_TIMESTAMP(`$v`.$escapedFieldName) <= DATE_TIMESTAMP(${getValue(t, value)})"""
-    case t => s"""`$v`.$escapedFieldName <= ${getValue(t, value)}"""
+    case t: DataType => s"""`$v`.$escapedFieldName <= ${getValue(t, value)}"""
   }
 }
 
@@ -285,12 +285,16 @@ private class InFilter(attribute: String, values: Array[Any], schema: StructType
   override def support(): FilterSupport = dataType match {
     case _: DateType => FilterSupport.FULL
     case _: TimestampType => FilterSupport.PARTIAL // microseconds are ignored in AQL
-    case t if isTypeAqlCompatible(t) => FilterSupport.FULL
+    case t: DataType if isTypeAqlCompatible(t) => FilterSupport.FULL
     case _ => FilterSupport.NONE
   }
 
   override def aql(v: String): String = dataType match {
-    case _: TimestampType | DateType => s"""LENGTH([${values.map(getValue(dataType, _)).mkString(",")}][* FILTER DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(CURRENT)]) > 0"""
-    case _ => s"""LENGTH([${values.map(getValue(dataType, _)).mkString(",")}][* FILTER `$v`.$escapedFieldName == CURRENT]) > 0"""
+    case _: TimestampType | DateType => s"""LENGTH([${
+      values.map(getValue(dataType, _)).mkString(",")
+    }][* FILTER DATE_TIMESTAMP(`$v`.$escapedFieldName) == DATE_TIMESTAMP(CURRENT)]) > 0"""
+    case _ => s"""LENGTH([${
+      values.map(getValue(dataType, _)).mkString(",")
+    }][* FILTER `$v`.$escapedFieldName == CURRENT]) > 0"""
   }
 }
