@@ -7,7 +7,7 @@ import java.time.{LocalDate, LocalDateTime}
 
 object DataTypesExample {
 
-  case class Order(
+  final case class Order(
                     userId: String,
                     price: Double,
                     shipped: Boolean,

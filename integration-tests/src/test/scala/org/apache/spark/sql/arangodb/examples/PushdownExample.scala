@@ -5,7 +5,7 @@ import org.apache.spark.sql.{Dataset, Encoders, SparkSession}
 
 object PushdownExample {
 
-  case class User(name: String, age: Int)
+  final case class User(name: String, age: Int)
 
   def main(args: Array[String]): Unit = {
     prepareDB()
