@@ -354,7 +354,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    */
   def getAllDefinedConfigs: Seq[(String, String, String)] =
     confEntries.values.filter(_.isPublic).map { entry =>
-      val displayValue = Option(getConfString(entry.key, null)).getOrElse(entry.defaultValueString)
+      val displayValue = settings.get(entry.key).getOrElse(entry.defaultValueString)
       (entry.key, displayValue, entry.doc)
     }.toSeq
 
@@ -446,12 +446,12 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
       val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
       val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
       val ks = KeyStore.getInstance(sslKeystoreType)
-      ks.load(null)
+      ks.load(null) // scalastyle:ignore null
       ks.setCertificateEntry(sslCertAlias, cert)
       val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
       tmf.init(ks)
       val sc = SSLContext.getInstance(sslProtocol)
-      sc.init(null, tmf.getTrustManagers, null)
+      sc.init(null, tmf.getTrustManagers, null) // scalastyle:ignore null
       sc
     case None => SSLContext.getDefault
   }

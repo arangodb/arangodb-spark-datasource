@@ -11,6 +11,7 @@ sealed trait PushableFilter extends Serializable {
 }
 
 object PushableFilter {
+  // scalastyle:off cyclomatic.complexity
   def apply(filter: Filter, schema: StructType): PushableFilter = filter match {
     // @formatter:off
     case f: And                   => new AndFilter(apply(f.left, schema), apply(f.right, schema))
@@ -34,6 +35,7 @@ object PushableFilter {
     }
     // @formatter:on
   }
+  // scalastyle:on cyclomatic.complexity
 }
 
 private class OrFilter(parts: PushableFilter*) extends PushableFilter {
