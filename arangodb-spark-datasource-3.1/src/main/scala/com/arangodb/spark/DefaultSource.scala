@@ -26,7 +26,8 @@ class DefaultSource extends TableProvider with DataSourceRegister {
 
   override def inferSchema(options: CaseInsensitiveStringMap): StructType = getTable(options).schema()
 
-  private def getTable(options: CaseInsensitiveStringMap): Table = getTable(null, null, options.asCaseSensitiveMap())
+  private def getTable(options: CaseInsensitiveStringMap): Table =
+    getTable(null, null, options.asCaseSensitiveMap()) // scalastyle:ignore null
 
   override def getTable(schema: StructType, partitioning: Array[Transform], properties: util.Map[String, String]): Table = {
     if (table == null) {

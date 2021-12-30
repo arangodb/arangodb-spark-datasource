@@ -11,8 +11,9 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
 
   override def buildForBatch(): BatchWrite = {
     val client = ArangoClient(options)
-    if (!client.collectionExists())
+    if (!client.collectionExists()) {
       client.createCollection()
+    }
     client.shutdown()
     new ArangoBatchWriter(schema, options, mode)
   }
@@ -21,10 +22,11 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
     mode = SaveMode.Overwrite
     if (options.writeOptions.confirmTruncate) {
       val client = ArangoClient(options)
-      if (client.collectionExists())
+      if (client.collectionExists()) {
         client.truncate()
-      else
+      } else {
         client.createCollection()
+      }
       client.shutdown()
       this
     } else {

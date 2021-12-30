@@ -38,12 +38,15 @@ class ArangoScanBuilder(options: ArangoDBConf, tableSchema: StructType) extends 
     appliedPushableFilters = appliedFilters.map(_._2)
     appliedSparkFilters = appliedFilters.map(_._1)
 
-    if (fullSupp.nonEmpty)
+    if (fullSupp.nonEmpty) {
       logInfo(s"Filters fully applied in AQL:\n\t${fullSupp.map(_._1).mkString("\n\t")}")
-    if (partialSupp.nonEmpty)
+    }
+    if (partialSupp.nonEmpty) {
       logInfo(s"Filters partially applied in AQL:\n\t${partialSupp.map(_._1).mkString("\n\t")}")
-    if (noneSupp.nonEmpty)
+    }
+    if (noneSupp.nonEmpty) {
       logInfo(s"Filters not applied in AQL:\n\t${noneSupp.mkString("\n\t")}")
+    }
 
     partialSupp.map(_._1) ++ noneSupp
   }
