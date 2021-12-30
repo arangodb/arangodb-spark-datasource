@@ -16,14 +16,14 @@ class IsNullTest {
   def isNull(): Unit = {
     val isNullFilter = PushableFilter(IsNull("a.b"), schema)
     assertThat(isNullFilter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(isNullFilter.aql("d")).isEqualTo(s"""`d`.`a`.`b` == null""")
+    assertThat(isNullFilter.aql("d")).isEqualTo("""`d`.`a`.`b` == null""")
   }
 
   @Test
   def isNotNull(): Unit = {
     val isNotNullFilter = PushableFilter(IsNotNull("a.b"), schema)
     assertThat(isNotNullFilter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(isNotNullFilter.aql("d")).isEqualTo(s"""`d`.`a`.`b` != null""")
+    assertThat(isNotNullFilter.aql("d")).isEqualTo("""`d`.`a`.`b` != null""")
   }
 
 }

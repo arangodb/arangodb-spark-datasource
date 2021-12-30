@@ -126,7 +126,7 @@ class LessThanFilterTest {
     val value = Seq("a", "b", "c")
     val filter = PushableFilter(LessThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`array` < ["a","b","c"]""")
+    assertThat(filter.aql("d")).isEqualTo("""`d`.`array` < ["a","b","c"]""")
   }
 
   @Test
@@ -135,7 +135,7 @@ class LessThanFilterTest {
     val value = Map("a" -> 1, "b" -> 2, "c" -> 3)
     val filter = PushableFilter(LessThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`intMap` < {"a":1,"b":2,"c":3}""")
+    assertThat(filter.aql("d")).isEqualTo("""`d`.`intMap` < {"a":1,"b":2,"c":3}""")
   }
 
   @Test
@@ -150,7 +150,7 @@ class LessThanFilterTest {
     )
     val filter = PushableFilter(LessThan(field, value), schema: StructType)
     assertThat(filter.support()).isEqualTo(FilterSupport.FULL)
-    assertThat(filter.aql("d")).isEqualTo(s"""`d`.`struct` < {"a":"str","b":22}""")
+    assertThat(filter.aql("d")).isEqualTo("""`d`.`struct` < {"a":"str","b":22}""")
   }
 
 }
