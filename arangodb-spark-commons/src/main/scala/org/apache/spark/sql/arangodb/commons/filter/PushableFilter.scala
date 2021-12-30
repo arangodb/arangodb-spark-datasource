@@ -48,9 +48,13 @@ private class OrFilter(parts: PushableFilter*) extends PushableFilter {
    * +---------++---------+---------+------+
    */
   override def support(): FilterSupport =
-    if (parts.exists(_.support == FilterSupport.NONE)) FilterSupport.NONE
-    else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
-    else FilterSupport.PARTIAL
+    if (parts.exists(_.support == FilterSupport.NONE)) {
+      FilterSupport.NONE
+    } else if (parts.forall(_.support == FilterSupport.FULL)) {
+      FilterSupport.FULL
+    } else {
+      FilterSupport.PARTIAL
+    }
 
   override def aql(v: String): String = parts
     .map(_.aql(v))
@@ -69,9 +73,13 @@ private class AndFilter(parts: PushableFilter*) extends PushableFilter {
    * +---------++---------+---------+---------+
    */
   override def support(): FilterSupport =
-    if (parts.forall(_.support == FilterSupport.NONE)) FilterSupport.NONE
-    else if (parts.forall(_.support == FilterSupport.FULL)) FilterSupport.FULL
-    else FilterSupport.PARTIAL
+    if (parts.forall(_.support == FilterSupport.NONE)) {
+      FilterSupport.NONE
+    } else if (parts.forall(_.support == FilterSupport.FULL)) {
+      FilterSupport.FULL
+    } else {
+      FilterSupport.PARTIAL
+    }
 
   override def aql(v: String): String = parts
     .filter(_.support() != FilterSupport.NONE)
@@ -91,8 +99,11 @@ private class NotFilter(child: PushableFilter) extends PushableFilter {
    * +---------++---------+
    */
   override def support(): FilterSupport =
-    if (child.support() == FilterSupport.FULL) FilterSupport.FULL
-    else FilterSupport.NONE
+    if (child.support() == FilterSupport.FULL) {
+      FilterSupport.FULL
+    } else {
+      FilterSupport.NONE
+    }
 
   override def aql(v: String): String = s"NOT (${child.aql(v)})"
 }

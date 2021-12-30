@@ -22,10 +22,11 @@ object ArangoUtils {
       .json(spark.createDataset(sampleEntries)(Encoders.STRING))
       .schema
 
-    if (options.readOptions.columnNameOfCorruptRecord.isEmpty)
+    if (options.readOptions.columnNameOfCorruptRecord.isEmpty) {
       schema
-    else
+    } else {
       schema.add(StructField(options.readOptions.columnNameOfCorruptRecord, StringType, nullable = true))
+    }
   }
 
 }

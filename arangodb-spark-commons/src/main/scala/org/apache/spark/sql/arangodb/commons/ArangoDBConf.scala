@@ -480,9 +480,13 @@ class ArangoDBReadConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
   val columnNameOfCorruptRecord: String = getConf(columnNameOfCorruptRecordConf).getOrElse("")
 
   val readMode: ReadMode =
-    if (query.isDefined) ReadMode.Query
-    else if (collection.isDefined) ReadMode.Collection
-    else throw new IllegalArgumentException("Either collection or query must be defined")
+    if (query.isDefined) {
+      ReadMode.Query
+    } else if (collection.isDefined) {
+      ReadMode.Collection
+    } else {
+      throw new IllegalArgumentException("Either collection or query must be defined")
+    }
 
 }
 
