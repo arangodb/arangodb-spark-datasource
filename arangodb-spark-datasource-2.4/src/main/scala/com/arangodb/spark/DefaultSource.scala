@@ -16,14 +16,7 @@ class DefaultSource extends DataSourceV2 with DataSourceRegister
   with ReadSupport
   with WriteSupport {
 
-  private var inferredSchema: StructType = _
-
-  private def inferSchema(options: ArangoDBConf): StructType = {
-    if (inferredSchema == null) {
-      inferredSchema = ArangoUtils.inferSchema(options)
-    }
-    inferredSchema
-  }
+  private def inferSchema(options: ArangoDBConf): StructType = ArangoUtils.inferSchema(options)
 
   private def extractOptions(options: DataSourceOptions): ArangoDBConf = {
     val opts: ArangoDBConf = ArangoDBConf(options.asMap())

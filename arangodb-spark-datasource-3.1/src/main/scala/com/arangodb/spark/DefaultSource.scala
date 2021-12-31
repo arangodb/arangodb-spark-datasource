@@ -12,8 +12,6 @@ import java.util
 
 class DefaultSource extends TableProvider with DataSourceRegister {
 
-  private var table: ArangoTable = _
-
   private def extractOptions(options: util.Map[String, String]): ArangoDBConf = {
     val opts: ArangoDBConf = ArangoDBConf(options)
     if (opts.driverOptions.acquireHostList) {
@@ -27,17 +25,16 @@ class DefaultSource extends TableProvider with DataSourceRegister {
   override def inferSchema(options: CaseInsensitiveStringMap): StructType = getTable(options).schema()
 
   private def getTable(options: CaseInsensitiveStringMap): Table =
-    getTable(null, null, options.asCaseSensitiveMap()) // scalastyle:ignore null
+    getTable(None, options.asCaseSensitiveMap()) // scalastyle:ignore null
 
-  override def getTable(schema: StructType, partitioning: Array[Transform], properties: util.Map[String, String]): Table = {
-    if (table == null) {
-      table = new ArangoTable(schema, extractOptions(properties))
-    }
-    table
-  }
+  override def getTable(schema: StructType, partitioning: Array[Transform], properties: util.Map[String, String]): Table =
+    getTable(Option(schema), properties)
 
   override def supportsExternalMetadata(): Boolean = true
 
   override def shortName(): String = "arangodb"
+
+  private def getTable(schema: Option[StructType], properties: util.Map[String, String]) =
+    new ArangoTable(schema, extractOptions(properties))
 
 }
