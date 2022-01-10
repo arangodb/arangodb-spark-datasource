@@ -33,3 +33,15 @@ class SingletonPartition(
   override def createPartitionReader(): InputPartitionReader[InternalRow] =
     new ArangoQueryReader(schema, options)
 }
+
+object ArangoPartition {
+  def ofCollection(
+                    shardId: String,
+                    endpoint: String,
+                    ctx: PushDownCtx,
+                    options: ArangoDBConf
+                  ): InputPartition[InternalRow] = new ArangoCollectionPartition(shardId, endpoint, ctx, options)
+
+  def ofSingleton(schema: StructType, options: ArangoDBConf): InputPartition[InternalRow] =
+    new SingletonPartition(schema, options)
+}

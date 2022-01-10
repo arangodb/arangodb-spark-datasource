@@ -12,16 +12,12 @@ import org.apache.spark.sql.util.CaseInsensitiveStringMap
 import java.util
 import scala.collection.JavaConverters.setAsJavaSetConverter
 
-class ArangoTable(private var tableSchema: StructType, options: ArangoDBConf) extends Table with SupportsRead with SupportsWrite {
+class ArangoTable(private var schemaOpt: Option[StructType], options: ArangoDBConf) extends Table with SupportsRead with SupportsWrite {
+  private lazy val tableSchema = schemaOpt.getOrElse(ArangoUtils.inferSchema(options))
 
   override def name(): String = this.getClass.toString
 
-  override def schema(): StructType = {
-    if (tableSchema == null) {
-      tableSchema = ArangoUtils.inferSchema(options)
-    }
-    tableSchema
-  }
+  override def schema(): StructType = tableSchema
 
   override def capabilities(): util.Set[TableCapability] = Set(
     TableCapability.BATCH_READ,

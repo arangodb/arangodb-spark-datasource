@@ -9,7 +9,7 @@ class NoOpDataWriter() extends DataWriter[InternalRow] {
     // do nothing
   }
 
-  override def commit(): WriterCommitMessage = null
+  override def commit(): WriterCommitMessage = null  // scalastyle:ignore null
 
   override def abort(): Unit = {
     // do nothing

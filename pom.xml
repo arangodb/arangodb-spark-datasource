@@ -280,6 +280,8 @@
                         <arg>-target:jvm-1.8</arg>
                         <arg>-P:scapegoat:dataDir:${project.build.directory}/scapegoat</arg>
                         <arg>-P:scapegoat:overrideLevels:all=Warning</arg>
+                        <arg>-P:scapegoat:ignoredFiles:.*/src/test/scala/.*:.*/org/apache/spark/sql/arangodb/datasource/mapping/json/.*</arg>
+                        <arg>-P:scapegoat:disabledInspections:CatchException</arg>
                     </args>
                     <compilerPlugins>
                         <compilerPlugin>
@@ -296,6 +298,9 @@
                 <version>0.8.7</version>
                 <configuration>
                     <append>true</append>
+                    <excludes>
+                        <exclude>org/apache/spark/sql/arangodb/datasource/mapping/json/**/*</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

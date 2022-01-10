@@ -38,16 +38,17 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   override def commit(): WriterCommitMessage = {
     flushBatch()
     client.shutdown()
-    null
+    null // scalastyle:ignore null
   }
 
   /**
    * Data cleanup will happen in [[ArangoDataSourceWriter.abort()]]
    */
-  override def abort(): Unit = if (!canRetry)
+  override def abort(): Unit = if (!canRetry) {
     throw new DataWriteAbortException(
       "Task cannot be retried. To make batch writes idempotent, so that they can be retried, consider using " +
         "'keep.null=true' (default) and 'overwrite.mode=(ignore|replace|update)'.")
+  }
 
   private def createClient() = ArangoClient(options.updated(ArangoDBConf.ENDPOINTS, endpoints(endpointIdx)))
 
@@ -90,7 +91,9 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
           logWarning("Got exception while saving documents: ", e)
           client = createClient()
           saveDocuments(payload)
-        } else throw e
+        } else {
+          throw e
+        }
     }
   }
 

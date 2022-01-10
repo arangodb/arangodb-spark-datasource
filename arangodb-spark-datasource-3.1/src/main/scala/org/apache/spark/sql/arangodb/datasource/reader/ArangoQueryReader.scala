@@ -39,8 +39,11 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Parti
         case ContentType.VPACK => current.toByteArray
         case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
       })
-      if (rowIterator.hasNext) true
-      else next
+      if (rowIterator.hasNext) {
+        true
+      } else {
+        next
+      }
     } else {
       // FIXME: https://arangodb.atlassian.net/browse/BTS-671
       // stream AQL cursors' warnings are only returned along with the final batch

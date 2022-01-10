@@ -86,13 +86,13 @@ object CollectionType {
   case object DOCUMENT extends CollectionType {
     override val name: String = "document"
 
-    override def get() = entity.CollectionType.DOCUMENT
+    override def get(): entity.CollectionType = entity.CollectionType.DOCUMENT
   }
 
   case object EDGE extends CollectionType {
     override val name: String = "edge"
 
-    override def get() = entity.CollectionType.EDGES
+    override def get(): entity.CollectionType = entity.CollectionType.EDGES
   }
 
   def apply(value: String): CollectionType = value match {

@@ -15,12 +15,12 @@ class ArangoScan(ctx: PushDownCtx, options: ArangoDBConf) extends Scan with Batc
 
   override def planInputPartitions(): Array[InputPartition] = options.readOptions.readMode match {
     case ReadMode.Query => Array(SingletonPartition)
-    case ReadMode.Collection => planCollectionPartitions().asInstanceOf[Array[InputPartition]]
+    case ReadMode.Collection => planCollectionPartitions()
   }
 
   override def createReaderFactory(): PartitionReaderFactory = new ArangoPartitionReaderFactory(ctx, options)
 
-  private def planCollectionPartitions() =
+  private def planCollectionPartitions(): Array[InputPartition] =
     ArangoClient.getCollectionShardIds(options)
       .zip(Stream.continually(options.driverOptions.endpoints).flatten)
       .map(it => new ArangoCollectionPartition(it._1, it._2))

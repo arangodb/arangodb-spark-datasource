@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// scalastyle:off
+
 package org.apache.spark.sql.arangodb.datasource.mapping.json
 
 import com.fasterxml.jackson.core._

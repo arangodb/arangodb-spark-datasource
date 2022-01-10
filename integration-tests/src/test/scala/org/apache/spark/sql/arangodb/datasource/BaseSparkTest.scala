@@ -186,7 +186,7 @@ object BaseSparkTest {
       arangoDB.getUser(user)
     } catch {
       case e: ArangoDBException =>
-        if (e.getResponseCode == 404 && e.getErrorNum == 1703)
+        if (e.getResponseCode.toInt == 404 && e.getErrorNum.toInt == 1703)
           arangoDB.createUser(user, password)
         else throw e
     }
