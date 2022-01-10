@@ -24,19 +24,19 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoDBConf) ext
   private var appliedPushableFilters: Array[PushableFilter] = Array()
   private var appliedSparkFilters: Array[Filter] = Array()
 
-  private var requiredSchema: StructType = _
+  private var readingSchema: StructType = _
 
-  override def readSchema(): StructType = Option(requiredSchema).getOrElse(tableSchema)
+  override def readSchema(): StructType = Option(readingSchema).getOrElse(tableSchema)
 
-  override def planInputPartitions(): util.List[InputPartition[InternalRow]] = (options.readOptions.readMode match {
-    case ReadMode.Query => List(new SingletonPartition(readSchema(), options)).asJava
+  override def planInputPartitions(): util.List[InputPartition[InternalRow]] = options.readOptions.readMode match {
+    case ReadMode.Query => List(ArangoPartition.ofSingleton(readSchema(), options)).asJava
     case ReadMode.Collection => planCollectionPartitions().toList.asJava
-  }).asInstanceOf[util.List[InputPartition[InternalRow]]]
+  }
 
   private def planCollectionPartitions() =
     ArangoClient.getCollectionShardIds(options)
       .zip(Stream.continually(options.driverOptions.endpoints).flatten)
-      .map(it => new ArangoCollectionPartition(it._1, it._2, new PushDownCtx(readSchema(), appliedPushableFilters), options))
+      .map(it => ArangoPartition.ofCollection(it._1, it._2, new PushDownCtx(readSchema(), appliedPushableFilters), options))
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
     // filters related to columnNameOfCorruptRecord are not pushed down
@@ -71,7 +71,7 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoDBConf) ext
   override def pushedFilters(): Array[Filter] = appliedSparkFilters
 
   override def pruneColumns(requiredSchema: StructType): Unit = {
-    this.requiredSchema = requiredSchema
+    this.readingSchema = requiredSchema
   }
 
   /**
@@ -82,7 +82,7 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoDBConf) ext
                                                schema: StructType,
                                                columnNameOfCorruptRecord: String): Unit = {
     schema.getFieldIndex(columnNameOfCorruptRecord).foreach { corruptFieldIndex =>
-      val f = schema(corruptFieldIndex)
+      val f = schema.toIndexedSeq(corruptFieldIndex)
       if (f.dataType != StringType || !f.nullable) {
         throw new AnalysisException(
           "The field for corrupt records must be string type and nullable")
