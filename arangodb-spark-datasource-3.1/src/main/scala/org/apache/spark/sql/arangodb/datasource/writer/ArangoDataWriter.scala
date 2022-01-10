@@ -18,7 +18,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
 
   private var failures = 0
   private var endpointIdx = partitionId
-  private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten.toIndexedSeq
+  private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
   private var client: ArangoClient = createClient()
   private var batchCount: Int = _
   private var outVPack: ByteArrayOutputStream = _
