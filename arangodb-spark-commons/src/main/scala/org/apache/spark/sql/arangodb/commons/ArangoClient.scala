@@ -17,6 +17,7 @@ import org.apache.spark.sql.types.StructType
 
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
+@SuppressWarnings(Array("OptionGet"))
 class ArangoClient(options: ArangoDBConf) extends Logging {
 
   private def aqlOptions(): AqlQueryOptions = {
@@ -68,11 +69,10 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
   def readCollectionSample(): Seq[String] = {
     val query = "FOR d IN @@col LIMIT @size RETURN d"
-    val params = Map(
+    val params: Map[String, AnyRef] = Map(
       "@col" -> options.readOptions.collection.get,
-      "size" -> options.readOptions.sampleSize
+      "size" -> (options.readOptions.sampleSize: java.lang.Integer)
     )
-      .asInstanceOf[Map[String, AnyRef]]
     val opts = aqlOptions()
     logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
 
@@ -147,7 +147,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     if (response.getBody.isArray) {
       val errors = response.getBody.arrayIterator.asScala
         .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
-        .map(arangoDB.util().deserialize(_, classOf[ErrorEntity]).asInstanceOf[ErrorEntity])
+        .map(arangoDB.util().deserialize[ErrorEntity](_, classOf[ErrorEntity]))
         .toIterable
       if (errors.nonEmpty) {
         throw new ArangoDBMultiException(errors)
@@ -157,7 +157,10 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 }
 
 
+@SuppressWarnings(Array("OptionGet"))
 object ArangoClient {
+  private val INTERNAL_ERROR_CODE = 4
+  private val SHARDS_API_UNAVAILABLE_CODE = 9
 
   def apply(options: ArangoDBConf): ArangoClient = new ArangoClient(options)
 
@@ -175,7 +178,7 @@ object ArangoClient {
       case e: ArangoDBException =>
         // single server < 3.8  returns Response: 500, Error: 4 - internal error
         // single server >= 3.8 returns Response: 501, Error: 9 - shards API is only available in a cluster
-        if (e.getErrorNum == 9 || e.getErrorNum == 4) {
+        if (INTERNAL_ERROR_CODE.equals(e.getErrorNum) || SHARDS_API_UNAVAILABLE_CODE.equals(e.getErrorNum)) {
           Array("")
         } else {
           throw e
@@ -188,8 +191,7 @@ object ArangoClient {
     val response = client.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
     val field = response.getBody.get("endpoints")
     val res = client.util(Serializer.CUSTOM)
-      .deserialize(field, classOf[Seq[Map[String, String]]])
-      .asInstanceOf[Seq[Map[String, String]]]
+      .deserialize[Seq[Map[String, String]]](field, classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
     client.shutdown()
     res
