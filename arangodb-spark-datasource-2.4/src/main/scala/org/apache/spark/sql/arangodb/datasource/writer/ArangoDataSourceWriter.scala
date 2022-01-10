@@ -25,7 +25,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
         case SaveMode.Overwrite => ArangoClient(options).truncate()
         case SaveMode.ErrorIfExists => throw new AnalysisException(
           s"Collection '${options.writeOptions.collection}' already exists. SaveMode: ErrorIfExists.")
-        case SaveMode.Ignore => new NoOpDataWriterFactory
+        case SaveMode.Ignore => return new NoOpDataWriterFactory // scalastyle:ignore return
       }
     } else {
       client.createCollection()
