@@ -297,6 +297,9 @@
                 <version>0.8.7</version>
                 <configuration>
                     <append>true</append>
+                    <excludes>
+                        <exclude>org/apache/spark/sql/arangodb/datasource/mapping/json/**/*</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
