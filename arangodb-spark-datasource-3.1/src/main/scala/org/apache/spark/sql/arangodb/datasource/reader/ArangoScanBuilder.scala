@@ -13,13 +13,13 @@ class ArangoScanBuilder(options: ArangoDBConf, tableSchema: StructType) extends 
   with SupportsPushDownRequiredColumns
   with Logging {
 
-  private var requiredSchema: StructType = _
+  private var readSchema: StructType = _
 
   // fully or partially applied filters
   private var appliedPushableFilters: Array[PushableFilter] = Array()
   private var appliedSparkFilters: Array[Filter] = Array()
 
-  override def build(): Scan = new ArangoScan(new PushDownCtx(requiredSchema, appliedPushableFilters), options)
+  override def build(): Scan = new ArangoScan(new PushDownCtx(readSchema, appliedPushableFilters), options)
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
     // filters related to columnNameOfCorruptRecord are not pushed down
@@ -54,6 +54,6 @@ class ArangoScanBuilder(options: ArangoDBConf, tableSchema: StructType) extends 
   override def pushedFilters(): Array[Filter] = appliedSparkFilters
 
   override def pruneColumns(requiredSchema: StructType): Unit = {
-    this.requiredSchema = requiredSchema
+    this.readSchema = requiredSchema
   }
 }
