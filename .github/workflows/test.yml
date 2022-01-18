@@ -34,11 +34,17 @@ jobs:
           - 11
         docker-img:
           - docker.io/arangodb/arangodb:3.8.4
+          - docker.io/arangodb/arangodb-preview:3.9.0-beta.1
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
           - scala-version: 2.11
             java-version: 11
+          - docker-img: docker.io/arangodb/arangodb:3.8.4
+            java-version: 8
+          - docker-img: docker.io/arangodb/arangodb-preview:3.9.0-beta.1
+            java-version: 11
+
     steps:
       - uses: actions/checkout@v2
         with:
