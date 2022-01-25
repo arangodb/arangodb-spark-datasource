@@ -12,7 +12,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.junit.jupiter.api.{AfterEach, BeforeAll}
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.params.provider.Arguments
 
 import java.sql.Date
@@ -29,11 +29,6 @@ class BaseSparkTest {
   protected val spark: SparkSession = BaseSparkTest.spark
   protected val options: Map[String, String] = BaseSparkTest.options
   protected val usersDF: DataFrame = BaseSparkTest.usersDF
-
-  @AfterEach
-  def shutdown(): Unit = {
-    arangoDB.shutdown()
-  }
 
   def isSingle: Boolean = BaseSparkTest.isSingle
 

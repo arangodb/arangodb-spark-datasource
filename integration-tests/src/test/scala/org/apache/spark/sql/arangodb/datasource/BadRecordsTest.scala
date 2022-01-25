@@ -11,7 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class BadRecordsTest extends BaseSparkTest {
-  private val collectionName = "deserializationCast"
+  private val collectionName = "badRecords"
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
