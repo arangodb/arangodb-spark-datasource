@@ -12,7 +12,7 @@
     <artifactId>arangodb-spark-datasource-3.1_${scala.compat.version}</artifactId>
 
     <name>arangodb-spark-datasource-3.1</name>
-    <description>ArangoDB Spark Datasource for Spark 3.1</description>
+    <description>ArangoDB Datasource for Apache Spark 3.1</description>
     <url>https://github.com/arangodb/arangodb-spark-datasource</url>
 
     <developers>
