@@ -5,7 +5,9 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-- added driver timeout configuration option
+## [1.1.0] - 2022-02-23
+
+- added driver timeout configuration option (#12)
 - updated dependency `com.arangodb:arangodb-java-driver:6.16.1`
 
 ## [1.0.0] - 2021-12-11
