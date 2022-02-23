@@ -1,14 +1,19 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import com.arangodb.ArangoDBException
+import org.apache.spark.SparkException
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.{NumericType, StringType, StructField, StructType}
-import org.assertj.core.api.Assertions.assertThat
+import org.apache.spark.sql.types.{NullType, NumericType, StringType, StructField, StructType}
+import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.{MethodSource, ValueSource}
+
+import java.util.concurrent.TimeoutException
 
 class ReadTest extends BaseSparkTest {
 
@@ -160,6 +165,41 @@ class ReadTest extends BaseSparkTest {
       .load()
 
     assertThat(df.count()).isEqualTo(10)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def reatTimeout(protocol: String, contentType: String): Unit = {
+    val query =
+      """
+        |RETURN { value: SLEEP(5) }
+        |""".stripMargin.replaceAll("\n", "")
+
+    val df = spark.read
+      .format(BaseSparkTest.arangoDatasource)
+      .schema(StructType(Array(
+        StructField("value", NullType)
+      )))
+      .options(options + (
+        ArangoDBConf.QUERY -> query,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.TIMEOUT -> "1000"
+      ))
+      .load()
+
+    val thrown: Throwable = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = df.show()
+    })
+
+    assertThat(thrown)
+      .isInstanceOf(classOf[SparkException])
+
+    assertThat(thrown.getCause)
+      .isInstanceOf(classOf[ArangoDBException])
+
+    assertThat(thrown.getCause.getCause)
+      .isInstanceOf(classOf[TimeoutException])
   }
 
 }
