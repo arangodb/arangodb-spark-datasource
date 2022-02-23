@@ -17,6 +17,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   extends DataWriter[InternalRow] with Logging {
 
   private var failures = 0
+  private var requestCount = 0L
   private var endpointIdx = partitionId
   private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
   private var client: ArangoClient = createClient()
@@ -80,14 +81,17 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
 
   @tailrec private def saveDocuments(payload: VPackSlice): Unit = {
     try {
+      requestCount += 1
+      logDebug(s"Sending request #$requestCount for partition $partitionId")
       client.saveDocuments(payload)
+      logDebug(s"Received response #$requestCount for partition $partitionId")
       failures = 0
     } catch {
       case e: Exception =>
         client.shutdown()
         failures += 1
         endpointIdx += 1
-        if (canRetry && failures < options.driverOptions.endpoints.length) {
+        if (canRetry && failures < options.driverOptions.endpoints.length * 3) {
           logWarning("Got exception while saving documents: ", e)
           client = createClient()
           saveDocuments(payload)

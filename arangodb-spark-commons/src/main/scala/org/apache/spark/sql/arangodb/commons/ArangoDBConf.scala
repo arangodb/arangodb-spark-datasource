@@ -55,6 +55,12 @@ object ArangoDBConf {
     .checkValues(Set(ContentType.VPACK.name, ContentType.JSON.name))
     .createWithDefault(ContentType.JSON.name)
 
+  val TIMEOUT = "timeout"
+  val timeoutConf: ConfigEntry[Int] = ConfigBuilder(TIMEOUT)
+    .doc("driver connect and request timeout in ms")
+    .intConf
+    .createWithDefault(60 * 1000)
+
   val SSL_ENABLED = "ssl.enabled"
   val sslEnabledConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_ENABLED)
     .doc("SSL secured driver connection")
@@ -213,6 +219,7 @@ object ArangoDBConf {
     ACQUIRE_HOST_LIST -> acquireHostListConf,
     PROTOCOL -> protocolConf,
     CONTENT_TYPE -> contentTypeConf,
+    TIMEOUT -> timeoutConf,
     SSL_ENABLED -> sslEnabledConf,
     SSL_CERT_VALUE -> sslCertValueConf,
     SSL_CERT_TYPE -> sslCertTypeConf,
@@ -402,6 +409,8 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val contentType: ContentType = ContentType(getConf(contentTypeConf))
 
+  val timeout: Int = getConf(timeoutConf)
+
   private val arangoProtocol = (Protocol(getConf(protocolConf)), contentType) match {
     case (Protocol.VST, ContentType.VPACK) => com.arangodb.Protocol.VST
     case (Protocol.VST, ContentType.JSON) => throw new IllegalArgumentException("Json over VST is not supported")
@@ -426,6 +435,7 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
   def builder(): ArangoDB.Builder = {
     val builder = new ArangoDB.Builder()
       .useProtocol(arangoProtocol)
+      .timeout(timeout)
       .user(user)
     password.foreach(builder.password)
 
