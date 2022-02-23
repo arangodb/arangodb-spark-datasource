@@ -131,7 +131,7 @@ jobs:
       - name: Info
         run: mvn -version
       - name: Test
-        run: mvn -e --no-transfer-progress -f ./integration-tests/pom.xml -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true test
+        run: mvn -e --no-transfer-progress -am -pl integration-tests -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false test
       - name: Collect docker logs on failure
         if: ${{ cancelled() || failure() }}
         uses: jwalton/gh-docker-logs@v1
