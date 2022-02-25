@@ -92,6 +92,15 @@
             </properties>
         </profile>
         <profile>
+            <id>spark-3.2</id>
+            <properties>
+                <spark.version>3.2.1</spark.version>
+                <spark.compat.version>3.2</spark.compat.version>
+                <jackson.vpack.variant/>
+                <jackson.vpack.version>3.0.0</jackson.vpack.version>
+            </properties>
+        </profile>
+        <profile>
             <id>no-deploy</id>
             <activation>
                 <property>
