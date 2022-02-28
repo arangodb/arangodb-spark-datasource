@@ -6,7 +6,7 @@
 
     <groupId>com.arangodb</groupId>
     <artifactId>demo</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-datasource-${spark.compat.version}_${scala.compat.version}</artifactId>
-            <version>1.1.0</version>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>

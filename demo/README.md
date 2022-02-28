@@ -23,7 +23,7 @@ This demo requires:
 Set environment variables:
 
 ```shell
-export ARANGO_SPARK_VERSION=1.1.0
+export ARANGO_SPARK_VERSION=1.1.1
 ```
 
 Start ArangoDB cluster with docker:
