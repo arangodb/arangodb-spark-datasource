@@ -5,6 +5,11 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.1] - 2022-02-28
+
+- retry timeout exception in truncate requests (#16) 
+- fixed exception serialization bug (#15)
+
 ## [1.1.0] - 2022-02-23
 
 - added driver timeout configuration option (#12)
