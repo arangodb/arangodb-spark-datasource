@@ -18,7 +18,7 @@ class ExceptionsSerializationTest {
           |"errorNum": 1234
           |}""".stripMargin, classOf[ErrorEntity])
     )
-    val e = new ArangoDBMultiException(errors)
+    val e = new ArangoDBMultiException(errors.toArray)
     val objectOutputStream = new ObjectOutputStream(new ByteArrayOutputStream())
     objectOutputStream.writeObject(e)
     objectOutputStream.flush()

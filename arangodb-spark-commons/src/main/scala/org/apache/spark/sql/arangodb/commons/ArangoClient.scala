@@ -148,7 +148,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       val errors = response.getBody.arrayIterator.asScala
         .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
         .map(arangoDB.util().deserialize[ErrorEntity](_, classOf[ErrorEntity]))
-        .toIterable
+        .toArray
       if (errors.nonEmpty) {
         throw new ArangoDBMultiException(errors)
       }
