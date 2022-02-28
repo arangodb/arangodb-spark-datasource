@@ -15,6 +15,8 @@ import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
 import org.apache.spark.sql.types.StructType
 
+import java.util.concurrent.TimeoutException
+import scala.annotation.tailrec
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
 @SuppressWarnings(Array("OptionGet"))
@@ -115,10 +117,24 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .create(opts)
   }
 
-  def truncate(): Unit = arangoDB
-    .db(options.writeOptions.db)
-    .collection(options.writeOptions.collection)
-    .truncate()
+  @tailrec
+  final def truncate(): Unit = {
+    try {
+      arangoDB
+        .db(options.writeOptions.db)
+        .collection(options.writeOptions.collection)
+        .truncate()
+    } catch {
+      case e: ArangoDBException =>
+        if (e.getCause.isInstanceOf[TimeoutException]) {
+          logWarning("Got TimeoutException while truncating collection, retrying...")
+          truncate()
+        } else {
+          throw e
+        }
+      case t: Throwable => throw t
+    }
+  }
 
   def drop(): Unit = arangoDB
     .db(options.writeOptions.db)
