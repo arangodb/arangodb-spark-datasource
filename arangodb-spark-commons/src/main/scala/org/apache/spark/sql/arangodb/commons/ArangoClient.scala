@@ -147,7 +147,10 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       RequestType.POST,
       s"/_api/document/${options.writeOptions.collection}")
 
-    request.putQueryParam("silent", true)
+    // FIXME: atm silent=true cannot be used due to:
+    // - https://arangodb.atlassian.net/browse/BTS-592
+    // - https://arangodb.atlassian.net/browse/BTS-816
+    // request.putQueryParam("silent", true)
     request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
     request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
     request.putQueryParam("keepNull", options.writeOptions.keepNull)
@@ -157,17 +160,16 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val response = arangoDB.execute(request)
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    // FIXME
-    // in case there are no errors, response body is an empty object
-    // In cluster 3.8.1 this is not true due to: https://arangodb.atlassian.net/browse/BTS-592
-    if (response.getBody.isArray) {
-      val errors = response.getBody.arrayIterator.asScala
-        .filter(it => it.get(ArangoResponseField.ERROR).isTrue)
-        .map(arangoDB.util().deserialize[ErrorEntity](_, classOf[ErrorEntity]))
-        .toArray
-      if (errors.nonEmpty) {
-        throw new ArangoDBMultiException(errors)
-      }
+    val errors = response.getBody.arrayIterator.asScala
+      .zip(data.arrayIterator.asScala)
+      .filter(_._1.get(ArangoResponseField.ERROR).isTrue)
+      .map(it => (
+        arangoDB.util().deserialize[ErrorEntity](it._1, classOf[ErrorEntity]),
+        arangoDB.util().deserialize[String](it._2, classOf[String]))
+      )
+      .toArray
+    if (errors.nonEmpty) {
+      throw new ArangoDBMultiException(errors)
     }
   }
 }

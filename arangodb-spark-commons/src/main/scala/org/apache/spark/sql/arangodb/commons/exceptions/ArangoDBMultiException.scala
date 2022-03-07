@@ -8,10 +8,16 @@ import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException.c
 //    val errors: Array[ErrorEntity]
 // instead of:
 //    val errors: Iterable[ErrorEntity]
-class ArangoDBMultiException(val errors: Array[ErrorEntity]) extends RuntimeException(convert(errors))
+
+/**
+ * @param errors array of tuples with:
+ *               _1 : the error entity
+ *               _2 : the stringified record causing the error
+ */
+class ArangoDBMultiException(val errors: Array[(ErrorEntity, String)]) extends RuntimeException(convert(errors))
 
 private object ArangoDBMultiException {
-  private def convert(errors: Array[ErrorEntity]): String = errors
-    .map(it => s"""Error: ${it.getErrorNum} - ${it.getErrorMessage}""")
+  private def convert(errors: Array[(ErrorEntity, String)]): String = errors
+    .map(it => s"""Error: ${it._1.getErrorNum} - ${it._1.getErrorMessage} for record: ${it._2}""")
     .mkString("[\n\t", ",\n\t", "\n]")
 }

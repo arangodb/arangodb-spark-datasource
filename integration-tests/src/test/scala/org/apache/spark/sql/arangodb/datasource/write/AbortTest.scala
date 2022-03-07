@@ -69,7 +69,8 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.size).isEqualTo(1)
-    assertThat(errors.head.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
     assertThat(thrown.getCause.getSuppressed.head).isInstanceOf(classOf[DataWriteAbortException])
   }
 
@@ -97,7 +98,8 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.size).isEqualTo(1)
-    assertThat(errors.head.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
     assertThat(collection.count().getCount).isEqualTo(0L)
   }
 
@@ -126,7 +128,8 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.size).isEqualTo(1)
-    assertThat(errors.head.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
     assertThat(collection.exists()).isFalse
   }
 
@@ -155,7 +158,8 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.size).isEqualTo(1)
-    assertThat(errors.head.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
+    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
     assertThat(collection.exists()).isFalse
   }
 
