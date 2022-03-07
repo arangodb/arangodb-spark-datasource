@@ -67,6 +67,7 @@ class OverwriteModeTest extends BaseSparkTest {
     val rootEx = thrown.getCause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
     assertThat(rootEx.asInstanceOf[ArangoDBMultiException]).hasMessageContaining("conflicting key: Carlsen")
+    assertThat(rootEx.asInstanceOf[ArangoDBMultiException]).hasMessageContaining("{\"_key\":\"Carlsen\",\"name\":\"Magnus\"}")
   }
 
   @ParameterizedTest
