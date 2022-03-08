@@ -5,8 +5,9 @@ import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest.arangoDatasource
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -70,10 +71,18 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
     StructField("struct", StructType(Array(
       StructField("a", StringType),
       StructField("b", IntegerType)
-    ))),
-    //    StructField("decimal", DecimalType(38, 18), nullable = false)
+    )))
   ))
 
+
+  @Test
+  def writeDecimalTypeWithJsonContentTypeShouldThrow(): Unit = {
+    val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
+    val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
+    val thrown = catchThrowable(() => write(df, "http", "json"))
+    assertThat(thrown).isInstanceOf(classOf[UnsupportedOperationException])
+    assertThat(thrown).hasMessageContaining("Cannot write DecimalType when using contentType=json")
+  }
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
@@ -92,11 +101,7 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
     doRoundTripReadWrite(df, protocol, contentType)
   }
 
-  def doRoundTripReadWrite(df: DataFrame, protocol: String, contentType: String): Unit = {
-    val initial = df.collect()
-      .map(it => it.getValuesMap(it.schema.fieldNames))
-
-    df.show()
+  def write(df: DataFrame, protocol: String, contentType: String): Unit = {
     df.write
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Overwrite)
@@ -108,7 +113,13 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
         ArangoDBConf.CONFIRM_TRUNCATE -> "true"
       ))
       .save()
+  }
 
+  def doRoundTripReadWrite(df: DataFrame, protocol: String, contentType: String): Unit = {
+    val initial = df.collect()
+      .map(it => it.getValuesMap(it.schema.fieldNames))
+
+    write(df, protocol, contentType)
     val read = spark.read
       .format(arangoDatasource)
       .options(options + ("table" -> collectionName))
