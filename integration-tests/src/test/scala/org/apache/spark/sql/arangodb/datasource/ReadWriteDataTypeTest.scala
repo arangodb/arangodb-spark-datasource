@@ -1,11 +1,13 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.model.OverwriteMode
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest.arangoDatasource
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -79,7 +81,10 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
   def writeDecimalTypeWithJsonContentTypeShouldThrow(): Unit = {
     val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
     val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
-    val thrown = catchThrowable(() => write(df, "http", "json"))
+    //noinspection ConvertExpressionToSAM
+    val thrown = catchThrowable(new ThrowingCallable {
+      override def call(): Unit = write(df, "http", "json")
+    })
     assertThat(thrown).isInstanceOf(classOf[UnsupportedOperationException])
     assertThat(thrown).hasMessageContaining("Cannot write DecimalType when using contentType=json")
   }
@@ -96,6 +101,8 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
   def roundTripReadWriteDecimalType(protocol: String, contentType: String): Unit = {
     // FIXME
     assumeTrue(contentType == "vpack")
+    assumeTrue(!SPARK_VERSION.startsWith("2.4"))
+
     val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
     val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
     doRoundTripReadWrite(df, protocol, contentType)
