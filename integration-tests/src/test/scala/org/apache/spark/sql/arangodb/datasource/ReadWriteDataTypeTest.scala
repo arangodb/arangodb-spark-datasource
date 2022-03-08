@@ -1,12 +1,15 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.model.OverwriteMode
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest.arangoDatasource
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, SaveMode}
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.{AfterAll, BeforeAll}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -14,79 +17,41 @@ import java.sql.{Date, Timestamp}
 
 class ReadWriteDataTypeTest extends BaseSparkTest {
 
-  @ParameterizedTest
-  @MethodSource(Array("provideProtocolAndContentType"))
-  def roundTripReadWrite(protocol: String, contentType: String): Unit = {
-    val firstRead = ReadWriteDataTypeTest.df.collect()
-      .map(it => it.getValuesMap(it.schema.fieldNames))
-
-    ReadWriteDataTypeTest.df.show()
-    ReadWriteDataTypeTest.df.write
-      .format(BaseSparkTest.arangoDatasource)
-      .mode(SaveMode.Overwrite)
-      .options(options + (
-        ArangoDBConf.COLLECTION -> (ReadWriteDataTypeTest.collectionName + "_2"),
-        ArangoDBConf.PROTOCOL -> protocol,
-        ArangoDBConf.CONTENT_TYPE -> contentType,
-        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
-        ArangoDBConf.CONFIRM_TRUNCATE -> "true"
-      ))
-      .save()
-
-    val secondRead = spark.read
-      .format(arangoDatasource)
-      .options(options + ("table" -> ReadWriteDataTypeTest.collectionName))
-      .schema(ReadWriteDataTypeTest.schema)
-      .load()
-      .collect()
-      .map(it => it.getValuesMap(it.schema.fieldNames))
-
-    assertThat(secondRead).isEqualTo(firstRead)
-  }
-
-}
-
-object ReadWriteDataTypeTest {
   private val collectionName = "datatypes"
-  private var df: DataFrame = _
-  private val data: Seq[Map[String, Any]] = Seq(
-    Map(
-      "bool" -> false,
-      "double" -> 1.1,
-      "float" -> 0.09375f,
-      "integer" -> 1,
-      "long" -> 1L,
-      "date" -> Date.valueOf("2021-01-01"),
-      "timestamp" -> Timestamp.valueOf("2021-01-01 01:01:01.111"),
-      "short" -> 1.toShort,
-      "byte" -> 1.toByte,
-      "string" -> "one",
-      "intArray" -> Array(1, 1, 1),
-      "stringArrayArray" -> Array(Array("a", "b", "c"), Array("d", "e", "f")),
-      "intMap" -> Map("a" -> 1, "b" -> 1),
-      "struct" -> Map(
-        "a" -> "a1",
-        "b" -> 1
-      )
+  private val data: Seq[Row] = Seq(
+    Row(
+      false,
+      1.1,
+      0.09375f,
+      1,
+      1L,
+      Date.valueOf("2021-01-01"),
+      Timestamp.valueOf("2021-01-01 01:01:01.111"),
+      1.toShort,
+      1.toByte,
+      "one",
+      Array(1, 1, 1),
+      Array(Array("a", "b", "c"), Array("d", "e", "f")),
+      Map("a" -> 1, "b" -> 1),
+      Row("a1", 1),
+      BigDecimal(Long.MaxValue) + .5
     ),
-    Map(
-      "bool" -> true,
-      "double" -> 2.2,
-      "float" -> 2.2f,
-      "integer" -> 2,
-      "long" -> 2L,
-      "date" -> Date.valueOf("2022-02-02"),
-      "timestamp" -> Timestamp.valueOf("2022-02-02 02:02:02.222"),
-      "short" -> 2.toShort,
-      "byte" -> 2.toByte,
-      "string" -> "two",
-      "intArray" -> Array(2, 2, 2),
-      "stringArrayArray" -> Array(Array("a", "b", "c"), Array("d", "e", "f")),
-      "intMap" -> Map("a" -> 2, "b" -> 2),
-      "struct" -> Map(
-        "a" -> "a2",
-        "b" -> 2
-      )
+    Row(
+      true,
+      2.2,
+      2.2f,
+      2,
+      2L,
+      Date.valueOf("2022-02-02"),
+      Timestamp.valueOf("2022-02-02 02:02:02.222"),
+      2.toShort,
+      2.toByte,
+      "two",
+      Array(2, 2, 2),
+      Array(Array("a", "b", "c"), Array("d", "e", "f")),
+      Map("a" -> 2, "b" -> 2),
+      Row("a2", 2),
+      BigDecimal(Long.MinValue) - 1
     )
   )
 
@@ -111,13 +76,67 @@ object ReadWriteDataTypeTest {
     )))
   ))
 
-  @BeforeAll
-  def init(): Unit = {
-    df = BaseSparkTest.createDF(collectionName, data, schema)
+
+  @Test
+  def writeDecimalTypeWithJsonContentTypeShouldThrow(): Unit = {
+    val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
+    val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
+    //noinspection ConvertExpressionToSAM
+    val thrown = catchThrowable(new ThrowingCallable {
+      override def call(): Unit = write(df, "http", "json")
+    })
+    assertThat(thrown).isInstanceOf(classOf[UnsupportedOperationException])
+    assertThat(thrown).hasMessageContaining("Cannot write DecimalType when using contentType=json")
   }
 
-  @AfterAll
-  def cleanup(): Unit = {
-    BaseSparkTest.dropTable(collectionName)
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def roundTripReadWrite(protocol: String, contentType: String): Unit = {
+    val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schema)
+    doRoundTripReadWrite(df, protocol, contentType)
   }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def roundTripReadWriteDecimalType(protocol: String, contentType: String): Unit = {
+    // FIXME
+    assumeTrue(contentType == "vpack")
+    assumeTrue(!SPARK_VERSION.startsWith("2.4"))
+
+    val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
+    val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
+    doRoundTripReadWrite(df, protocol, contentType)
+  }
+
+  def write(df: DataFrame, protocol: String, contentType: String): Unit = {
+    df.write
+      .format(BaseSparkTest.arangoDatasource)
+      .mode(SaveMode.Overwrite)
+      .options(options + (
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true"
+      ))
+      .save()
+  }
+
+  def doRoundTripReadWrite(df: DataFrame, protocol: String, contentType: String): Unit = {
+    val initial = df.collect()
+      .map(it => it.getValuesMap(it.schema.fieldNames))
+
+    write(df, protocol, contentType)
+    val read = spark.read
+      .format(arangoDatasource)
+      .options(options + ("table" -> collectionName))
+      .schema(df.schema)
+      .load()
+      .collect()
+      .map(it => it.getValuesMap(it.schema.fieldNames))
+
+    assertThat(read).containsExactlyInAnyOrder(initial: _*)
+  }
+
 }
+

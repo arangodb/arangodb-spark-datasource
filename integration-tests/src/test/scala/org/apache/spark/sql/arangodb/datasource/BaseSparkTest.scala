@@ -93,7 +93,7 @@ object BaseSparkTest {
     }
   )
 
-  private val spark: SparkSession = SparkSession.builder()
+  val spark: SparkSession = SparkSession.builder()
     .appName("ArangoDBSparkTest")
     .master("local[*, 3]")
     .config("spark.driver.host", "127.0.0.1")

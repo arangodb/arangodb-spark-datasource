@@ -2,14 +2,17 @@ package org.apache.spark.sql.arangodb.datasource.writer
 
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.{AnalysisException, SaveMode}
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.writer.{DataSourceWriter, DataWriterFactory, WriterCommitMessage}
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{DecimalType, StructType}
 
 class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf) extends DataSourceWriter {
   private val client = ArangoClient(options)
   private var createdCollection = false
+
+  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields())
+    throw new UnsupportedOperationException("Cannot write DecimalType when using contentType=json")
 
   override def createWriterFactory(): DataWriterFactory[InternalRow] = {
     if (mode == SaveMode.Overwrite && !options.writeOptions.confirmTruncate) {
@@ -49,5 +52,11 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
     }
     client.shutdown()
   }
+
+  private def hasDecimalTypeFields(): Boolean =
+    schema.existsRecursively {
+      case _: DecimalType => true
+      case _ => false
+    }
 
 }
