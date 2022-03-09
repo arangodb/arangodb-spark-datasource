@@ -29,22 +29,44 @@ class WriteResiliencyTest extends BaseSparkTest {
     ("Mamedyarov", "Shakhriyar"),
     ("So", "Wesley"),
     ("Radjabov", "Teimour")
-  ).toDF("surname", "name")
+  ).toDF("_key", "name")
     .repartition(6)
 
   @BeforeEach
   def beforeEach(): Unit = {
     if (collection.exists()) {
-      collection.drop()
+      collection.truncate()
+    } else {
+      collection.create()
     }
   }
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
-  def save(protocol: String, contentType: String): Unit = {
+  def retryOnTimeout(protocol: String, contentType: String): Unit = {
     df.write
       .format(BaseSparkTest.arangoDatasource)
-      .mode(SaveMode.Overwrite)
+      .mode(SaveMode.Append)
+      .options(options + (
+        ArangoDBConf.TIMEOUT -> "1",
+        ArangoDBConf.ENDPOINTS -> BaseSparkTest.endpoints,
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
+      ))
+      .save()
+
+    assertThat(collection.count().getCount).isEqualTo(10L)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def retryOnWrongHost(protocol: String, contentType: String): Unit = {
+    df.write
+      .format(BaseSparkTest.arangoDatasource)
+      .mode(SaveMode.Append)
       .options(options + (
         ArangoDBConf.ENDPOINTS -> (BaseSparkTest.endpoints + ",wrongHost:8529"),
         ArangoDBConf.COLLECTION -> collectionName,
