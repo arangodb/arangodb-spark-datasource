@@ -40,7 +40,10 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     })
     .build()
 
-  def shutdown(): Unit = arangoDB.shutdown()
+  def shutdown(): Unit = {
+    logDebug("closing db client")
+    arangoDB.shutdown()
+  }
 
   def readCollectionPartition(shardId: String, filters: Array[PushableFilter], schema: StructType): ArangoCursor[VPackSlice] = {
     val query =
@@ -101,12 +104,16 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     cursor.asScala.take(options.readOptions.sampleSize).toSeq
   }
 
-  def collectionExists(): Boolean = arangoDB
-    .db(options.writeOptions.db)
-    .collection(options.writeOptions.collection)
-    .exists()
+  def collectionExists(): Boolean = {
+    logDebug("checking collection")
+    arangoDB
+      .db(options.writeOptions.db)
+      .collection(options.writeOptions.collection)
+      .exists()
+  }
 
   def createCollection(): Unit = {
+    logDebug("creating collection")
     val opts = new CollectionCreateOptions()
       .numberOfShards(options.writeOptions.numberOfShards)
       .`type`(options.writeOptions.collectionType)
@@ -119,11 +126,13 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
   @tailrec
   final def truncate(): Unit = {
+    logDebug("truncating collection")
     try {
       arangoDB
         .db(options.writeOptions.db)
         .collection(options.writeOptions.collection)
         .truncate()
+      logDebug("truncated collection")
     } catch {
       case e: ArangoDBException =>
         if (e.getCause.isInstanceOf[TimeoutException]) {
@@ -136,12 +145,16 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     }
   }
 
-  def drop(): Unit = arangoDB
-    .db(options.writeOptions.db)
-    .collection(options.writeOptions.collection)
-    .drop()
+  def drop(): Unit = {
+    logDebug("dropping collection")
+    arangoDB
+      .db(options.writeOptions.db)
+      .collection(options.writeOptions.collection)
+      .drop()
+  }
 
   def saveDocuments(data: VPackSlice): Unit = {
+    logDebug("saving batch")
     val request = new Request(
       options.writeOptions.db,
       RequestType.POST,
@@ -176,24 +189,30 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
 
 @SuppressWarnings(Array("OptionGet"))
-object ArangoClient {
+object ArangoClient extends Logging {
   private val INTERNAL_ERROR_CODE = 4
   private val SHARDS_API_UNAVAILABLE_CODE = 9
 
-  def apply(options: ArangoDBConf): ArangoClient = new ArangoClient(options)
+  def apply(options: ArangoDBConf): ArangoClient = {
+    logDebug("creating db client")
+    new ArangoClient(options)
+  }
 
   def getCollectionShardIds(options: ArangoDBConf): Array[String] = {
+    logDebug("reading collection shards")
+    val client = ArangoClient(options)
+    val adb = client.arangoDB
     try {
-      val client = ArangoClient(options).arangoDB
-      val res = client.execute(new Request(
+      val res = adb.execute(new Request(
         options.readOptions.db,
         RequestType.GET,
         s"/_api/collection/${options.readOptions.collection.get}/shards"))
-      val shardIds: Array[String] = client.util().deserialize(res.getBody.get("shards"), classOf[Array[String]])
+      val shardIds: Array[String] = adb.util().deserialize(res.getBody.get("shards"), classOf[Array[String]])
       client.shutdown()
       shardIds
     } catch {
       case e: ArangoDBException =>
+        client.shutdown()
         // single server < 3.8  returns Response: 500, Error: 4 - internal error
         // single server >= 3.8 returns Response: 501, Error: 9 - shards API is only available in a cluster
         if (INTERNAL_ERROR_CODE.equals(e.getErrorNum) || SHARDS_API_UNAVAILABLE_CODE.equals(e.getErrorNum)) {
@@ -205,10 +224,12 @@ object ArangoClient {
   }
 
   def acquireHostList(options: ArangoDBConf): Iterable[String] = {
-    val client = ArangoClient(options).arangoDB
-    val response = client.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
+    logDebug("acquiring host list")
+    val client = ArangoClient(options)
+    val adb = client.arangoDB
+    val response = adb.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
     val field = response.getBody.get("endpoints")
-    val res = client.util(Serializer.CUSTOM)
+    val res = adb.util(Serializer.CUSTOM)
       .deserialize[Seq[Map[String, String]]](field, classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
     client.shutdown()
