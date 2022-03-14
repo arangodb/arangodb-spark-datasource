@@ -6,7 +6,7 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.{BeforeEach, Disabled}
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -41,6 +41,7 @@ class WriteResiliencyTest extends BaseSparkTest {
     }
   }
 
+  @Disabled("manual test only")
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def retryOnTimeout(protocol: String, contentType: String): Unit = {
