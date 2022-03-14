@@ -6,7 +6,7 @@ import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.{BeforeEach, Disabled}
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -29,22 +29,45 @@ class WriteResiliencyTest extends BaseSparkTest {
     ("Mamedyarov", "Shakhriyar"),
     ("So", "Wesley"),
     ("Radjabov", "Teimour")
-  ).toDF("surname", "name")
+  ).toDF("_key", "name")
     .repartition(6)
 
   @BeforeEach
   def beforeEach(): Unit = {
     if (collection.exists()) {
-      collection.drop()
+      collection.truncate()
+    } else {
+      collection.create()
     }
+  }
+
+  @Disabled("manual test only")
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def retryOnTimeout(protocol: String, contentType: String): Unit = {
+    df.write
+      .format(BaseSparkTest.arangoDatasource)
+      .mode(SaveMode.Append)
+      .options(options + (
+        ArangoDBConf.TIMEOUT -> "1",
+        ArangoDBConf.ENDPOINTS -> BaseSparkTest.endpoints,
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+        ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
+      ))
+      .save()
+
+    assertThat(collection.count().getCount).isEqualTo(10L)
   }
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
-  def save(protocol: String, contentType: String): Unit = {
+  def retryOnWrongHost(protocol: String, contentType: String): Unit = {
     df.write
       .format(BaseSparkTest.arangoDatasource)
-      .mode(SaveMode.Overwrite)
+      .mode(SaveMode.Append)
       .options(options + (
         ArangoDBConf.ENDPOINTS -> (BaseSparkTest.endpoints + ",wrongHost:8529"),
         ArangoDBConf.COLLECTION -> collectionName,

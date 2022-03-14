@@ -437,6 +437,7 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
       .useProtocol(arangoProtocol)
       .timeout(timeout)
       .user(user)
+      .maxConnections(1)
     password.foreach(builder.password)
 
     if (sslEnabled) {
