@@ -45,6 +45,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
    * Data cleanup will happen in [[ArangoBatchWriter.abort()]]
    */
   override def abort(): Unit = if (!canRetry) {
+    client.shutdown()
     throw new DataWriteAbortException(
       "Task cannot be retried. To make batch writes idempotent, so that they can be retried, consider using " +
         "'keep.null=true' (default) and 'overwrite.mode=(ignore|replace|update)'.")
