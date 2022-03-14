@@ -59,7 +59,7 @@ object ArangoDBConf {
   val timeoutConf: ConfigEntry[Int] = ConfigBuilder(TIMEOUT)
     .doc("driver connect and request timeout in ms")
     .intConf
-    .createWithDefault(60 * 1000)
+    .createWithDefault(5 * 60 * 1000)
 
   val SSL_ENABLED = "ssl.enabled"
   val sslEnabledConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_ENABLED)
