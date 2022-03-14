@@ -75,7 +75,7 @@ class WriteResiliencyTest extends BaseSparkTest {
         ArangoDBConf.CONTENT_TYPE -> contentType,
         ArangoDBConf.CONFIRM_TRUNCATE -> "true",
         ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
-        ArangoDBConf.MAX_ATTEMPTS -> "2"
+        ArangoDBConf.MAX_ATTEMPTS -> "4"
       ))
       .save()
 
