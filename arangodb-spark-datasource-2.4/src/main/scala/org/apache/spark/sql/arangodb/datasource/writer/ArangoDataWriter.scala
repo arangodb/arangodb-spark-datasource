@@ -94,7 +94,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
         client.shutdown()
         failures += 1
         endpointIdx += 1
-        if (canRetry && failures < options.driverOptions.endpoints.length * 3) {
+        if (canRetry && failures < options.writeOptions.maxAttempts) {
           logWarning("Got exception while saving documents: ", e)
           client = createClient()
           saveDocuments(payload)

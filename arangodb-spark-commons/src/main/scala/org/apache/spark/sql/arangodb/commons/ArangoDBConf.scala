@@ -210,6 +210,12 @@ object ArangoDBConf {
     .booleanConf
     .createWithDefault(true)
 
+  val MAX_ATTEMPTS = "retry.maxAttempts"
+  val DEFAULT_MAX_ATTEMPTS = 10
+  val maxAttemptsConf: ConfigEntry[Int] = ConfigBuilder(MAX_ATTEMPTS)
+    .doc("max attempts for write requests, in case they can be retried")
+    .intConf
+    .createWithDefault(DEFAULT_MAX_ATTEMPTS)
 
   private[sql] val confEntries: Map[String, ConfigEntry[_]] = CaseInsensitiveMap(Map(
     // driver config
@@ -248,7 +254,8 @@ object ArangoDBConf {
     CONFIRM_TRUNCATE -> confirmTruncateConf,
     OVERWRITE_MODE -> overwriteModeConf,
     MERGE_OBJECTS -> mergeObjectsConf,
-    KEEP_NULL -> keepNullConf
+    KEEP_NULL -> keepNullConf,
+    MAX_ATTEMPTS -> maxAttemptsConf
   ))
 
   /**
@@ -528,5 +535,7 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
   val mergeObjects: Boolean = getConf(mergeObjectsConf)
 
   val keepNull: Boolean = getConf(keepNullConf)
+
+  val maxAttempts: Int = getConf(maxAttemptsConf)
 
 }
