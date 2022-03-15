@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.writer
 import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
+import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, DataWriteAbortException}
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGenerator, ArangoGeneratorProvider}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
@@ -100,7 +100,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
           client = createClient()
           saveDocuments(payload)
         } else {
-          throw e
+          throw new ArangoDBDataWriterException(e, failures)
         }
     }
   }
