@@ -161,8 +161,10 @@ class AbortTest extends BaseSparkTest {
     })
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
-    val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    val rootEx = thrown.getCause.getCause.getCause
+    assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
+    val errors = rootEx.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
     assertThat(errors.head._2).contains("\"_key\":\"???\"")
@@ -191,8 +193,10 @@ class AbortTest extends BaseSparkTest {
     })
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
-    val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    val rootEx = thrown.getCause.getCause.getCause
+    assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
+    val errors = rootEx.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
     assertThat(errors.head._2).contains("\"_key\":\"???\"")
