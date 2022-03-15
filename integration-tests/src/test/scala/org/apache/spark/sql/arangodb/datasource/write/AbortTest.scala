@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 import com.arangodb.ArangoCollection
 import com.arangodb.model.OverwriteMode
 import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBMultiException, DataWriteAbortException}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.{SPARK_VERSION, SparkException}
@@ -17,33 +17,60 @@ import org.junit.jupiter.params.provider.MethodSource
 
 class AbortTest extends BaseSparkTest {
 
-  private val collectionName = "chessPlayersAbort"
+  private val collectionName = "abortTest"
   private val collection: ArangoCollection = db.collection(collectionName)
 
   import spark.implicits._
 
-  private val df = {
-    Seq(
-      ("Carlsen", "Magnus"),
-      ("Caruana", "Fabiano"),
-      ("Ding", "Liren"),
-      ("Nepomniachtchi", "Ian"),
-      ("Aronian", "Levon"),
-      ("Grischuk", "Alexander"),
-      ("Giri", "Anish"),
-      ("Mamedyarov", "Shakhriyar"),
-      ("So", "Wesley"),
-      ("Radjabov", "Teimour"),
-      ("???", "invalidKey")
-    ).toDF("_key", "name")
-      .repartition(3)
-  }
+  private val df = Seq(
+    ("k1", "invalidFrom", "invalidFrom", "to/to"),
+    ("k2", "invalidFrom", "invalidFrom", "to/to"),
+    ("k3", "invalidFrom", "invalidFrom", "to/to"),
+    ("k4", "invalidFrom", "invalidFrom", "to/to"),
+    ("k5", "invalidFrom", "invalidFrom", "to/to"),
+    ("k6", "invalidFrom", "invalidFrom", "to/to"),
+    ("k7", "invalidFrom", "invalidFrom", "to/to"),
+    ("???", "invalidKey", "from/from", "to/to")
+  ).toDF("_key", "name", "_from", "_to")
 
   @BeforeEach
   def beforeEach(): Unit = {
     if (collection.exists()) {
       collection.drop()
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def multipleErrors(protocol: String, contentType: String): Unit = {
+    // FIXME: https://arangodb.atlassian.net/browse/BTS-615
+    assumeTrue(isSingle)
+
+    val thrown = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = df.repartition(1).write
+        .format(BaseSparkTest.arangoDatasource)
+        .mode(SaveMode.Append)
+        .options(options + (
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+        ))
+        .save()
+    })
+
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
+    val eMessage = thrown.getCause.getCause.getMessage
+    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k1","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
+    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k2","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
+    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k3","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
+    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k4","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
+    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k5","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
+    assertThat(eMessage).contains("""Error: 1221 - illegal document key for record: {"_key":"???","name":"invalidKey","_from":"from/from","_to":"to/to"}""")
+    assertThat(eMessage).doesNotContain("k6")
+    assertThat(eMessage).doesNotContain("k7")
   }
 
   @ParameterizedTest
@@ -68,9 +95,9 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
-    assertThat(errors.size).isEqualTo(1)
+    assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
-    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
+    assertThat(errors.head._2).contains("\"_key\":\"???\"")
     assertThat(thrown.getCause.getSuppressed.head).isInstanceOf(classOf[DataWriteAbortException])
   }
 
@@ -97,9 +124,9 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
-    assertThat(errors.size).isEqualTo(1)
+    assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
-    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
+    assertThat(errors.head._2).contains("\"_key\":\"???\"")
     assertThat(collection.count().getCount).isEqualTo(0L)
   }
 
@@ -127,9 +154,9 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
-    assertThat(errors.size).isEqualTo(1)
+    assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
-    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
+    assertThat(errors.head._2).contains("\"_key\":\"???\"")
     assertThat(collection.exists()).isFalse
   }
 
@@ -157,9 +184,9 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = thrown.getCause.getCause.asInstanceOf[ArangoDBMultiException].errors
-    assertThat(errors.size).isEqualTo(1)
+    assertThat(errors.length).isEqualTo(1)
     assertThat(errors.head._1.getErrorNum).isEqualTo(1221)
-    assertThat(errors.head._2).isEqualTo("{\"_key\":\"???\",\"name\":\"invalidKey\"}")
+    assertThat(errors.head._2).contains("\"_key\":\"???\"")
     assertThat(collection.exists()).isFalse
   }
 
