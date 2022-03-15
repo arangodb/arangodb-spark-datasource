@@ -8,10 +8,9 @@ import org.apache.spark.sql.sources.v2.writer.{DataSourceWriter, DataWriterFacto
 import org.apache.spark.sql.types.{DecimalType, StructType}
 
 class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf) extends DataSourceWriter {
-  private val client = ArangoClient(options)
   private var createdCollection = false
 
-  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields())
+  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields)
     throw new UnsupportedOperationException("Cannot write DecimalType when using contentType=json")
 
   override def createWriterFactory(): DataWriterFactory[InternalRow] = {
@@ -22,6 +21,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
           s"'overwrite.mode=(replace|update)'. To actually truncate set '${ArangoDBConf.CONFIRM_TRUNCATE}=true'.")
     }
 
+    val client = ArangoClient(options)
     if (client.collectionExists()) {
       mode match {
         case SaveMode.Append => // do nothing
@@ -35,14 +35,16 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       createdCollection = true
     }
 
+    client.shutdown()
     new ArangoDataWriterFactory(schema, options)
   }
 
   override def commit(messages: Array[WriterCommitMessage]): Unit = {
-    client.shutdown()
+    // nothing to do here
   }
 
   override def abort(messages: Array[WriterCommitMessage]): Unit = {
+    val client = ArangoClient(options)
     mode match {
       case SaveMode.Append => throw new DataWriteAbortException(
         "Cannot abort with SaveMode.Append: the underlying data source may require manual cleanup.")
@@ -53,7 +55,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
     client.shutdown()
   }
 
-  private def hasDecimalTypeFields(): Boolean =
+  private def hasDecimalTypeFields: Boolean =
     schema.existsRecursively {
       case _: DecimalType => true
       case _ => false
