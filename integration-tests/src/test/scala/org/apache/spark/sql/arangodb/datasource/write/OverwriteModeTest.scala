@@ -6,7 +6,7 @@ import com.arangodb.model.OverwriteMode
 import org.apache.spark.SparkException
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
-import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
+import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, ArangoDBMultiException}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
@@ -64,7 +64,8 @@ class OverwriteModeTest extends BaseSparkTest {
     })
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause).isInstanceOf(classOf[SparkException]) // executor exception
-    val rootEx = thrown.getCause.getCause
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    val rootEx = thrown.getCause.getCause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
     assertThat(rootEx.asInstanceOf[ArangoDBMultiException]).hasMessageContaining("conflicting key: Carlsen")
     assertThat(rootEx.asInstanceOf[ArangoDBMultiException]).hasMessageContaining("{\"_key\":\"Carlsen\",\"name\":\"Magnus\"}")

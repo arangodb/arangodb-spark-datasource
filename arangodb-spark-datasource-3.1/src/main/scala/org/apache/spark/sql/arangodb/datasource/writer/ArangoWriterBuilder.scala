@@ -9,7 +9,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
 
   private var mode: SaveMode = SaveMode.Append
 
-  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields())
+  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields)
     throw new UnsupportedOperationException("Cannot write DecimalType when using contentType=json")
 
   override def buildForBatch(): BatchWrite = {
@@ -40,7 +40,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
     }
   }
 
-  private def hasDecimalTypeFields(): Boolean =
+  private def hasDecimalTypeFields: Boolean =
     schema.existsRecursively {
       case _: DecimalType => true
       case _ => false
