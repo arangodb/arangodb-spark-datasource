@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
+import com.arangodb.ArangoDBMultipleException
 import com.arangodb.model.OverwriteMode
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import org.apache.spark.internal.Logging
@@ -11,7 +12,9 @@ import org.apache.spark.sql.connector.write.{DataWriter, WriterCommitMessage}
 import org.apache.spark.sql.types.StructType
 
 import java.io.ByteArrayOutputStream
+import java.net.{ConnectException, UnknownHostException}
 import scala.annotation.tailrec
+import scala.jdk.CollectionConverters.iterableAsScalaIterableConverter
 
 class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int)
   extends DataWriter[InternalRow] with Logging {
@@ -58,12 +61,12 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private def createClient() = ArangoClient(options.updated(ArangoDBConf.ENDPOINTS, endpoints(endpointIdx)))
 
   private def canRetry: Boolean =
-    options.writeOptions.overwriteMode match {
+    schema.exists(p => p.name == "_key" && !p.nullable) && (options.writeOptions.overwriteMode match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
       case OverwriteMode.update => options.writeOptions.keepNull
       case OverwriteMode.conflict => false
-    }
+    })
 
   private def initBatch(): Unit = {
     batchCount = 0
@@ -95,7 +98,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
         client.shutdown()
         failures += 1
         endpointIdx += 1
-        if (canRetry && failures < options.writeOptions.maxAttempts) {
+        if ((canRetry || isConnectionException(e)) && failures < options.writeOptions.maxAttempts) {
           logWarning("Got exception while saving documents: ", e)
           client = createClient()
           saveDocuments(payload)
@@ -103,6 +106,16 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
           throw new ArangoDBDataWriterException(e, failures)
         }
     }
+  }
+
+  private def isConnectionException(e: Exception): Boolean = e.getCause match {
+    case mEx: ArangoDBMultipleException =>
+      mEx.getExceptions.asScala.forall {
+        case _: ConnectException => true
+        case _: UnknownHostException => true
+        case _ => false
+      }
+    case _ => false
   }
 
 }

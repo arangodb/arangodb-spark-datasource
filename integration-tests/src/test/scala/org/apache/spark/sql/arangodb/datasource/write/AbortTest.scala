@@ -1,11 +1,12 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
-import com.arangodb.model.OverwriteMode
-import org.apache.spark.sql.SaveMode
-import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
+import com.arangodb.model.{AqlQueryOptions, OverwriteMode}
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, ArangoDBMultiException, DataWriteAbortException}
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.apache.spark.{SPARK_VERSION, SparkException}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
@@ -14,30 +15,87 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+import scala.jdk.CollectionConverters.seqAsJavaListConverter
 
 class AbortTest extends BaseSparkTest {
 
   private val collectionName = "abortTest"
   private val collection: ArangoCollection = db.collection(collectionName)
 
-  import spark.implicits._
+  private val rows = Seq(
+    Row("k1", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k2", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k3", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k4", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k5", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k6", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k7", "invalidFrom", "invalidFrom", "to/to"),
+    Row("???", "invalidKey", "from/from", "to/to"),
+    Row("valid", "valid", "from/from", "to/to")
+  )
 
-  private val df = Seq(
-    ("k1", "invalidFrom", "invalidFrom", "to/to"),
-    ("k2", "invalidFrom", "invalidFrom", "to/to"),
-    ("k3", "invalidFrom", "invalidFrom", "to/to"),
-    ("k4", "invalidFrom", "invalidFrom", "to/to"),
-    ("k5", "invalidFrom", "invalidFrom", "to/to"),
-    ("k6", "invalidFrom", "invalidFrom", "to/to"),
-    ("k7", "invalidFrom", "invalidFrom", "to/to"),
-    ("???", "invalidKey", "from/from", "to/to")
-  ).toDF("_key", "name", "_from", "_to")
+  private val df = spark.createDataFrame(rows.asJava, StructType(Array(
+    StructField("_key", StringType, nullable = false),
+    StructField("name", StringType),
+    StructField("_from", StringType),
+    StructField("_to", StringType)
+  )))
 
   @BeforeEach
   def beforeEach(): Unit = {
     if (collection.exists()) {
       collection.drop()
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def dfWithoutKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
+    val dfWithoutKey = df.repartition(1).withColumnRenamed("_key", "key")
+    shouldNotRetry(dfWithoutKey, protocol, contentType)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def dfWithNullableKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
+    // FIXME: https://arangodb.atlassian.net/browse/BTS-615
+    assumeTrue(isSingle)
+
+    val nullableKeySchema = StructType(df.schema.map(p =>
+      if (p.name == "_key") StructField(p.name, p.dataType)
+      else p
+    ))
+    val dfWithoutKey = spark.createDataFrame(df.rdd, nullableKeySchema)
+    shouldNotRetry(dfWithoutKey, protocol, contentType)
+  }
+
+  private def shouldNotRetry(notRetryableDF: DataFrame, protocol: String, contentType: String): Unit = {
+    val thrown = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = notRetryableDF.repartition(1).write
+        .format(BaseSparkTest.arangoDatasource)
+        .mode(SaveMode.Append)
+        .options(options + (
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+        ))
+        .save()
+    })
+
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    assertThat(thrown.getCause.getCause.asInstanceOf[ArangoDBDataWriterException].attempts).isEqualTo(1)
+    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 1 times, most recent failure:")
+
+    val validInserted = db.query(
+      s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN d""",
+      new AqlQueryOptions().count(true),
+      classOf[Int]
+    ).getCount
+
+    assertThat(validInserted).isEqualTo(1)
   }
 
   @ParameterizedTest
