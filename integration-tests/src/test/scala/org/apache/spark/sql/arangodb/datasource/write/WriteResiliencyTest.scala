@@ -65,11 +65,21 @@ class WriteResiliencyTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def retryOnWrongHost(protocol: String, contentType: String): Unit = {
+    retryOnBadHost(BaseSparkTest.endpoints + ",172.17.0.1:8519", protocol, contentType)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def retryOnUnknownHost(protocol: String, contentType: String): Unit = {
+    retryOnBadHost(BaseSparkTest.endpoints + ",wrongHost:8529", protocol, contentType)
+  }
+
+  private def retryOnBadHost(endpoints: String, protocol: String, contentType: String): Unit = {
     df.write
       .format(BaseSparkTest.arangoDatasource)
       .mode(SaveMode.Append)
       .options(options + (
-        ArangoDBConf.ENDPOINTS -> (BaseSparkTest.endpoints + ",wrongHost:8529"),
+        ArangoDBConf.ENDPOINTS -> endpoints,
         ArangoDBConf.COLLECTION -> collectionName,
         ArangoDBConf.PROTOCOL -> protocol,
         ArangoDBConf.CONTENT_TYPE -> contentType,
