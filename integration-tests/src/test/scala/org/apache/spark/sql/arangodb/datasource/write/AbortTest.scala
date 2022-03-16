@@ -2,10 +2,11 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import com.arangodb.model.{AqlQueryOptions, OverwriteMode}
-import org.apache.spark.sql.{DataFrame, SaveMode}
-import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, ArangoDBMultiException, DataWriteAbortException}
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.apache.spark.{SPARK_VERSION, SparkException}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
@@ -14,25 +15,31 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
+import scala.jdk.CollectionConverters.seqAsJavaListConverter
 
 class AbortTest extends BaseSparkTest {
 
   private val collectionName = "abortTest"
   private val collection: ArangoCollection = db.collection(collectionName)
 
-  import spark.implicits._
+  private val rows = Seq(
+    Row("k1", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k2", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k3", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k4", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k5", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k6", "invalidFrom", "invalidFrom", "to/to"),
+    Row("k7", "invalidFrom", "invalidFrom", "to/to"),
+    Row("???", "invalidKey", "from/from", "to/to"),
+    Row("valid", "valid", "from/from", "to/to")
+  )
 
-  private val df = Seq(
-    ("k1", "invalidFrom", "invalidFrom", "to/to"),
-    ("k2", "invalidFrom", "invalidFrom", "to/to"),
-    ("k3", "invalidFrom", "invalidFrom", "to/to"),
-    ("k4", "invalidFrom", "invalidFrom", "to/to"),
-    ("k5", "invalidFrom", "invalidFrom", "to/to"),
-    ("k6", "invalidFrom", "invalidFrom", "to/to"),
-    ("k7", "invalidFrom", "invalidFrom", "to/to"),
-    ("???", "invalidKey", "from/from", "to/to"),
-    ("valid", "valid", "from/from", "to/to")
-  ).toDF("_key", "name", "_from", "_to")
+  private val df = spark.createDataFrame(rows.asJava, StructType(Array(
+    StructField("_key", StringType, nullable = false),
+    StructField("name", StringType),
+    StructField("_from", StringType),
+    StructField("_to", StringType)
+  )))
 
   @BeforeEach
   def beforeEach(): Unit = {
@@ -51,7 +58,11 @@ class AbortTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def dfWithNullableKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
-    val dfWithoutKey = df
+    val nullableKeySchema = StructType(df.schema.map(p =>
+      if (p.name == "_key") StructField(p.name, p.dataType)
+      else p
+    ))
+    val dfWithoutKey = spark.createDataFrame(df.rdd, nullableKeySchema)
     shouldNotRetry(dfWithoutKey, protocol, contentType)
   }
 
