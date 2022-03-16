@@ -68,7 +68,7 @@ class AbortTest extends BaseSparkTest {
 
   private def shouldNotRetry(notRetryableDF: DataFrame, protocol: String, contentType: String): Unit = {
     val thrown = catchThrowable(new ThrowingCallable() {
-      override def call(): Unit = notRetryableDF.write
+      override def call(): Unit = notRetryableDF.repartition(1).write
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
