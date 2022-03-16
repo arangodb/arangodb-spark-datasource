@@ -58,6 +58,9 @@ class AbortTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def dfWithNullableKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
+    // FIXME: https://arangodb.atlassian.net/browse/BTS-615
+    assumeTrue(isSingle)
+
     val nullableKeySchema = StructType(df.schema.map(p =>
       if (p.name == "_key") StructField(p.name, p.dataType)
       else p
