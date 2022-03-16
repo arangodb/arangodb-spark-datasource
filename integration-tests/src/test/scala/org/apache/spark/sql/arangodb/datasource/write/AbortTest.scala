@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
-import com.arangodb.model.OverwriteMode
+import com.arangodb.model.{AqlQueryOptions, OverwriteMode}
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, ArangoDBMultiException, DataWriteAbortException}
@@ -30,7 +30,8 @@ class AbortTest extends BaseSparkTest {
     ("k5", "invalidFrom", "invalidFrom", "to/to"),
     ("k6", "invalidFrom", "invalidFrom", "to/to"),
     ("k7", "invalidFrom", "invalidFrom", "to/to"),
-    ("???", "invalidKey", "from/from", "to/to")
+    ("???", "invalidKey", "from/from", "to/to"),
+    ("valid", "valid", "from/from", "to/to")
   ).toDF("_key", "name", "_from", "_to")
 
   @BeforeEach
@@ -38,6 +39,38 @@ class AbortTest extends BaseSparkTest {
     if (collection.exists()) {
       collection.drop()
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def dfWithoutKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
+    val dfWithoutKey = df.repartition(1).withColumnRenamed("_key", "key")
+    val thrown = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = dfWithoutKey.write
+        .format(BaseSparkTest.arangoDatasource)
+        .mode(SaveMode.Append)
+        .options(options + (
+          ArangoDBConf.COLLECTION -> collectionName,
+          ArangoDBConf.PROTOCOL -> protocol,
+          ArangoDBConf.CONTENT_TYPE -> contentType,
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+        ))
+        .save()
+    })
+
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    assertThat(thrown.getCause.getCause.asInstanceOf[ArangoDBDataWriterException].attempts).isEqualTo(1)
+    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 1 times, most recent failure:")
+
+    val validInserted = db.query(
+      s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN d""",
+      new AqlQueryOptions().count(true),
+      classOf[Int]
+    ).getCount
+
+    assertThat(validInserted).isEqualTo(1)
   }
 
   @ParameterizedTest
