@@ -57,12 +57,12 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private def createClient() = ArangoClient(options.updated(ArangoDBConf.ENDPOINTS, endpoints(endpointIdx)))
 
   private def canRetry: Boolean =
-    options.writeOptions.overwriteMode match {
+    schema.exists(p => p.name == "_key" && !p.nullable) && (options.writeOptions.overwriteMode match {
       case OverwriteMode.ignore => true
       case OverwriteMode.replace => true
       case OverwriteMode.update => options.writeOptions.keepNull
       case OverwriteMode.conflict => false
-    }
+    })
 
   private def initBatch(): Unit = {
     batchCount = 0

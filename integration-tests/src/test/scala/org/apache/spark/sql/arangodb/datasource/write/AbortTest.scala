@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import com.arangodb.model.{AqlQueryOptions, OverwriteMode}
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{DataFrame, SaveMode}
 import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, CollectionType}
 import org.apache.spark.sql.arangodb.commons.exceptions.{ArangoDBDataWriterException, ArangoDBMultiException, DataWriteAbortException}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
@@ -45,8 +45,19 @@ class AbortTest extends BaseSparkTest {
   @MethodSource(Array("provideProtocolAndContentType"))
   def dfWithoutKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
     val dfWithoutKey = df.repartition(1).withColumnRenamed("_key", "key")
+    shouldNotRetry(dfWithoutKey, protocol, contentType)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def dfWithNullableKeyFieldShouldNotRetry(protocol: String, contentType: String): Unit = {
+    val dfWithoutKey = df
+    shouldNotRetry(dfWithoutKey, protocol, contentType)
+  }
+
+  private def shouldNotRetry(notRetryableDF: DataFrame, protocol: String, contentType: String): Unit = {
     val thrown = catchThrowable(new ThrowingCallable() {
-      override def call(): Unit = dfWithoutKey.write
+      override def call(): Unit = notRetryableDF.write
         .format(BaseSparkTest.arangoDatasource)
         .mode(SaveMode.Append)
         .options(options + (
