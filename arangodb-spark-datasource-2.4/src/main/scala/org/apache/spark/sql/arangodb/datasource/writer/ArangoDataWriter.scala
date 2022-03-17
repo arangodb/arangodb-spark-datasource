@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.net.{ConnectException, UnknownHostException}
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.iterableAsScalaIterableConverter
+import scala.util.Random
 
 class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int)
   extends DataWriter[InternalRow] with Logging {
@@ -23,6 +24,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private var requestCount = 0L
   private var endpointIdx = partitionId
   private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
+  private val rnd = new Random()
   private var client: ArangoClient = createClient()
   private var batchCount: Int = _
   private var outVPack: ByteArrayOutputStream = _
@@ -98,13 +100,23 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
         failures += 1
         endpointIdx += 1
         if ((canRetry || isConnectionException(e)) && failures < options.writeOptions.maxAttempts) {
-          logWarning("Got exception while saving documents: ", e)
+          val delay = computeDelay()
+          logWarning(s"Got exception while saving documents, retrying in $delay ms:", e)
+          Thread.sleep(delay)
           client = createClient()
           saveDocuments(payload)
         } else {
           throw new ArangoDBDataWriterException(e, failures)
         }
     }
+  }
+
+  private def computeDelay(): Int = {
+    val min = options.writeOptions.minRetryDelay
+    val max = options.writeOptions.maxRetryDelay
+    val diff = max - min
+    val delta = if (diff <= 0) 0 else rnd.nextInt(diff)
+    min + delta
   }
 
   private def isConnectionException(e: Exception): Boolean = e.getCause match {
