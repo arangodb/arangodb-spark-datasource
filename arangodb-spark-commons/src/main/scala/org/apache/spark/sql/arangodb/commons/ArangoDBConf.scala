@@ -56,10 +56,11 @@ object ArangoDBConf {
     .createWithDefault(ContentType.JSON.name)
 
   val TIMEOUT = "timeout"
+  val DEFAULT_TIMEOUT: Int = 5 * 60 * 1000
   val timeoutConf: ConfigEntry[Int] = ConfigBuilder(TIMEOUT)
     .doc("driver connect and request timeout in ms")
     .intConf
-    .createWithDefault(5 * 60 * 1000)
+    .createWithDefault(DEFAULT_TIMEOUT)
 
   val SSL_ENABLED = "ssl.enabled"
   val sslEnabledConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_ENABLED)
@@ -217,6 +218,20 @@ object ArangoDBConf {
     .intConf
     .createWithDefault(DEFAULT_MAX_ATTEMPTS)
 
+  val MIN_RETRY_DELAY = "retry.minDelay"
+  val DEFAULT_MIN_RETRY_DELAY = 0
+  val minRetryDelayConf: ConfigEntry[Int] = ConfigBuilder(MIN_RETRY_DELAY)
+    .doc("min delay in ms between write requests retries")
+    .intConf
+    .createWithDefault(DEFAULT_MIN_RETRY_DELAY)
+
+  val MAX_RETRY_DELAY = "retry.maxDelay"
+  val DEFAULT_MAX_RETRY_DELAY = 0
+  val maxRetryDelayConf: ConfigEntry[Int] = ConfigBuilder(MAX_RETRY_DELAY)
+    .doc("max delay in ms between write requests retries")
+    .intConf
+    .createWithDefault(DEFAULT_MAX_RETRY_DELAY)
+
   private[sql] val confEntries: Map[String, ConfigEntry[_]] = CaseInsensitiveMap(Map(
     // driver config
     USER -> userConf,
@@ -255,7 +270,9 @@ object ArangoDBConf {
     OVERWRITE_MODE -> overwriteModeConf,
     MERGE_OBJECTS -> mergeObjectsConf,
     KEEP_NULL -> keepNullConf,
-    MAX_ATTEMPTS -> maxAttemptsConf
+    MAX_ATTEMPTS -> maxAttemptsConf,
+    MIN_RETRY_DELAY -> minRetryDelayConf,
+    MAX_RETRY_DELAY -> maxRetryDelayConf
   ))
 
   /**
@@ -537,5 +554,9 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
   val keepNull: Boolean = getConf(keepNullConf)
 
   val maxAttempts: Int = getConf(maxAttemptsConf)
+
+  val minRetryDelay: Int = getConf(minRetryDelayConf)
+
+  val maxRetryDelay: Int = getConf(maxRetryDelayConf)
 
 }
