@@ -2,6 +2,7 @@ package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.model.OverwriteMode
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
@@ -9,7 +10,9 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.writer.{DataSourceWriter, DataWriterFactory, WriterCommitMessage}
 import org.apache.spark.sql.types.{DecimalType, StringType, StructType}
 
-class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf) extends DataSourceWriter {
+class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf)
+  extends DataSourceWriter with Logging {
+
   private var createdCollection = false
   validateConfig()
 
@@ -40,6 +43,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       case SaveMode.Append => options.writeOptions.overwriteMode.getValue
       case _ => OverwriteMode.ignore.getValue
     })
+    logSummary(updatedOptions)
     new ArangoDataWriterFactory(schema, updatedOptions)
   }
 
@@ -82,5 +86,22 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       case _: DecimalType => true
       case _ => false
     }
+
+  private def logSummary(updatedOptions: ArangoDBConf): Unit = {
+    val canRetry = ArangoDataWriter.canRetry(schema, updatedOptions)
+
+    logInfo(s"Using save mode: $mode")
+    logInfo(s"Using write configuration: \n${updatedOptions.writeOptions}")
+    logInfo(s"Writing schema: \n${schema.treeString}")
+    logInfo(s"Can retry: $canRetry")
+
+    if (!canRetry) {
+      logWarning(
+        """The provided configuration does not allow idempotent requests: write failures will not be retried and lead
+          |to task failure. Speculative task executions could fail or write incorrect data."""
+          .stripMargin.replaceAll("\n", "")
+      )
+    }
+  }
 
 }
