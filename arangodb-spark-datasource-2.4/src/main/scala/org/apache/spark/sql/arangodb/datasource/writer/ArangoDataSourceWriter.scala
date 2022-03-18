@@ -1,6 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.entity.CollectionType
+import com.arangodb.model.OverwriteMode
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
@@ -33,9 +34,13 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       client.createCollection()
       createdCollection = true
     }
-
     client.shutdown()
-    new ArangoDataWriterFactory(schema, options)
+
+    val updatedOptions = options.updated(ArangoDBConf.OVERWRITE_MODE, mode match {
+      case SaveMode.Append => options.writeOptions.overwriteMode.getValue
+      case _ => OverwriteMode.ignore.getValue
+    })
+    new ArangoDataWriterFactory(schema, updatedOptions)
   }
 
   override def commit(messages: Array[WriterCommitMessage]): Unit = {
