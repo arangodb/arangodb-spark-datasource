@@ -37,8 +37,8 @@ class AbortTest extends BaseSparkTest {
   private val df = spark.createDataFrame(rows.asJava, StructType(Array(
     StructField("_key", StringType, nullable = false),
     StructField("name", StringType),
-    StructField("_from", StringType),
-    StructField("_to", StringType)
+    StructField("_from", StringType, nullable = false),
+    StructField("_to", StringType, nullable = false)
   )))
 
   @BeforeEach
