@@ -1,3 +1,4 @@
+import org.apache.spark.sql.catalyst.expressions.objects.AssertNotNull
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame}
@@ -22,8 +23,8 @@ object WriteDemo {
       .withColumn("lastModified", unixTsToSparkTs(col("lastModified")))
       .persist()
     val edgesDF = Demo.spark.read.json(Demo.importPath + "/edges.jsonl")
-      .withColumn("_from", concat(lit("persons/"), col("_from")))
-      .withColumn("_to", concat(lit("movies/"), col("_to")))
+      .withColumn("_from", new Column(AssertNotNull(concat(lit("persons/"), col("_from")).expr)))
+      .withColumn("_to", new Column(AssertNotNull(concat(lit("movies/"), col("_to")).expr)))
       .persist()
 
     val personsDF = nodesDF

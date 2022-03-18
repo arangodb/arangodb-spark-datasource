@@ -1,17 +1,16 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
+import com.arangodb.entity.CollectionType
 import org.apache.spark.sql.arangodb.commons.exceptions.DataWriteAbortException
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.sources.v2.writer.{DataSourceWriter, DataWriterFactory, WriterCommitMessage}
-import org.apache.spark.sql.types.{DecimalType, StructType}
+import org.apache.spark.sql.types.{DecimalType, StringType, StructType}
 
 class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMode, options: ArangoDBConf) extends DataSourceWriter {
   private var createdCollection = false
-
-  if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields)
-    throw new UnsupportedOperationException("Cannot write DecimalType when using contentType=json")
+  validateConfig()
 
   override def createWriterFactory(): DataWriterFactory[InternalRow] = {
     if (mode == SaveMode.Overwrite && !options.writeOptions.confirmTruncate) {
@@ -53,6 +52,24 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
       case SaveMode.Ignore => if (createdCollection) client.drop()
     }
     client.shutdown()
+  }
+
+  private def validateConfig(): Unit = {
+    if (options.driverOptions.contentType == ContentType.JSON && hasDecimalTypeFields) {
+      throw new UnsupportedOperationException("Cannot write DecimalType when using contentType=json")
+    }
+
+    if (options.writeOptions.collectionType == CollectionType.EDGES &&
+      !schema.exists(p => p.name == "_from" && p.dataType == StringType && !p.nullable)
+    ) {
+      throw new IllegalArgumentException("Writing edge collection requires non nullable string field named _from.")
+    }
+
+    if (options.writeOptions.collectionType == CollectionType.EDGES &&
+      !schema.exists(p => p.name == "_to" && p.dataType == StringType && !p.nullable)
+    ) {
+      throw new IllegalArgumentException("Writing edge collection requires non nullable string field named _to.")
+    }
   }
 
   private def hasDecimalTypeFields: Boolean =
