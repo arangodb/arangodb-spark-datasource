@@ -1,6 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.entity.CollectionType
+import com.arangodb.model.OverwriteMode
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.connector.write.{BatchWrite, SupportsTruncate, WriteBuilder}
 import org.apache.spark.sql.types.{DecimalType, StringType, StructType}
@@ -17,7 +18,13 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
       client.createCollection()
     }
     client.shutdown()
-    new ArangoBatchWriter(schema, options, mode)
+
+    val updatedOptions = options.updated(ArangoDBConf.OVERWRITE_MODE, mode match {
+      case SaveMode.Append => options.writeOptions.overwriteMode.getValue
+      case _ => OverwriteMode.ignore.getValue
+    })
+
+    new ArangoBatchWriter(schema, updatedOptions, mode)
   }
 
   override def truncate(): WriteBuilder = {
