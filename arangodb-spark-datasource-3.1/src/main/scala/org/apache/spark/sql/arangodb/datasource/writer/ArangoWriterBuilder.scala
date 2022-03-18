@@ -2,12 +2,14 @@ package org.apache.spark.sql.arangodb.datasource.writer
 
 import com.arangodb.entity.CollectionType
 import com.arangodb.model.OverwriteMode
+import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.connector.write.{BatchWrite, SupportsTruncate, WriteBuilder}
 import org.apache.spark.sql.types.{DecimalType, StringType, StructType}
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 
-class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends WriteBuilder with SupportsTruncate {
+class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf)
+  extends WriteBuilder with SupportsTruncate with Logging {
 
   private var mode: SaveMode = SaveMode.Append
   validateConfig()
@@ -24,6 +26,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
       case _ => OverwriteMode.ignore.getValue
     })
 
+    logSummary(updatedOptions)
     new ArangoBatchWriter(schema, updatedOptions, mode)
   }
 
@@ -69,5 +72,21 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf) extends Wri
       case _: DecimalType => true
       case _ => false
     }
+
+  private def logSummary(updatedOptions: ArangoDBConf): Unit = {
+    val canRetry = ArangoDataWriter.canRetry(schema, updatedOptions)
+
+    logInfo(s"Using save mode: $mode")
+    logInfo(s"Using write configuration: ${updatedOptions.writeOptions}")
+    logInfo(s"Can retry: $canRetry")
+
+    if (!canRetry) {
+      logWarning(
+        """The provided configuration does not allow idempotent requests: write failures will not be retried and lead
+          |to task failure. Speculative task executions could fail or write incorrect data."""
+          .stripMargin.replaceAll("\n", "")
+      )
+    }
+  }
 
 }

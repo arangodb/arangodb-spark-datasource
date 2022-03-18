@@ -559,4 +559,20 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val maxRetryDelay: Int = getConf(maxRetryDelayConf)
 
+  override def toString =
+    s"""ArangoDBWriteConf(
+       |\t db=$db
+       |\t collection=$collection
+       |\t batchSize=$batchSize
+       |\t numberOfShards=$numberOfShards
+       |\t collectionType=$collectionType
+       |\t waitForSync=$waitForSync
+       |\t confirmTruncate=$confirmTruncate
+       |\t overwriteMode=$overwriteMode
+       |\t mergeObjects=$mergeObjects
+       |\t keepNull=$keepNull
+       |\t maxAttempts=$maxAttempts
+       |\t minRetryDelay=$minRetryDelay
+       |\t maxRetryDelay=$maxRetryDelay
+       |)""".stripMargin
 }
