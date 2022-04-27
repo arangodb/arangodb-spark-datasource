@@ -2,11 +2,13 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import com.arangodb.entity.BaseDocument
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Row, SaveMode}
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -23,6 +25,7 @@ class IgnoreNullFieldsTest extends BaseSparkTest {
 
   @BeforeEach
   def beforeEach(): Unit = {
+    assumeTrue(SPARK_VERSION.startsWith("3"))
     if (!collection.exists()) {
       collection.create()
     } else {

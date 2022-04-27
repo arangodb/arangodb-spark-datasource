@@ -234,7 +234,7 @@ object ArangoDBConf {
 
   val IGNORE_NULL_FIELDS = "ignoreNullFields"
   val ignoreNullFieldsConf: ConfigEntry[Boolean] = ConfigBuilder(IGNORE_NULL_FIELDS)
-    .doc("whether to ignore null fields during serialization")
+    .doc("whether to ignore null fields during serialization (only supported in Spark 3.x)")
     .booleanConf
     .createWithDefault(false)
 

@@ -18,7 +18,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Input
   with Logging {
 
   private val actualSchema = StructType(schema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
-  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema)
+  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema, options)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse(_).toSeq,
     options.readOptions.parseMode,
