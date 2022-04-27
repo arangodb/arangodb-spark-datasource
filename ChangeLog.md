@@ -5,6 +5,10 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.3.0] - 2022-04-27
+
+- added `ignoreNullFields` config param (#28)
+
 ## [1.2.0] - 2022-03-18
 
 - use `overwriteMode=ignore` if save mode is other than `Append` (#26)
