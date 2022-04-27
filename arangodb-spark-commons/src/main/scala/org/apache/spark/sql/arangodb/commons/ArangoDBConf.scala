@@ -232,6 +232,12 @@ object ArangoDBConf {
     .intConf
     .createWithDefault(DEFAULT_MAX_RETRY_DELAY)
 
+  val IGNORE_NULL_FIELDS = "ignoreNullFields"
+  val ignoreNullFieldsConf: ConfigEntry[Boolean] = ConfigBuilder(IGNORE_NULL_FIELDS)
+    .doc("whether to ignore null fields during serialization (only supported in Spark 3.x)")
+    .booleanConf
+    .createWithDefault(false)
+
   private[sql] val confEntries: Map[String, ConfigEntry[_]] = CaseInsensitiveMap(Map(
     // driver config
     USER -> userConf,
@@ -272,7 +278,8 @@ object ArangoDBConf {
     KEEP_NULL -> keepNullConf,
     MAX_ATTEMPTS -> maxAttemptsConf,
     MIN_RETRY_DELAY -> minRetryDelayConf,
-    MAX_RETRY_DELAY -> maxRetryDelayConf
+    MAX_RETRY_DELAY -> maxRetryDelayConf,
+    IGNORE_NULL_FIELDS -> ignoreNullFieldsConf
   ))
 
   /**
@@ -317,6 +324,8 @@ object ArangoDBConf {
     CaseInsensitiveMap(Map(configs.map { cfg => cfg.key -> cfg }: _*))
   }
 
+  def apply(): ArangoDBConf = new ArangoDBConf(Map.empty)
+
   def apply(options: Map[String, String]): ArangoDBConf = new ArangoDBConf(options)
 
   def apply(options: util.Map[String, String]): ArangoDBConf = ArangoDBConf(options.asScala.toMap)
@@ -335,6 +344,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
   lazy val driverOptions: ArangoDBDriverConf = new ArangoDBDriverConf(settings)
   lazy val readOptions: ArangoDBReadConf = new ArangoDBReadConf(settings)
   lazy val writeOptions: ArangoDBWriteConf = new ArangoDBWriteConf(settings)
+  lazy val mappingOptions: ArangoDBMappingConf = new ArangoDBMappingConf(settings)
 
   def updated(kv: (String, String)): ArangoDBConf = new ArangoDBConf(settings + kv)
 
@@ -559,7 +569,7 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val maxRetryDelay: Int = getConf(maxRetryDelayConf)
 
-  override def toString =
+  override def toString: String =
     s"""ArangoDBWriteConf(
        |\t db=$db
        |\t collection=$collection
@@ -574,5 +584,18 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
        |\t maxAttempts=$maxAttempts
        |\t minRetryDelay=$minRetryDelay
        |\t maxRetryDelay=$maxRetryDelay
+       |)""".stripMargin
+}
+
+
+class ArangoDBMappingConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
+
+  import ArangoDBConf._
+
+  val ignoreNullFields: Boolean = getConf(ignoreNullFieldsConf)
+
+  override def toString: String =
+    s"""ArangoDBMappingConf(
+       |\t ignoreNullFields=$ignoreNullFields
        |)""".stripMargin
 }

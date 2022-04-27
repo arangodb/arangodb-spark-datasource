@@ -92,6 +92,7 @@ class ArangoDataSourceWriter(writeUUID: String, schema: StructType, mode: SaveMo
 
     logInfo(s"Using save mode: $mode")
     logInfo(s"Using write configuration: \n${updatedOptions.writeOptions}")
+    logInfo(s"Using mapping configuration: \n${updatedOptions.mappingOptions}")
     logInfo(s"Writing schema: \n${schema.treeString}")
     logInfo(s"Can retry: $canRetry")
 

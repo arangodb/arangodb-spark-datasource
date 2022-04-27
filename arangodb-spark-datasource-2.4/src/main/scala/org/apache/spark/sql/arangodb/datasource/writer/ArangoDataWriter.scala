@@ -66,7 +66,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   private def initBatch(): Unit = {
     batchCount = 0
     outVPack = new ByteArrayOutputStream()
-    vpackGenerator = ArangoGeneratorProvider().of(options.driverOptions.contentType, schema, outVPack)
+    vpackGenerator = ArangoGeneratorProvider().of(options.driverOptions.contentType, schema, outVPack, options)
     vpackGenerator.writeStartArray()
   }
 

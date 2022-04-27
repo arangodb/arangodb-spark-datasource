@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb
 
 import com.arangodb.velocypack.VPackParser
-import org.apache.spark.sql.arangodb.commons.ContentType
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGeneratorProvider, ArangoParserProvider}
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
@@ -66,10 +66,10 @@ class JacksonTest {
   }
 
   private def roundTrip(contentType: ContentType, data: Array[Byte]): Unit = {
-    val parser = ArangoParserProvider().of(contentType, schema)
+    val parser = ArangoParserProvider().of(contentType, schema, ArangoDBConf())
     val parsed = parser.parse(data)
     val output = new ByteArrayOutputStream()
-    val generator = ArangoGeneratorProvider().of(contentType, schema, output)
+    val generator = ArangoGeneratorProvider().of(contentType, schema, output, ArangoDBConf())
     generator.write(parsed.head)
     generator.close()
     assertThat(output.toByteArray).isEqualTo(data)
