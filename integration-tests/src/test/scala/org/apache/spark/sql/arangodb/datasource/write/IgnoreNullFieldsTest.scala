@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-import scala.jdk.CollectionConverters.mapAsJavaMapConverter
+import scala.jdk.CollectionConverters.{asJavaIterableConverter, mapAsJavaMapConverter}
 
 
 class IgnoreNullFieldsTest extends BaseSparkTest {
@@ -134,6 +134,37 @@ class IgnoreNullFieldsTest extends BaseSparkTest {
     assertThat(getInfo("Carlsen")).containsEntry("name", "Magnus")
     assertThat(getInfo("Caruana")).doesNotContainKey("name")
   }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def arrays(protocol: String, contentType: String): Unit = {
+    val df = Seq(
+      ("Carlsen", Array("a", "b", "c")),
+      ("Caruana", Array("a", null, "c"))
+    )
+      .toDF("_key", "values")
+    df.printSchema()
+    df.show()
+    df
+      .write
+      .format(BaseSparkTest.arangoDatasource)
+      .mode(SaveMode.Append)
+      .options(options + (
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.IGNORE_NULL_FIELDS -> "true"
+      ))
+      .save()
+
+    assertThat(getValues("Carlsen")).containsExactly("a", "b", "c")
+    assertThat(getValues("Caruana")).containsExactly("a", null, "c")
+  }
+
+  private def getValues(key: String) = collection.getDocument(key, classOf[BaseDocument])
+    .getAttribute("values")
+    .asInstanceOf[List[String]]
+    .asJava
 
   private def getInfo(key: String) = collection.getDocument(key, classOf[BaseDocument])
     .getAttribute("info")
