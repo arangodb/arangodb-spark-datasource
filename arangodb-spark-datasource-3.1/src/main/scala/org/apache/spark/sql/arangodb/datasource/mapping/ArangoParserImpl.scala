@@ -4,7 +4,7 @@ import com.arangodb.jackson.dataformat.velocypack.VPackFactoryBuilder
 import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import com.fasterxml.jackson.core.json.JsonReadFeature
 import com.fasterxml.jackson.core.{JsonFactory, JsonFactoryBuilder}
-import org.apache.spark.sql.arangodb.commons.ContentType
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
 import org.apache.spark.sql.arangodb.commons.mapping.{ArangoParser, ArangoParserProvider}
 import org.apache.spark.sql.arangodb.datasource.mapping.json.{JSONOptions, JacksonParser}
 import org.apache.spark.sql.catalyst.InternalRow
@@ -24,14 +24,14 @@ abstract sealed class ArangoParserImpl(
 }
 
 class ArangoParserProviderImpl extends ArangoParserProvider {
-  override def of(contentType: ContentType, schema: DataType, conf: Map[String, String]): ArangoParserImpl = contentType match {
+  override def of(contentType: ContentType, schema: DataType, conf: ArangoDBConf): ArangoParserImpl = contentType match {
     case ContentType.JSON => new JsonArangoParser(schema, conf)
     case ContentType.VPACK => new VPackArangoParser(schema, conf)
     case _ => throw new IllegalArgumentException
   }
 }
 
-class JsonArangoParser(schema: DataType, conf: Map[String, String])
+class JsonArangoParser(schema: DataType, conf: ArangoDBConf)
   extends ArangoParserImpl(
     schema,
     createOptions(new JsonFactoryBuilder()
@@ -40,7 +40,7 @@ class JsonArangoParser(schema: DataType, conf: Map[String, String])
     (bytes: Array[Byte]) => UTF8String.fromBytes(bytes)
   )
 
-class VPackArangoParser(schema: DataType, conf: Map[String, String])
+class VPackArangoParser(schema: DataType, conf: ArangoDBConf)
   extends ArangoParserImpl(
     schema,
     createOptions(new VPackFactoryBuilder().build(), conf),

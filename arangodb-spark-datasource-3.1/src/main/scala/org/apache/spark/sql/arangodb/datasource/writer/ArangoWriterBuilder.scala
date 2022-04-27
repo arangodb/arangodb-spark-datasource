@@ -78,6 +78,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf)
 
     logInfo(s"Using save mode: $mode")
     logInfo(s"Using write configuration: ${updatedOptions.writeOptions}")
+    logInfo(s"Using mapping configuration: ${updatedOptions.mappingOptions}")
     logInfo(s"Can retry: $canRetry")
 
     if (!canRetry) {

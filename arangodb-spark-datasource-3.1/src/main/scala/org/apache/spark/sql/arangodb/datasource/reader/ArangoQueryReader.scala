@@ -17,7 +17,7 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends PartitionReader[InternalRow] with Logging {
 
   private val actualSchema = StructType(schema.filterNot(_.name == options.readOptions.columnNameOfCorruptRecord))
-  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema, options.getAllEffectiveConfigs)
+  private val parser = ArangoParserProvider().of(options.driverOptions.contentType, actualSchema, options)
   private val safeParser = new FailureSafeParser[Array[Byte]](
     parser.parse,
     options.readOptions.parseMode,
