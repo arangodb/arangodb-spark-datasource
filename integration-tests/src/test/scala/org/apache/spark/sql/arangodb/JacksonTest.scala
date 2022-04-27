@@ -66,10 +66,10 @@ class JacksonTest {
   }
 
   private def roundTrip(contentType: ContentType, data: Array[Byte]): Unit = {
-    val parser = ArangoParserProvider().of(contentType, schema)
+    val parser = ArangoParserProvider().of(contentType, schema, Map.empty)
     val parsed = parser.parse(data)
     val output = new ByteArrayOutputStream()
-    val generator = ArangoGeneratorProvider().of(contentType, schema, output)
+    val generator = ArangoGeneratorProvider().of(contentType, schema, output ,Map.empty)
     generator.write(parsed.head)
     generator.close()
     assertThat(output.toByteArray).isEqualTo(data)

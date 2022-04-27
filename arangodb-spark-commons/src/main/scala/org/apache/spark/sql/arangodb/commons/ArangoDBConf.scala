@@ -232,6 +232,12 @@ object ArangoDBConf {
     .intConf
     .createWithDefault(DEFAULT_MAX_RETRY_DELAY)
 
+  val IGNORE_NULL_FIELDS = "ignoreNullFields"
+  val ignoreNullFieldsConf: ConfigEntry[Boolean] = ConfigBuilder(IGNORE_NULL_FIELDS)
+    .doc("whether to ignore null fields during serialization")
+    .booleanConf
+    .createWithDefault(false)
+
   private[sql] val confEntries: Map[String, ConfigEntry[_]] = CaseInsensitiveMap(Map(
     // driver config
     USER -> userConf,
@@ -272,7 +278,8 @@ object ArangoDBConf {
     KEEP_NULL -> keepNullConf,
     MAX_ATTEMPTS -> maxAttemptsConf,
     MIN_RETRY_DELAY -> minRetryDelayConf,
-    MAX_RETRY_DELAY -> maxRetryDelayConf
+    MAX_RETRY_DELAY -> maxRetryDelayConf,
+    IGNORE_NULL_FIELDS -> ignoreNullFieldsConf
   ))
 
   /**
@@ -378,6 +385,12 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    * This creates a new copy of the config properties in the form of a Map.
    */
   def getAllConfigs: Map[String, String] = settings.toMap
+
+  /**
+   * Return all the configuration properties that are effective (either set or default).
+   * This creates a new copy of the config properties in the form of a Map.
+   */
+  def getAllEffectiveConfigs: Map[String, String] = getAllDefinedConfigs.map(entry => (entry._1, entry._2)).toMap
 
   /**
    * Return all the configuration definitions that have been defined in [[ArangoDBConf]]. Each
@@ -559,6 +572,8 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val maxRetryDelay: Int = getConf(maxRetryDelayConf)
 
+  val ignoreNullFields: Boolean = getConf(ignoreNullFieldsConf)
+
   override def toString =
     s"""ArangoDBWriteConf(
        |\t db=$db
@@ -574,5 +589,6 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
        |\t maxAttempts=$maxAttempts
        |\t minRetryDelay=$minRetryDelay
        |\t maxRetryDelay=$maxRetryDelay
+       |\t ignoreNullFields=$ignoreNullFields
        |)""".stripMargin
 }

@@ -6,7 +6,7 @@ import org.apache.spark.sql.types.DataType
 import java.util.ServiceLoader
 
 trait ArangoParserProvider {
-  def of(contentType: ContentType, schema: DataType): ArangoParser
+  def of(contentType: ContentType, schema: DataType, conf: Map[String, String]): ArangoParser
 }
 
 object ArangoParserProvider {

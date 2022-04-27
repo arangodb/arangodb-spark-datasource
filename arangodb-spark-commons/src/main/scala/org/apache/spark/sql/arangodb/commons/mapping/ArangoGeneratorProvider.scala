@@ -7,7 +7,7 @@ import java.io.OutputStream
 import java.util.ServiceLoader
 
 trait ArangoGeneratorProvider {
-  def of(contentType: ContentType, schema: StructType, outputStream: OutputStream): ArangoGenerator
+  def of(contentType: ContentType, schema: StructType, outputStream: OutputStream, conf: Map[String, String]): ArangoGenerator
 }
 
 object ArangoGeneratorProvider {
