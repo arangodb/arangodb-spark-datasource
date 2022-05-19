@@ -20,7 +20,7 @@ class AcquireHostListTest {
       .format(classOf[DefaultSource].getName)
       .options(Map(
         ArangoDBConf.COLLECTION -> "_fishbowl",
-        ArangoDBConf.ENDPOINTS -> "172.17.0.1:8529",
+        ArangoDBConf.ENDPOINTS -> "172.28.0.1:8529",
         ArangoDBConf.ACQUIRE_HOST_LIST -> "true",
         ArangoDBConf.PASSWORD -> "test"
       ))

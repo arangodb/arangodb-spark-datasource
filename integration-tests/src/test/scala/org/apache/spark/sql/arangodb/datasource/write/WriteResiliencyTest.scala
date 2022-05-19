@@ -65,7 +65,7 @@ class WriteResiliencyTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def retryOnWrongHost(protocol: String, contentType: String): Unit = {
-    retryOnBadHost(BaseSparkTest.endpoints + ",172.17.0.1:8519", protocol, contentType)
+    retryOnBadHost(BaseSparkTest.endpoints + ",172.28.0.1:8519", protocol, contentType)
   }
 
   @ParameterizedTest

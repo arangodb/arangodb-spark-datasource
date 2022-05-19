@@ -20,7 +20,7 @@ object PushdownExample {
     val ds: Dataset[User] = spark.read
       .format("com.arangodb.spark")
       .option("password", "test")
-      .option("endpoints", "172.17.0.1:8529")
+      .option("endpoints", "172.28.0.1:8529")
       .option("table", "users")
       .schema(Encoders.product[User].schema)
       .load()
@@ -40,7 +40,7 @@ object PushdownExample {
 
   private def prepareDB(): Unit = {
     val arangoDB = new ArangoDB.Builder()
-      .host("172.17.0.1", 8529)
+      .host("172.28.0.1", 8529)
       .password("test")
       .build()
 

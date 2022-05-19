@@ -48,7 +48,7 @@ object DataTypesExample {
       .mode("overwrite")
       .format("com.arangodb.spark")
       .option("password", "test")
-      .option("endpoints", "172.17.0.1:8529")
+      .option("endpoints", "172.28.0.1:8529")
       .option("table", "orders")
       .option("confirmTruncate", "true")
       .save()
@@ -56,7 +56,7 @@ object DataTypesExample {
     val readDS: Dataset[Order] = spark.read
       .format("com.arangodb.spark")
       .option("password", "test")
-      .option("endpoints", "172.17.0.1:8529")
+      .option("endpoints", "172.28.0.1:8529")
       .option("table", "orders")
       .schema(Encoders.product[Order].schema)
       .load()

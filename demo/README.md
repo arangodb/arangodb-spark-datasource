@@ -32,7 +32,7 @@ Start ArangoDB cluster with docker:
 STARTER_MODE=cluster ./docker/start_db.sh
 ```
 
-The deployed cluster will be accessible at [http://172.17.0.1:8529](http://172.17.0.1:8529) with username `root` and
+The deployed cluster will be accessible at [http://172.28.0.1:8529](http://172.28.0.1:8529) with username `root` and
 password `test`.
 
 Start Spark cluster:
