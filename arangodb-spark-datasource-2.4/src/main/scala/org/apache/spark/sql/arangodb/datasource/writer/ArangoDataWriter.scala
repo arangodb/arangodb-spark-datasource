@@ -34,8 +34,9 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
 
   override def write(record: InternalRow): Unit = {
     vpackGenerator.write(record)
+    vpackGenerator.flush()
     batchCount += 1
-    if (batchCount == options.writeOptions.batchSize) {
+    if (batchCount == options.writeOptions.batchSize || outVPack.size() > options.writeOptions.byteBatchSize) {
       flushBatch()
       initBatch()
     }
@@ -74,6 +75,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
     vpackGenerator.writeEndArray()
     vpackGenerator.close()
     vpackGenerator.flush()
+    logDebug(s"flushBatch(), bufferSize: ${outVPack.size()}")
     val payload = options.driverOptions.contentType match {
       case ContentType.VPACK => new VPackSlice(outVPack.toByteArray)
       case ContentType.JSON => new VPackParser.Builder().build().fromJson(new String(outVPack.toByteArray), true)
