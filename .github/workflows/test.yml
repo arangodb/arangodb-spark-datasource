@@ -26,6 +26,7 @@ jobs:
         spark-version:
           - 2.4
           - 3.1
+          - 3.2
         topology:
           - single
           - cluster
@@ -38,6 +39,8 @@ jobs:
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
+          - scala-version: 2.11
+            spark-version: 3.2
           - scala-version: 2.11
             java-version: 11
           - docker-img: docker.io/arangodb/arangodb:3.8.6
@@ -96,6 +99,7 @@ jobs:
         spark-version:
           - 2.4
           - 3.1
+          - 3.2
         topology:
           - single
         java-version:
@@ -106,6 +110,8 @@ jobs:
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
+          - scala-version: 2.11
+            spark-version: 3.2
           - scala-version: 2.11
             java-version: 11
     steps:
@@ -173,6 +179,12 @@ jobs:
           - spark-version: 3.1
             scala-version: 2.12
             spark-full-version: 3.1.3
+          - spark-version: 3.2
+            scala-version: 2.12
+            spark-full-version: 3.2.0
+          - spark-version: 3.2
+            scala-version: 2.12
+            spark-full-version: 3.2.1
     steps:
       - uses: actions/checkout@v2
         with:
@@ -223,7 +235,7 @@ jobs:
         scala-version:
           - 2.12
         spark-version:
-          - 3.1
+          - 3.2
         topology:
           - single
         java-version:
