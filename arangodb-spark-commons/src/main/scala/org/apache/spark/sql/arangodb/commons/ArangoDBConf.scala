@@ -123,6 +123,13 @@ object ArangoDBConf {
     .intConf
     .createWithDefault(DEFAULT_BATCH_SIZE)
 
+  val BYTE_BATCH_SIZE = "byteBatchSize"
+  val DEFAULT_BYTE_BATCH_SIZE = 8388608 // 8 MB
+  val byteBatchSizeConf: ConfigEntry[Int] = ConfigBuilder(BYTE_BATCH_SIZE)
+    .doc("byte batch size threshold for writing")
+    .intConf
+    .createWithDefault(DEFAULT_BYTE_BATCH_SIZE)
+
   val QUERY = "query"
   val queryConf: OptionalConfigEntry[String] = ConfigBuilder(QUERY)
     .doc("custom AQL read query")
@@ -259,6 +266,7 @@ object ArangoDBConf {
     DB -> dbConf,
     COLLECTION -> collectionConf,
     BATCH_SIZE -> batchSizeConf,
+    BYTE_BATCH_SIZE -> byteBatchSizeConf,
 
     // read config
     QUERY -> queryConf,
@@ -549,6 +557,8 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val batchSize: Int = getConf(batchSizeConf)
 
+  val byteBatchSize: Int = getConf(byteBatchSizeConf)
+
   val numberOfShards: Int = getConf(numberOfShardsConf)
 
   val collectionType: entity.CollectionType = CollectionType(getConf(collectionTypeConf)).get()
@@ -574,6 +584,7 @@ class ArangoDBWriteConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
        |\t db=$db
        |\t collection=$collection
        |\t batchSize=$batchSize
+       |\t byteBatchSize=$byteBatchSize
        |\t numberOfShards=$numberOfShards
        |\t collectionType=$collectionType
        |\t waitForSync=$waitForSync

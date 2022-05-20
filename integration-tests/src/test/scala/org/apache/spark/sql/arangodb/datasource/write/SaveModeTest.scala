@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 
 import com.arangodb.ArangoCollection
 import org.apache.spark.SPARK_VERSION
-import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
 import org.apache.spark.sql.{AnalysisException, SaveMode}
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
@@ -207,6 +207,26 @@ class SaveModeTest extends BaseSparkTest {
       .save()
 
     assertThat(collection.count().getCount).isEqualTo(1L)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def byteBatchSize(protocol: String, contentType: String): Unit = {
+    // FIXME: streaming mode is not supported in VPack generator
+    assumeTrue(contentType == ContentType.JSON.name)
+    df.write
+      .format(BaseSparkTest.arangoDatasource)
+      .mode(SaveMode.Overwrite)
+      .options(options + (
+        ArangoDBConf.COLLECTION -> collectionName,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.CONFIRM_TRUNCATE -> "true",
+        ArangoDBConf.BYTE_BATCH_SIZE -> "10"
+      ))
+      .save()
+
+    assertThat(collection.count().getCount).isEqualTo(10L)
   }
 
 }
