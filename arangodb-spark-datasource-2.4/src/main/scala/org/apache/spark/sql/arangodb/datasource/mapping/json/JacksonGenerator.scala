@@ -188,7 +188,7 @@ private[sql] class JacksonGenerator(
       if (!row.isNullAt(i)) {
         gen.writeFieldName(field.name)
         fieldWriters(i).apply(row, i)
-      } else {
+      } else if(field.name != "_key") {
         gen.writeFieldName(field.name)
         gen.writeNull()
       }
