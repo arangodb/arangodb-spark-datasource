@@ -33,16 +33,16 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.5.1
-          - docker.io/arangodb/arangodb:3.9.0
+          - docker.io/arangodb/arangodb:3.8.6
+          - docker.io/arangodb/arangodb:3.9.1
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
           - scala-version: 2.11
             java-version: 11
-          - docker-img: docker.io/arangodb/arangodb:3.8.5.1
+          - docker-img: docker.io/arangodb/arangodb:3.8.6
             java-version: 8
-          - docker-img: docker.io/arangodb/arangodb:3.9.0
+          - docker-img: docker.io/arangodb/arangodb:3.9.1
             java-version: 11
 
     steps:
@@ -102,7 +102,7 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.5.1
+          - docker.io/arangodb/arangodb:3.8.6
         exclude:
           - scala-version: 2.11
             spark-version: 3.1
@@ -185,7 +185,7 @@ jobs:
         run: ./docker/start_db.sh
         env:
           STARTER_MODE: cluster
-          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.7.16
+          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.7.17
       - name: Cache local Maven repository
         uses: actions/cache@v2
         with:
@@ -229,7 +229,7 @@ jobs:
         java-version:
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.8.5.1
+          - docker.io/arangodb/arangodb:3.8.6
 
     steps:
       - uses: actions/checkout@v2
