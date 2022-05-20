@@ -106,7 +106,7 @@ class JsonFilters(pushedFilters: Seq[sources.Filter], schema: StructType)
     val withLiterals: Map[Set[String], JsonPredicate] = groupedByRefSet.map {
       case (refSet, pred) if refSet.isEmpty =>
         (schema.fields.map(_.name).toSet, pred.copy(totalRefs = 1))
-      case others: (Set[String], JsonPredicate) => others
+      case others => others
     }
     // Build a map where key is only one field and value is seq of predicates refer to the field
     //   "i" -> Seq(AlwaysTrue, IsNotNull("i"), Or(EqualTo("i", 0), StringStartsWith("s", "abc")))
