@@ -5,6 +5,14 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.0] - 2022-05-24
+
+- support for Spark 3.2 (#31)
+- support for `null` at root level of a JSON array in Spark 3.1 mapping (SPARK-36379)
+- updated dependencies
+- flush write buffer on byte threshold `byteBatchSize` (#30)
+- remove `null` `_key` field during serialization (#29)
+
 ## [1.3.0] - 2022-04-27
 
 - added `ignoreNullFields` config param (#28)
