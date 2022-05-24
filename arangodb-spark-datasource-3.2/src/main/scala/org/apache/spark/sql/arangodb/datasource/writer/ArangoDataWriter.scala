@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.StructType
 import java.io.ByteArrayOutputStream
 import java.net.{ConnectException, UnknownHostException}
 import scala.annotation.tailrec
-import scala.jdk.CollectionConverters.iterableAsScalaIterableConverter
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 import scala.util.Random
 
 class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: Int)
