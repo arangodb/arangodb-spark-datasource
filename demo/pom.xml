@@ -30,6 +30,13 @@
             </properties>
         </profile>
         <profile>
+            <id>scala-2.13</id>
+            <properties>
+                <scala.version>2.13.8</scala.version>
+                <scala.compat.version>2.13</scala.compat.version>
+            </properties>
+        </profile>
+        <profile>
             <id>spark-2.4</id>
             <properties>
                 <spark.version>2.4.8</spark.version>

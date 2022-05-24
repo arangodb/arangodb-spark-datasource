@@ -54,6 +54,7 @@
         <sonar.scala.scapegoat.reportPaths>
             ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
         </sonar.scala.scapegoat.reportPaths>
+        <scapegoat.version>1.4.14</scapegoat.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
@@ -71,6 +72,13 @@
             <properties>
                 <scala.version>2.12.15</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>scala-2.13</id>
+            <properties>
+                <scala.version>2.13.8</scala.version>
+                <scala.compat.version>2.13</scala.compat.version>
             </properties>
         </profile>
         <profile>
@@ -209,7 +217,7 @@
         <dependency>
             <groupId>com.sksamuel.scapegoat</groupId>
             <artifactId>scalac-scapegoat-plugin_${scala.version}</artifactId>
-            <version>1.4.14</version>
+            <version>${scapegoat.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -296,7 +304,7 @@
                         <compilerPlugin>
                             <groupId>com.sksamuel.scapegoat</groupId>
                             <artifactId>scalac-scapegoat-plugin_${scala.version}</artifactId>
-                            <version>1.4.11</version>
+                            <version>${scapegoat.version}</version>
                         </compilerPlugin>
                     </compilerPlugins>
                 </configuration>
