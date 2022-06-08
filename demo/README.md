@@ -9,14 +9,13 @@ This demo is composed of 3 parts:
 - `ReadWriteDemo`: reads the ArangoDB collections created above as Spark Dataframes, applies projections and filtering,
   writes to a new ArangoDB collection
 
-
 ## Requirements
 
 This demo requires:
+
 - JDK 1.8 or 11
 - `maven`
 - `docker`
-
 
 ## Prepare the environment
 
@@ -41,17 +40,18 @@ Start Spark cluster:
 ./docker/start_spark_3.2.sh 
 ```
 
-
 ## Run embedded
 
 Test the Spark application in embedded mode:
+
 ```shell
-mvn -Pspark-3.2 -Pscala-2.12 test
+mvn test
 ```
 
 Test the Spark application against ArangoDB Oasis deployment:
+
 ```shell
-mvn -Pspark-3.2 -Pscala-2.12 \
+mvn \
   -Dpassword=<root-password> \
   -Dendpoints=<endpoint> \
   -Dssl.enabled=true \
@@ -59,12 +59,12 @@ mvn -Pspark-3.2 -Pscala-2.12 \
   test
 ```
 
-
 ## Submit to Spark cluster
 
 Package the application:
+
 ```shell
-mvn -Pspark-3.2 -Pscala-2.12 -DskipTests=true package
+mvn -DskipTests=true package
 ```
 
 Submit demo program:

@@ -12,7 +12,7 @@ object Demo {
     .master("local[*, 3]")
     .getOrCreate
 
-  val options = Map(
+  val options: Map[String, String] = Map(
     "password" -> password,
     "endpoints" -> endpoints,
     "ssl.enabled" -> sslEnabled,

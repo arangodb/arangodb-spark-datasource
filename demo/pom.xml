@@ -24,6 +24,9 @@
         </profile>
         <profile>
             <id>scala-2.12</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <scala.version>2.12.15</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
@@ -52,6 +55,9 @@
         </profile>
         <profile>
             <id>spark-3.2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <spark.version>3.2.1</spark.version>
                 <spark.compat.version>3.2</spark.compat.version>
