@@ -38,7 +38,7 @@ password `test`.
 Start Spark cluster:
 
 ```shell
-./docker/start_spark_3.1.sh 
+./docker/start_spark_3.2.sh 
 ```
 
 
@@ -46,12 +46,12 @@ Start Spark cluster:
 
 Test the Spark application in embedded mode:
 ```shell
-mvn -Pspark-3.1 -Pscala-2.12 test
+mvn -Pspark-3.2 -Pscala-2.12 test
 ```
 
 Test the Spark application against ArangoDB Oasis deployment:
 ```shell
-mvn -Pspark-3.1 -Pscala-2.12 \
+mvn -Pspark-3.2 -Pscala-2.12 \
   -Dpassword=<root-password> \
   -Dendpoints=<endpoint> \
   -Dssl.enabled=true \
@@ -64,7 +64,7 @@ mvn -Pspark-3.1 -Pscala-2.12 \
 
 Package the application:
 ```shell
-mvn -Pspark-3.1 -Pscala-2.12 -DskipTests=true package
+mvn -Pspark-3.2 -Pscala-2.12 -DskipTests=true package
 ```
 
 Submit demo program:
@@ -74,8 +74,8 @@ docker run -it --rm \
   -v $(pwd):/demo \
   -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  docker.io/bitnami/spark:3.1.2 \
+  docker.io/bitnami/spark:3.2.1 \
   ./bin/spark-submit --master spark://spark-master:7077 \
-    --packages="com.arangodb:arangodb-spark-datasource-3.1_2.12:$ARANGO_SPARK_VERSION" \
+    --packages="com.arangodb:arangodb-spark-datasource-3.2_2.12:$ARANGO_SPARK_VERSION" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
