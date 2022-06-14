@@ -16,10 +16,9 @@ SSL=${SSL:=false}
 DATABASE_EXTENDED_NAMES=${DATABASE_EXTENDED_NAMES:=false}
 
 STARTER_DOCKER_IMAGE=docker.io/arangodb/arangodb-starter:latest
-# GW=host.docker.internal
 GW=172.28.0.1
 LOCALGW=localhost
-# docker network create arangodb --subnet 172.28.0.0/16
+docker network create arangodb --subnet 172.28.0.0/16
 
 # exit when any command fails
 set -e
