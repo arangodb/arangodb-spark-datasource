@@ -32,6 +32,12 @@ users_schema = StructType([
     ), nullable=True)
 ])
 
+protocol_and_content_type = [
+    ("vst", "vpack"),
+    ("http", "vpack"),
+    ("http", "json")
+]
+
 
 @pytest.fixture(scope="session")
 def arangodb_client():
@@ -59,7 +65,7 @@ def spark(database_conn):
         .appName("ArangoDBPySparkTest") \
         .master("local[*]") \
         .config("spark.driver.host", "127.0.0.1") \
-        .config("spark.jars", "../arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_2.12-1.4.0-jar-with-dependencies.jar") \
+        .config("spark.jars", "../../arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_2.12-1.4.0-jar-with-dependencies.jar") \
         .getOrCreate()
     setup_users_df(database_conn, spark_session)
     yield spark_session
@@ -106,11 +112,14 @@ def create_df(db: arango.database.StandardDatabase, spark_session: SparkSession,
     for d in [options, additional_options, {"table": name}]:
         all_opts.update(d)
 
-    df = spark_session.read \
+    df_reader = spark_session.read \
         .format(arango_datasource_name) \
         .options(**all_opts) \
-        .schema(schema) \
-        .load()
+
+    if schema:
+        df_reader = df_reader.schema(schema)
+
+    df = df_reader.load()
     df.createOrReplaceTempView(name)
     return df
 
@@ -123,11 +132,14 @@ def create_query_df(spark_session: SparkSession, query: str, schema: StructType,
     for d in [options, additional_options, {"query": query}]:
         all_opts.update(d)
 
-    return spark_session.read \
+    df_reader = spark_session.read \
         .format(arango_datasource_name) \
         .options(**all_opts) \
-        .schema(schema) \
-        .load()
+
+    if schema:
+        df_reader = df_reader.schema(schema)
+
+    return df_reader.load()
 
 
 def drop_table(database_conn, name: str) -> None:
