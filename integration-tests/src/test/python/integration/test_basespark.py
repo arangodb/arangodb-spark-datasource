@@ -8,8 +8,8 @@ from pyspark.sql.types import StructType, ArrayType, DateType, StringType, Struc
 import pytest
 
 
-endpoints = "localhost:8529,localhost:8539,localhost:8549"
-single_endpoint = endpoints.split(",")[0]
+# endpoints = "localhost:8529,localhost:8539,localhost:8549"
+# single_endpoint = endpoints.split(",")[0]
 database = "sparkConnectorTest"
 user = "sparkUser"
 password = "sparkTest"
@@ -40,14 +40,29 @@ protocol_and_content_type = [
 
 
 @pytest.fixture(scope="session")
-def arangodb_client():
+def adb_hostname(pytestconfig):
+    return pytestconfig.getoption("adb_hostname")
+
+
+@pytest.fixture(scope="session")
+def endpoints(adb_hostname: str):
+    return f"{adb_hostname}:8529,{adb_hostname}:8539,{adb_hostname}:8549"
+
+
+@pytest.fixture(scope="session")
+def single_endpoint(endpoints):
+    return endpoints.split(",")[0]
+
+
+@pytest.fixture(scope="session")
+def arangodb_client(single_endpoint: str):
     arangodb = ArangoClient(f"http://{single_endpoint}")
     yield arangodb
     arangodb.close()
 
 
 @pytest.fixture(scope="session")
-def database_conn(arangodb_client):
+def database_conn(arangodb_client, single_endpoint, endpoints):
     db = init_db(arangodb_client)
     is_single = db.cluster.server_role() == "SINGLE"
 
@@ -60,12 +75,12 @@ def database_conn(arangodb_client):
 
 
 @pytest.fixture(scope="session")
-def spark(database_conn):
+def spark(database_conn, pytestconfig):
     spark_session = SparkSession.builder \
         .appName("ArangoDBPySparkTest") \
         .master("local[*]") \
         .config("spark.driver.host", "127.0.0.1") \
-        .config("spark.jars", "../../arangodb-spark-datasource-3.1/target/arangodb-spark-datasource-3.1_2.12-1.4.0-jar-with-dependencies.jar") \
+        .config("spark.jars", pytestconfig.getoption("datasource_jar_loc")) \
         .getOrCreate()
     setup_users_df(database_conn, spark_session)
     yield spark_session
