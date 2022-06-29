@@ -13,41 +13,17 @@ on:
       - devel
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version:
-          - 3.9
-        scala-version:
-          - 2.11
-          - 2.12
-          - 2.13
-        spark-version:
-          - 3.1
-        topology:
-          - single
-        java-version:
-          - 11
-        docker-img:
-          - docker.io/arangodb/arangodb:3.9.1
-        exclude:
-          - scala-version: 2.11
-            spark-version: 3.1
-          - scala-version: 2.11
-            spark-version: 3.2
-          - scala-version: 2.11
-            java-version: 11
-          - scala-version: 2.13
-            spark-version: 2.4
-          - scala-version: 2.13
-            spark-version: 3.1
-          - docker-img: docker.io/arangodb/arangodb:3.8.6
-            java-version: 8
-          - docker-img: docker.io/arangodb/arangodb:3.9.1
-            java-version: 11
+        python-version: [3.9]
+        scala-version: [2.12]
+        spark-version: [3.1]
+        topology: [single]
+        java-version: [11]
+        docker-img: [docker.io/arangodb/arangodb:3.9.1]
 
     steps:
       - uses: actions/checkout@v2
