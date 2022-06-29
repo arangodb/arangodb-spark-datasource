@@ -23,7 +23,7 @@ jobs:
         spark-version: [3.1]
         topology: [single]
         java-version: [11]
-        docker-img: [docker.io/arangodb/arangodb:3.9.1]
+        docker-img: ["docker.io/arangodb/arangodb:3.9.1"]
 
     steps:
       - uses: actions/checkout@v2
