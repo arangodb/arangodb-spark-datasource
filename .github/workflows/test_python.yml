@@ -48,7 +48,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Maven Info
-        run: maven -version
+        run: mvn -version
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
