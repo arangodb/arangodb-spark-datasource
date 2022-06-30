@@ -18,11 +18,13 @@ object WriteDemo {
 
     println("Reading JSON files...")
     val nodesDF = Demo.spark.read.json(Demo.importPath + "/nodes.jsonl")
+      .withColumn("_key", new Column(AssertNotNull(col("_key").expr)))
       .withColumn("releaseDate", unixTsToSparkDate(col("releaseDate")))
       .withColumn("birthday", unixTsToSparkDate(col("birthday")))
       .withColumn("lastModified", unixTsToSparkTs(col("lastModified")))
       .persist()
     val edgesDF = Demo.spark.read.json(Demo.importPath + "/edges.jsonl")
+      .withColumn("_key", new Column(AssertNotNull(col("_key").expr)))
       .withColumn("_from", new Column(AssertNotNull(concat(lit("persons/"), col("_from")).expr)))
       .withColumn("_to", new Column(AssertNotNull(concat(lit("movies/"), col("_to")).expr)))
       .persist()

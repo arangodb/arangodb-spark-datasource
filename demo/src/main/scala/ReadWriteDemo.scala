@@ -1,5 +1,4 @@
 import Schemas.movieSchema
-import org.apache.spark.sql.SparkSession
 
 object ReadWriteDemo {
 
@@ -25,7 +24,7 @@ object ReadWriteDemo {
       >  DEBUG ArangoClient:61 - Executing AQL query:
       >    	FOR d IN @@col FILTER `d`.`genre` != null AND `d`.`genre` == "Action" RETURN {`_key`:`d`.`_key`,`description`:`d`.`description`,`releaseDate`:`d`.`releaseDate`,`runtime`:`d`.`runtime`,`title`:`d`.`title`}
 	    >     with params: Map(@col -> movies)
- */
+    */
 
   }
 

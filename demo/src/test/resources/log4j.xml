@@ -8,13 +8,9 @@
         </layout>
     </appender>
 
-    <logger name="org.apache.spark.sql.arangodb.datasource.reader.ArangoScanBuilder">
-        <level value="INFO"/>
+    <logger name="org.apache.spark.sql.arangodb">
+        <level value="DEBUG"/>
     </logger>
-
-<!--    <logger name="org.apache.spark.sql.arangodb.commons.ArangoClient">-->
-<!--        <level value="DEBUG"/>-->
-<!--    </logger>-->
 
     <root>
         <level value="WARN"/>
