@@ -8,8 +8,6 @@ from pyspark.sql.types import StructType, ArrayType, DateType, StringType, Struc
 import pytest
 
 
-# endpoints = "localhost:8529,localhost:8539,localhost:8549"
-# single_endpoint = endpoints.split(",")[0]
 database = "sparkConnectorTest"
 user = "sparkUser"
 password = "sparkTest"
