@@ -52,7 +52,8 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyspark~=${{matrix.spark-version}}.0 pytest~=7.1.0
+          pip install pyspark~=${{matrix.spark-version}}.0
+          pip install -r integration-tests/src/test/python/test-requirements.txt
       - name: Build Spark Datasource Artifact
         run: |
           mvn -e --no-transfer-progress -DskipTests -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} package
