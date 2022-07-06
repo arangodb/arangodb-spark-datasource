@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, date
 
 import arango.database
@@ -15,8 +16,8 @@ data = [
         "bool": False,
         "integer": 1,
         "date": date.fromisoformat("2021-01-01").isoformat(),
-        "timestampString": datetime.fromisoformat("2021-01-01 01:01:01.111").isoformat(" "),
-        "timestampMillis": datetime.fromisoformat("2021-01-01 01:01:01.111").timestamp(),
+        "timestampString": datetime.fromisoformat("2021-01-01 01:01:01.111").astimezone().isoformat(sep=" ", timespec="milliseconds"),
+        "timestampMillis": datetime.fromisoformat("2021-01-01 01:01:01.111").astimezone().timestamp() * 1000,
         "string": "one",
         "intArray": [1, 1, 1],
         "struct": {
@@ -28,8 +29,8 @@ data = [
         "bool": True,
         "integer": 2,
         "date": date.fromisoformat("2022-02-02").isoformat(),
-        "timestampString": datetime.fromisoformat("2022-02-02 02:02:02.222").isoformat(" "),
-        "timestampMillis": datetime.fromisoformat("2022-02-02 02:02:02.222").timestamp(),
+        "timestampString": datetime.fromisoformat("2022-02-02 02:02:02.222").astimezone().isoformat(sep=" ", timespec="milliseconds"),
+        "timestampMillis": datetime.fromisoformat("2022-02-02 02:02:02.222").astimezone().timestamp() * 1000,
         "string": "two",
         "intArray": [2, 2, 2],
         "struct": {
@@ -108,45 +109,45 @@ def test_date(spark: SparkSession, in_df: pyspark.sql.DataFrame):
     assert sql_res[0][field_name] == date.fromisoformat(value)
 
 
-# FIXME: pyspark - python timestamp comparison
-@pytest.mark.xfail
-def test_timestamp_string(spark: SparkSession, in_df: pyspark.sql.DataFrame):
+def test_timestamp(spark: SparkSession, in_df: pyspark.sql.DataFrame):
     field_name = "timestampString"
-    value = data[0][field_name]
-    value2 = datetime.fromisoformat("2020-01-01 00:00:00.000").isoformat(" ")
 
-    res = in_df.filter(col(field_name).isin(value, value2)).collect()
+    value = datetime.fromisoformat(data[0][field_name]).replace(tzinfo=None)
+    value_str = value.isoformat(" ", timespec="milliseconds")
+    value2 = datetime.fromisoformat("2020-01-01 00:00:00.000").isoformat(" ", timespec="milliseconds")
+
+    res = in_df.filter(col(field_name).isin(value_str, value2)).collect()
 
     assert len(res) == 1
     assert res[0].asDict()[field_name] == value
 
     sql_res = spark.sql(f"""
         SELECT * FROM in
-        WHERE {field_name} IN ("{value}", "{value2}")
+        WHERE {field_name} IN ("{value_str}", "{value2}")
         """).collect()
 
     assert len(sql_res) == 1
     assert sql_res[0][field_name] == value
 
 
-# FIXME: pyspark - python timestamp comparison
-@pytest.mark.xfail
 def test_timestamp_millis(spark: SparkSession, in_df: pyspark.sql.DataFrame):
     field_name = "timestampMillis"
-    value = datetime.fromisoformat("2021-01-01 01:01:01.111").timestamp()
-    value2 = datetime.fromisoformat("2020-01-01 00:00:00.000").timestamp()
-    res = in_df.filter(col(field_name).isin(value, value2)).collect()
+    value = datetime.fromisoformat("2021-01-01 01:01:01.111")
+    value_str = value.isoformat(" ", timespec="milliseconds")
+    value2 = datetime.fromisoformat("2020-01-01 00:00:00.000")
+    value2_str = value2.isoformat(" ", timespec="milliseconds")
+    res = in_df.filter(col(field_name).isin(value_str, value2_str)).collect()
 
     assert len(res) == 1
-    assert res[0].asDict()[field_name] == value
+    assert res[0].asDict()[field_name].timestamp() == value.timestamp()
 
     sql_res = spark.sql(f"""
         SELECT * FROM in
-        WHERE {field_name} IN ("{value}", "{value2}")
+        WHERE {field_name} IN ("{value_str}", "{value2_str}")
         """).collect()
 
     assert len(sql_res) == 1
-    assert sql_res[0][field_name] == value
+    assert sql_res[0][field_name].timestamp() == value.timestamp()
 
 
 def test_string(spark: SparkSession, in_df: pyspark.sql.DataFrame):

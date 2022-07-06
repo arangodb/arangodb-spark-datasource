@@ -18,8 +18,8 @@ data = [
         "integer": 1,
         "long": 1,
         "date": date.fromisoformat("2021-01-01").isoformat(),
-        "timestampString": datetime.fromisoformat("2021-01-01 01:01:01.111").isoformat(" "),
-        "timestampMillis": datetime.fromisoformat("2021-01-01 01:01:01.111").timestamp(),
+        "timestampString": datetime.fromisoformat("2021-01-01 01:01:01.111").astimezone().isoformat(sep=" ", timespec="milliseconds"),
+        "timestampMillis": datetime.fromisoformat("2021-01-01 01:01:01.111").astimezone().timestamp() * 1000,
         "short": 1,
         "byte": 1,
         "string": "one",
@@ -36,8 +36,8 @@ data = [
         "integer": 2,
         "long": 2,
         "date": date.fromisoformat("2022-02-02").isoformat(),
-        "timestampString": datetime.fromisoformat("2022-02-02 02:02:02.222").isoformat(" "),
-        "timestampMillis": datetime.fromisoformat("2022-02-02 02:02:02.222").timestamp(),
+        "timestampString": datetime.fromisoformat("2022-02-02 02:02:02.222").astimezone().isoformat(sep=" ", timespec="milliseconds"),
+        "timestampMillis": datetime.fromisoformat("2022-02-02 02:02:02.222").astimezone().timestamp() * 1000,
         "short": 2,
         "byte": 2,
         "string": "two",
@@ -117,15 +117,16 @@ def test_date(spark: SparkSession, eq_df: pyspark.sql.DataFrame):
 @pytest.mark.xfail
 def test_timestamp_string(spark: SparkSession, eq_df: pyspark.sql.DataFrame):
     field_name = "timestampString"
-    value = data[0][field_name]
-    res = eq_df.filter(col(field_name) == to_timestamp(lit(value))).collect()
+    value = datetime.fromisoformat(data[0][field_name]).replace(tzinfo=None)
+    value_str = value.isoformat(" ", timespec="milliseconds")
+    res = eq_df.filter(eq_df[field_name] == value_str).collect()
 
     assert len(res) == 1
     assert res[0].asDict()[field_name] == value
 
     sql_res = spark.sql(f"""
         SELECT * FROM equalTo
-        WHERE {field_name} = "{value}"
+        WHERE {field_name} = "{value_str}"
         """).collect()
 
     assert len(sql_res) == 1

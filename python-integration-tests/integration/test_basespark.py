@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Any, List, Dict
 
 import arango.database
@@ -7,6 +8,7 @@ import pyspark
 from pyspark.sql.types import StructType, ArrayType, DateType, StringType, StructField
 import pytest
 
+from integration.utils import combine_dicts
 
 database = "sparkConnectorTest"
 user = "sparkUser"
@@ -120,10 +122,7 @@ def create_df(db: arango.database.StandardDatabase, spark_session: SparkSession,
         col = db.create_collection(name, shard_count=6)
 
     col.insert_many(docs)
-
-    all_opts = {}
-    for d in [options, additional_options, {"table": name}]:
-        all_opts.update(d)
+    all_opts = combine_dicts([options, additional_options, {"table": name}])
 
     df_reader = spark_session.read \
         .format(arango_datasource_name) \
