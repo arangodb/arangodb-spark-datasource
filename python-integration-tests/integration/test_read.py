@@ -88,6 +88,9 @@ def test_infer_collection_schema(spark: SparkSession, protocol: str, content_typ
 
 @pytest.mark.parametrize("content_type", ["vpack", "json"])
 def test_infer_collection_schema_with_corrupt_record_column(database_conn: arango.database.StandardDatabase, spark: SparkSession, content_type: str):
+    if database_conn.cluster.server_role() != "SINGLE":
+        pytest.xfail("Inference order only guaranteed when not in Cluster deployment")
+
     additional_options = {
         "columnNameOfCorruptRecord": "badRecord",
         "sampleSize": "2",
