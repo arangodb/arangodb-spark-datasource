@@ -88,7 +88,7 @@ def test_null_to_integer_cast(database_conn: arango.database.StandardDatabase, s
     check_implicit_cast(
         database_conn,
         spark,
-        StructType([StructField("a", IntegerType(), nullable=False)]),
+        StructType([StructField("a", IntegerType())]),
         [{"a": None}],
         ['{"a":null}'],
         content_type
@@ -100,7 +100,7 @@ def test_null_to_double_cast(database_conn: arango.database.StandardDatabase, sp
     check_implicit_cast(
         database_conn,
         spark,
-        StructType([StructField("a", DoubleType(), nullable=False)]),
+        StructType([StructField("a", DoubleType())]),
         [{"a": None}],
         ['{"a":null}'],
         content_type
@@ -112,7 +112,7 @@ def test_null_to_boolean_cast(database_conn: arango.database.StandardDatabase, s
     check_implicit_cast(
         database_conn,
         spark,
-        StructType([StructField("a", BooleanType(), nullable=False)]),
+        StructType([StructField("a", BooleanType())]),
         [{"a": None}],
         ['{"a":null}'],
         content_type
