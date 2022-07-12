@@ -24,11 +24,6 @@ jobs:
         topology: [single, cluster]
         java-version: [8, 11]
         docker-img: ["docker.io/arangodb/arangodb:3.9.1"]
-        include:
-          - python-version: 3.7
-            spark-version: 2.4
-            java-version: 8
-            scala-version: 2.11
 
     steps:
       - uses: actions/checkout@v2
