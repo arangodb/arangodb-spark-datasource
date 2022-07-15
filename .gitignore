@@ -8,3 +8,4 @@
 **/docker/jwtHeader
 **/docker/jwtSecret
 **/.flattened-pom.xml
+__pycache__/
