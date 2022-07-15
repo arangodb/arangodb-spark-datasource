@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - devel
+    paths-ignore:
+      - 'demo/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches:
