@@ -9,6 +9,8 @@ This demo is composed of 3 parts:
 - `ReadWriteDemo`: reads the ArangoDB collections created above as Spark Dataframes, applies projections and filtering,
   writes to a new ArangoDB collection
 
+There are demos available written in Scala & Python (using PySpark) as outlined below.
+
 ## Requirements
 
 This demo requires:
@@ -16,6 +18,9 @@ This demo requires:
 - JDK 1.8 or 11
 - `maven`
 - `docker`
+
+For the python demo, you will also need
+- `python`
 
 ## Prepare the environment
 
@@ -78,4 +83,27 @@ docker run -it --rm \
   ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.2_2.12:$ARANGO_SPARK_VERSION" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
+```
+
+## Python(PySpark) Demo
+
+This demo requires the same environment setup as outlined above.
+Additionally, the python requirements will need to be installed as follows:
+```shell
+pip install -r ./python-demo/requirements.txt
+```
+
+To run the PySpark demo, run 
+```shell
+python ./python-demo/demo.py \
+  --endpoints=172.28.0.1:8529,172.28.0.1:8539,172.28.0.1:8549
+```
+
+To run it against an Oasis deployment, run
+```shell
+python ./python-demo/demo.py \
+  --password=<root-password> \
+  --endpoints=<endpoint> \
+  --ssl-enabled=true \
+  --ssl-cert-value=<base64-encoded-cert>
 ```
