@@ -1,14 +1,11 @@
 package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.entity.ErrorEntity
-import com.arangodb.internal.util.ArangoSerializationFactory.Serializer
-import com.arangodb.internal.{ArangoRequestParam, ArangoResponseField}
-import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
-import com.arangodb.velocypack.VPackSlice
+import com.arangodb.serde.{ArangoSerde, DataType, JacksonSerde}
+import com.arangodb.util.{RawBytes, RawJson}
 import com.arangodb.velocystream.{Request, RequestType}
-import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException}
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, DbName}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
@@ -31,22 +28,26 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     opt
   }
 
-  lazy val arangoDB: ArangoDB = options.driverOptions
-    .builder()
-    .serializer(new ArangoJack() {
-      //noinspection ConvertExpressionToSAM
-      configure(new ArangoJack.ConfigureFunction {
-        override def configure(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
-      })
+  lazy val arangoDB: ArangoDB = {
+    val serde = JacksonSerde.of(options.driverOptions.contentType match {
+      case ContentType.JSON => DataType.JSON
+      case ContentType.VPACK => DataType.VPACK
     })
-    .build()
+    serde.configure(it => it.registerModule(DefaultScalaModule))
+    options.driverOptions
+      .builder()
+      .serializer(serde)
+      .build()
+  }
+
+  lazy val serde: ArangoSerde = arangoDB.getSerde
 
   def shutdown(): Unit = {
     logDebug("closing db client")
     arangoDB.shutdown()
   }
 
-  def readCollectionPartition(shardId: String, filters: Array[PushableFilter], schema: StructType): ArangoCursor[VPackSlice] = {
+  def readCollectionPartition(shardId: String, filters: Array[PushableFilter], schema: StructType): ArangoCursor[RawBytes] = {
     val query =
       s"""
          |FOR d IN @@col
@@ -58,19 +59,19 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val opts = aqlOptions().shardIds(shardId)
     logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
     arangoDB
-      .db(options.readOptions.db)
-      .query(query, params.asJava, opts, classOf[VPackSlice])
+      .db(DbName.of(options.readOptions.db))
+      .query(query, params.asJava, opts, classOf[RawBytes])
   }
 
-  def readQuery(): ArangoCursor[VPackSlice] = {
+  def readQuery(): ArangoCursor[RawBytes] = {
     val query = options.readOptions.query.get
     logDebug(s"Executing AQL query: \n\t$query")
     arangoDB
-      .db(options.readOptions.db)
+      .db(DbName.of(options.readOptions.db))
       .query(
         query,
         aqlOptions(),
-        classOf[VPackSlice])
+        classOf[RawBytes])
   }
 
   def readCollectionSample(): Seq[String] = {
@@ -84,31 +85,32 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
     import scala.collection.JavaConverters.iterableAsScalaIterableConverter
     arangoDB
-      .db(options.readOptions.db)
-      .query(query, params.asJava, opts, classOf[String])
+      .db(DbName.of(options.readOptions.db))
+      .query(query, params.asJava, opts, classOf[RawJson])
       .asListRemaining()
       .asScala
       .toSeq
+      .map(_.getValue)
   }
 
   def readQuerySample(): Seq[String] = {
     val query = options.readOptions.query.get
     logDebug(s"Executing AQL query: \n\t$query")
     val cursor = arangoDB
-      .db(options.readOptions.db)
+      .db(DbName.of(options.readOptions.db))
       .query(
         query,
         aqlOptions(),
-        classOf[String])
+        classOf[RawJson])
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    cursor.asScala.take(options.readOptions.sampleSize).toSeq
+    cursor.asScala.take(options.readOptions.sampleSize).toSeq.map(_.getValue)
   }
 
   def collectionExists(): Boolean = {
     logDebug("checking collection")
     arangoDB
-      .db(options.writeOptions.db)
+      .db(DbName.of(options.writeOptions.db))
       .collection(options.writeOptions.collection)
       .exists()
   }
@@ -120,7 +122,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .`type`(options.writeOptions.collectionType)
 
     arangoDB
-      .db(options.writeOptions.db)
+      .db(DbName.of(options.writeOptions.db))
       .collection(options.writeOptions.collection)
       .create(opts)
   }
@@ -130,7 +132,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     logDebug("truncating collection")
     try {
       arangoDB
-        .db(options.writeOptions.db)
+        .db(DbName.of(options.writeOptions.db))
         .collection(options.writeOptions.collection)
         .truncate()
       logDebug("truncated collection")
@@ -149,15 +151,15 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   def drop(): Unit = {
     logDebug("dropping collection")
     arangoDB
-      .db(options.writeOptions.db)
+      .db(DbName.of(options.writeOptions.db))
       .collection(options.writeOptions.collection)
       .drop()
   }
 
-  def saveDocuments(data: VPackSlice): Unit = {
+  def saveDocuments(data: RawBytes): Unit = {
     logDebug("saving batch")
     val request = new Request(
-      options.writeOptions.db,
+      DbName.of(options.writeOptions.db),
       RequestType.POST,
       s"/_api/document/${options.writeOptions.collection}")
 
@@ -172,17 +174,19 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
     request.putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
 
-    request.setBody(data)
+    request.setBody(data.getValue)
     val response = arangoDB.execute(request)
+    val serde = arangoDB.getSerde
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    val errors = response.getBody.arrayIterator.asScala
-      .zip(data.arrayIterator.asScala)
-      .filter(_._1.get(ArangoResponseField.ERROR).isTrue)
+    val errors = serde.parse(response.getBody).iterator().asScala
+      .zip(serde.parse(data.getValue).iterator().asScala)
+      .filter(_._1.has("error"))
+      .filter(_._1.get("error").booleanValue())
       .map(it => (
-        arangoDB.util().deserialize[ErrorEntity](it._1, classOf[ErrorEntity]),
-        arangoDB.util().deserialize[String](it._2, classOf[String]))
-      )
+        serde.deserialize[ErrorEntity](it._1, classOf[ErrorEntity]),
+        it._2.toString
+      ))
       .toArray
     if (errors.nonEmpty) {
       throw new ArangoDBMultiException(errors)
@@ -207,10 +211,10 @@ object ArangoClient extends Logging {
     val adb = client.arangoDB
     try {
       val res = adb.execute(new Request(
-        options.readOptions.db,
+        DbName.of(options.readOptions.db),
         RequestType.GET,
         s"/_api/collection/${options.readOptions.collection.get}/shards"))
-      val shardIds: Array[String] = adb.util().deserialize(res.getBody.get("shards"), classOf[Array[String]])
+      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody, "/shards", classOf[Array[String]])
       client.shutdown()
       shardIds
     } catch {
@@ -230,10 +234,9 @@ object ArangoClient extends Logging {
     logDebug("acquiring host list")
     val client = ArangoClient(options)
     val adb = client.arangoDB
-    val response = adb.execute(new Request(ArangoRequestParam.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
-    val field = response.getBody.get("endpoints")
-    val res = adb.util(Serializer.CUSTOM)
-      .deserialize[Seq[Map[String, String]]](field, classOf[Seq[Map[String, String]]])
+    val response = adb.execute(new Request(DbName.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
+    val res = adb.getSerde
+      .deserialize[Seq[Map[String, String]]](response.getBody, "/endpoints", classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
     client.shutdown()
     res
