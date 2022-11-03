@@ -57,7 +57,7 @@ object BaseSparkTest {
   val endpoints = "172.28.0.1:8529,172.28.0.1:8539,172.28.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = {
-    val serde = JacksonSerde.of(com.arangodb.serde.DataType.JSON)
+    val serde = JacksonSerde.of(com.arangodb.ContentType.JSON)
     serde.configure(mapper => {
       mapper
         .registerModule(DefaultScalaModule)
