@@ -4,7 +4,7 @@ import com.arangodb.entity.ErrorEntity
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
 import com.arangodb.serde.{ArangoSerde, JacksonSerde}
 import com.arangodb.util.{RawBytes, RawJson}
-import com.arangodb.{Request, RequestType}
+import com.arangodb.Request
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, DbName}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
@@ -36,7 +36,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     serde.configure(it => it.registerModule(DefaultScalaModule))
     options.driverOptions
       .builder()
-      .serializer(serde)
+      .serde(serde)
       .build()
   }
 
@@ -158,28 +158,28 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
   def saveDocuments(data: RawBytes): Unit = {
     logDebug("saving batch")
-    val request = new Request(
-      DbName.of(options.writeOptions.db),
-      RequestType.POST,
-      s"/_api/document/${options.writeOptions.collection}")
+    val request = new Request.Builder[RawBytes]
+      .db(DbName.of(options.writeOptions.db))
+      .method(Request.Method.POST)
+      .path(s"/_api/document/${options.writeOptions.collection}")
+      .queryParam("waitForSync", options.writeOptions.waitForSync.toString)
+      .queryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
+      .queryParam("keepNull", options.writeOptions.keepNull.toString)
+      .queryParam("mergeObjects", options.writeOptions.mergeObjects.toString)
+      .putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
+      .body(RawBytes.of(data.getValue))
+      .build()
 
     // FIXME: atm silent=true cannot be used due to:
     // - https://arangodb.atlassian.net/browse/BTS-592
     // - https://arangodb.atlassian.net/browse/BTS-816
     // request.putQueryParam("silent", true)
-    request.putQueryParam("waitForSync", options.writeOptions.waitForSync)
-    request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
-    request.putQueryParam("keepNull", options.writeOptions.keepNull)
-    request.putQueryParam("mergeObjects", options.writeOptions.mergeObjects)
 
-    request.putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
-
-    request.setBody(data.getValue)
-    val response = arangoDB.execute(request)
+    val response = arangoDB.execute(request, classOf[RawBytes])
     val serde = arangoDB.getSerde
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    val errors = serde.parse(response.getBody).iterator().asScala
+    val errors = serde.parse(response.getBody.getValue).iterator().asScala
       .zip(serde.parse(data.getValue).iterator().asScala)
       .filter(_._1.has("error"))
       .filter(_._1.get("error").booleanValue())
@@ -210,11 +210,13 @@ object ArangoClient extends Logging {
     val client = ArangoClient(options)
     val adb = client.arangoDB
     try {
-      val res = adb.execute(new Request(
-        DbName.of(options.readOptions.db),
-        RequestType.GET,
-        s"/_api/collection/${options.readOptions.collection.get}/shards"))
-      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody, "/shards", classOf[Array[String]])
+      val res = adb.execute(new Request.Builder[Void]()
+        .db(DbName.of(options.readOptions.db))
+        .method(Request.Method.GET)
+        .path(s"/_api/collection/${options.readOptions.collection.get}/shards")
+        .build(),
+        classOf[RawBytes])
+      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.getValue, "/shards", classOf[Array[String]])
       client.shutdown()
       shardIds
     } catch {
@@ -234,9 +236,10 @@ object ArangoClient extends Logging {
     logDebug("acquiring host list")
     val client = ArangoClient(options)
     val adb = client.arangoDB
-    val response = adb.execute(new Request(DbName.SYSTEM, RequestType.GET, "/_api/cluster/endpoints"))
+    val response = adb.execute(new Request.Builder[Void]
+      .db(DbName.SYSTEM).method(Request.Method.GET).path("/_api/cluster/endpoints").build(), classOf[RawBytes])
     val res = adb.getSerde
-      .deserialize[Seq[Map[String, String]]](response.getBody, "/endpoints", classOf[Seq[Map[String, String]]])
+      .deserialize[Seq[Map[String, String]]](response.getBody.getValue, "/endpoints", classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
     client.shutdown()
     res

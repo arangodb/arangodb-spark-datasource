@@ -118,7 +118,7 @@ object SslTest {
       .user(user)
       .password(password)
       .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
-      .serializer(serde)
+      .serde(serde)
       .build()
   }
   private val db: ArangoDatabase = createDB()
