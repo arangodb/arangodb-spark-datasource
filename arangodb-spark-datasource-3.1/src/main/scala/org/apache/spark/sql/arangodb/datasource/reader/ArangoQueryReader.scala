@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
-import com.arangodb.entity.CursorEntity.Warning
+import com.arangodb.entity.CursorWarning
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
@@ -9,7 +9,6 @@ import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.types._
 
-import java.nio.charset.StandardCharsets
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
@@ -35,10 +34,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Parti
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(options.driverOptions.contentType match {
-        case ContentType.VPACK => current.toByteArray
-        case ContentType.JSON => current.toString.getBytes(StandardCharsets.UTF_8)
-      })
+      rowIterator = safeParser.parse(current.getValue)
       if (rowIterator.hasNext) {
         true
       } else {
@@ -58,7 +54,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Parti
     client.shutdown()
   }
 
-  private def logWarns(): Unit = Option(iterator.getWarnings).foreach(_.asScala.foreach((w: Warning) =>
+  private def logWarns(): Unit = Option(iterator.getWarnings).foreach(_.asScala.foreach((w: CursorWarning) =>
     logWarning(s"Got AQL warning: [${w.getCode}] ${w.getMessage}")
   ))
 
