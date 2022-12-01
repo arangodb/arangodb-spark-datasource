@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource.writer
 
-import com.arangodb.ArangoDBMultipleException
+import com.arangodb.{ArangoDBException, ArangoDBMultipleException}
 import com.arangodb.model.OverwriteMode
 import com.arangodb.util.RawBytes
 import org.apache.spark.internal.Logging
@@ -115,13 +115,11 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
     min + delta
   }
 
-  private def isConnectionException(e: Exception): Boolean = e.getCause match {
-    case mEx: ArangoDBMultipleException =>
-      mEx.getExceptions.asScala.forall {
-        case _: ConnectException => true
-        case _: UnknownHostException => true
-        case _ => false
-      }
+  private def isConnectionException(e: Throwable): Boolean = e match {
+    case ae: ArangoDBException => isConnectionException(ae.getCause)
+    case me: ArangoDBMultipleException => me.getExceptions.asScala.forall(isConnectionException)
+    case _: ConnectException => true
+    case _: UnknownHostException => true
     case _ => false
   }
 
