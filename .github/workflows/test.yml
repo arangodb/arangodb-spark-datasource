@@ -17,7 +17,7 @@ on:
 jobs:
 
   test:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:
@@ -93,6 +93,7 @@ jobs:
           path: ./logs.tgz
 
   test-python:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -140,7 +141,7 @@ jobs:
           pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
 
   testSsl:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:

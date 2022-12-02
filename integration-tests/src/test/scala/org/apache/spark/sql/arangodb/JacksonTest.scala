@@ -1,8 +1,7 @@
 package org.apache.spark.sql.arangodb
 
-import com.arangodb.velocypack.VPackParser
 import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
-import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGeneratorProvider, ArangoParserProvider}
+import org.apache.spark.sql.arangodb.commons.mapping.{ArangoGeneratorProvider, ArangoParserProvider, MappingUtils}
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -36,7 +35,7 @@ class JacksonTest {
       |""".stripMargin.replaceAll("\\s", "")
 
   private val jsonBytes = jsonString.getBytes(StandardCharsets.UTF_8)
-  private val vpackBytes = new VPackParser.Builder().build().fromJson(jsonString, true).toByteArray
+  private val vpackBytes = MappingUtils.jsonToVPack(jsonString)
 
   private val schema: StructType = new StructType(
     Array(
