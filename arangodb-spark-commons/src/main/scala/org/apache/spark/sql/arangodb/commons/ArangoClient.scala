@@ -2,9 +2,10 @@ package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.entity.ErrorEntity
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
-import com.arangodb.serde.{ArangoSerde, JacksonSerde}
+import com.arangodb.serde.ArangoSerde
 import com.arangodb.util.{RawBytes, RawJson}
 import com.arangodb.Request
+import com.arangodb.serde.jackson.JacksonSerdeProvider
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, DbName}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
@@ -29,7 +30,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   }
 
   lazy val arangoDB: ArangoDB = {
-    val serde = JacksonSerde.of(options.driverOptions.contentType match {
+    val serde = new JacksonSerdeProvider().of(options.driverOptions.contentType match {
       case ContentType.JSON => com.arangodb.ContentType.JSON
       case ContentType.VPACK => com.arangodb.ContentType.VPACK
     })
