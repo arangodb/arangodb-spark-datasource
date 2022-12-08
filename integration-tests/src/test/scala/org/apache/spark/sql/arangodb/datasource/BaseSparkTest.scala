@@ -7,7 +7,7 @@ import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase, DbName}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types._
@@ -18,6 +18,7 @@ import org.junit.jupiter.params.provider.Arguments
 import java.sql.Date
 import java.time.LocalDate
 import java.util
+import java.util.function.Consumer
 import java.util.stream
 import scala.collection.JavaConverters.asJavaIterableConverter
 
@@ -53,8 +54,8 @@ object BaseSparkTest {
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = {
     val serde = new JacksonSerdeProvider().of(com.arangodb.ContentType.JSON)
-    serde.configure(mapper => {
-      mapper
+    serde.configure(new Consumer[ObjectMapper] {
+      override def accept(mapper: ObjectMapper): Unit = mapper
         .registerModule(DefaultScalaModule)
         .registerModule(new SimpleModule()
           .addSerializer(classOf[Date], new JsonSerializer[Date] {
