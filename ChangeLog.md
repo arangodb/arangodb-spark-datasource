@@ -5,6 +5,10 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.1] - 2022-12-15
+
+- fixed filters pushdown for read mode `query` (#37)
+
 ## [1.4.0] - 2022-05-24
 
 - support for Spark 3.2 (#31)
