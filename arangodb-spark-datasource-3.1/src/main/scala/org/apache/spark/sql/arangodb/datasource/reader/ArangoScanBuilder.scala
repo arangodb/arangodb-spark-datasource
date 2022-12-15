@@ -1,7 +1,7 @@
 package org.apache.spark.sql.arangodb.datasource.reader
 
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ReadMode}
 import org.apache.spark.sql.arangodb.commons.filter.{FilterSupport, PushableFilter}
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
 import org.apache.spark.sql.connector.read.{Scan, ScanBuilder, SupportsPushDownFilters, SupportsPushDownRequiredColumns}
@@ -22,6 +22,13 @@ class ArangoScanBuilder(options: ArangoDBConf, tableSchema: StructType) extends 
   override def build(): Scan = new ArangoScan(new PushDownCtx(readSchema, appliedPushableFilters), options)
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
+    options.readOptions.readMode match {
+      case ReadMode.Collection => pushFiltersReadModeCollection(filters)
+      case ReadMode.Query => filters
+    }
+  }
+
+  private def pushFiltersReadModeCollection(filters: Array[Filter]): Array[Filter] = {
     // filters related to columnNameOfCorruptRecord are not pushed down
     val isCorruptRecordFilter = (f: Filter) => f.references.contains(options.readOptions.columnNameOfCorruptRecord)
     val ignoredFilters = filters.filter(isCorruptRecordFilter)

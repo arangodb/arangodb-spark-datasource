@@ -39,6 +39,13 @@ class ArangoDataSourceReader(tableSchema: StructType, options: ArangoDBConf) ext
       .map(it => ArangoPartition.ofCollection(it._1, it._2, new PushDownCtx(readSchema(), appliedPushableFilters), options))
 
   override def pushFilters(filters: Array[Filter]): Array[Filter] = {
+    options.readOptions.readMode match {
+      case ReadMode.Collection => pushFiltersReadModeCollection(filters)
+      case ReadMode.Query => filters
+    }
+  }
+
+  private def pushFiltersReadModeCollection(filters: Array[Filter]): Array[Filter] = {
     // filters related to columnNameOfCorruptRecord are not pushed down
     val isCorruptRecordFilter = (f: Filter) => f.references.contains(options.readOptions.columnNameOfCorruptRecord)
     val ignoredFilters = filters.filter(isCorruptRecordFilter)
