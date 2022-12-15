@@ -5,7 +5,7 @@ import org.apache.spark.SparkException
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.types.{NullType, NumericType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -165,6 +165,28 @@ class ReadTest extends BaseSparkTest {
       .load()
 
     assertThat(df.count()).isEqualTo(10)
+  }
+
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def readQueryWithFilter(protocol: String, contentType: String): Unit = {
+    val query =
+      """
+        |FOR i IN 1..10
+        | RETURN { idx: i, value: SHA1(i) }
+        |""".stripMargin.replaceAll("\n", "")
+
+    val df = spark.read
+      .format(BaseSparkTest.arangoDatasource)
+      .options(options + (
+        ArangoDBConf.QUERY -> query,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType
+      ))
+      .load()
+      .filter(col("idx") === 3)
+
+    assertThat(df.count()).isEqualTo(1)
   }
 
   @ParameterizedTest
