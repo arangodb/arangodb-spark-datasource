@@ -26,9 +26,6 @@ docker pull $STARTER_DOCKER_IMAGE
 docker pull $DOCKER_IMAGE
 
 LOCATION=$(pwd)/$(dirname "$0")
-
-echo "Averysecretword" > "$LOCATION"/jwtSecret
-docker run --rm -v "$LOCATION"/jwtSecret:/jwtSecret "$STARTER_DOCKER_IMAGE" auth header --auth.jwt-secret /jwtSecret > "$LOCATION"/jwtHeader
 AUTHORIZATION_HEADER=$(cat "$LOCATION"/jwtHeader)
 
 STARTER_ARGS=
@@ -41,7 +38,7 @@ if [ "$STARTER_MODE" == "single" ]; then
 fi
 
 if [ "$SSL" == "true" ]; then
-    STARTER_ARGS="$STARTER_ARGS --ssl.keyfile=server.pem"
+    STARTER_ARGS="$STARTER_ARGS --ssl.keyfile=/cfg/server.pem"
     SCHEME=https
     ARANGOSH_SCHEME=http+ssl
 fi
@@ -50,26 +47,24 @@ if [ "$DATABASE_EXTENDED_NAMES" == "true" ]; then
     STARTER_ARGS="${STARTER_ARGS} --all.database.extended-names-databases=true"
 fi
 
-if [ "$USE_MOUNTED_DATA" == "true" ]; then
-    STARTER_ARGS="${STARTER_ARGS} --starter.data-dir=/data"
-    MOUNT_DATA="-v $LOCATION/data:/data"
-fi
+# cfg data volume
+docker create -v /cfg --name cfg alpine:3 /bin/true
+docker cp "$LOCATION"/jwtSecret cfg:/cfg
+docker cp "$LOCATION"/server.pem cfg:/cfg
 
 docker run -d \
     --name=adb \
     -p 8528:8528 \
-    -v "$LOCATION"/server.pem:/server.pem \
-    -v "$LOCATION"/jwtSecret:/jwtSecret \
-    $MOUNT_DATA \
+    --volumes-from cfg \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e ARANGO_LICENSE_KEY="$ARANGO_LICENSE_KEY" \
     $STARTER_DOCKER_IMAGE \
     $STARTER_ARGS \
     --docker.container=adb \
-    --auth.jwt-secret=/jwtSecret \
+    --auth.jwt-secret=/cfg/jwtSecret \
     --starter.address="${GW}" \
     --docker.image="${DOCKER_IMAGE}" \
-    --starter.local --starter.mode=${STARTER_MODE} --all.log.level=debug --all.log.output=+ --log.verbose
+    --starter.local --starter.mode=${STARTER_MODE} --all.log.level=debug --all.log.output=+ --log.verbose --all.server.descriptors-minimum=1024
 
 
 wait_server() {

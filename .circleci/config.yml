@@ -1,0 +1,74 @@
+version: 2.1
+
+executors:
+  j8:
+    docker:
+      - image: 'cimg/openjdk:8.0'
+  j11:
+    docker:
+      - image: 'cimg/openjdk:11.0'
+
+jobs:
+  test:
+    parameters:
+      jdk:
+        type: string
+      topology:
+        type: string
+      scala-version:
+        type: string
+      spark-version:
+        type: string
+      docker-img:
+        type: string
+    executor: <<parameters.jdk>>
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Start Database
+          command: ./docker/start_db.sh
+          environment:
+            STARTER_MODE: <<parameters.topology>>
+      - run:
+          name: test
+          command: mvn -e --no-transfer-progress -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> test
+
+workflows:
+  maven_test:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              jdk:
+                - j8
+                - j11
+              topology:
+                - single
+                - cluster
+              scala-version:
+                - '2.11'
+                - '2.12'
+                - '2.13'
+              spark-version:
+                - '2.4'
+                - '3.1'
+                - '3.2'
+              docker-img:
+                - docker.io/arangodb/arangodb:3.9.5
+                - docker.io/arangodb/arangodb:3.10.1
+            exclude:
+              - scala-version: '2.11'
+                spark-version: '3.1'
+              - scala-version: '2.11'
+                spark-version: '3.2'
+              - scala-version: '2.11'
+                jdk: j11
+              - scala-version: '2.13'
+                spark-version: '2.4'
+              - scala-version: '2.13'
+                spark-version: '3.1'
+              - docker-img: docker.io/arangodb/arangodb:3.9.5
+                jdk: j8
+              - docker-img: docker.io/arangodb/arangodb:3.10.1
+                jdk: j11
