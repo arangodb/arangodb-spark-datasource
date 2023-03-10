@@ -3,12 +3,9 @@ package org.apache.spark.sql.arangodb.commons
 import com.arangodb.entity.ErrorEntity
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
 import com.arangodb.serde.ArangoSerde
+import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.util.{RawBytes, RawJson}
-import com.arangodb.Request
-import com.arangodb.serde.jackson.JacksonSerdeProvider
-import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, DbName}
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.arangodb._
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
@@ -16,7 +13,6 @@ import org.apache.spark.sql.types.StructType
 
 import java.util.UUID
 import java.util.concurrent.TimeoutException
-import java.util.function.Consumer
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 
@@ -32,12 +28,9 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   }
 
   lazy val arangoDB: ArangoDB = {
-    val serde = new JacksonSerdeProvider().of(options.driverOptions.contentType match {
+    val serde = JacksonSerde.of(options.driverOptions.contentType match {
       case ContentType.JSON => com.arangodb.ContentType.JSON
       case ContentType.VPACK => com.arangodb.ContentType.VPACK
-    })
-    serde.configure(new Consumer[ObjectMapper] {
-      override def accept(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
     })
     options.driverOptions
       .builder()

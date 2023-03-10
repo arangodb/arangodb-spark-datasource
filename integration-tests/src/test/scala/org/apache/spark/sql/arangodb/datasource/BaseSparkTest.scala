@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.entity.ServerRole
 import com.arangodb.model.CollectionCreateOptions
-import com.arangodb.serde.jackson.JacksonSerdeProvider
+import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase, DbName}
 import com.fasterxml.jackson.core.JsonGenerator
@@ -53,7 +53,8 @@ object BaseSparkTest {
   val endpoints = "172.28.0.1:8529,172.28.0.1:8539,172.28.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
   private val arangoDB: ArangoDB = {
-    val serde = new JacksonSerdeProvider().of(com.arangodb.ContentType.JSON)
+    val serde = JacksonSerde.of(com.arangodb.ContentType.JSON)
+    //noinspection ConvertExpressionToSAM
     serde.configure(new Consumer[ObjectMapper] {
       override def accept(mapper: ObjectMapper): Unit = mapper
         .registerModule(DefaultScalaModule)
