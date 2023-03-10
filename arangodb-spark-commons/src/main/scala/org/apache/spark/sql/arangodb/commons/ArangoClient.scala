@@ -8,8 +8,6 @@ import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
 import com.arangodb.velocypack.VPackSlice
 import com.arangodb.velocystream.{Request, RequestType}
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException}
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
@@ -32,12 +30,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
   lazy val arangoDB: ArangoDB = options.driverOptions
     .builder()
-    .serializer(new ArangoJack() {
-      //noinspection ConvertExpressionToSAM
-      configure(new ArangoJack.ConfigureFunction {
-        override def configure(mapper: ObjectMapper): Unit = mapper.registerModule(DefaultScalaModule)
-      })
-    })
+    .serializer(new ArangoJack())
     .build()
 
   def shutdown(): Unit = {
