@@ -179,36 +179,6 @@
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>jackson-serde-json</artifactId>
-            <version>7.0.0-ALPHA.4</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.arangodb</groupId>
-            <artifactId>jackson-serde-vpack</artifactId>
-            <version>7.0.0-ALPHA.4</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.arangodb</groupId>
-                    <artifactId>jackson-dataformat-velocypack</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.arangodb</groupId>
             <artifactId>jackson-dataformat-velocypack${jackson.vpack.variant}</artifactId>
             <version>${jackson.vpack.version}</version>
             <exclusions>
