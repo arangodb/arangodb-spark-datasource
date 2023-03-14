@@ -58,7 +58,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
     arangoDB
       .db(DbName.of(options.readOptions.db))
-      .query(query, params.asJava, opts, classOf[RawBytes])
+      .query(query, classOf[RawBytes], params.asJava, opts)
   }
 
   def readQuery(): ArangoCursor[RawBytes] = {
@@ -68,8 +68,8 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .db(DbName.of(options.readOptions.db))
       .query(
         query,
-        aqlOptions(),
-        classOf[RawBytes])
+        classOf[RawBytes],
+        aqlOptions())
   }
 
   def readCollectionSample(): Seq[String] = {
@@ -84,7 +84,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     import scala.collection.JavaConverters.iterableAsScalaIterableConverter
     arangoDB
       .db(DbName.of(options.readOptions.db))
-      .query(query, params.asJava, opts, classOf[RawJson])
+      .query(query, classOf[RawJson], params.asJava, opts)
       .asListRemaining()
       .asScala
       .toSeq
@@ -98,8 +98,8 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .db(DbName.of(options.readOptions.db))
       .query(
         query,
-        aqlOptions(),
-        classOf[RawJson])
+        classOf[RawJson],
+        aqlOptions())
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
     cursor.asScala.take(options.readOptions.sampleSize).toSeq.map(_.getValue)
