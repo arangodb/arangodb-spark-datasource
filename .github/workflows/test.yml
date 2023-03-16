@@ -6,6 +6,7 @@ on:
       - main
       - devel
     paths-ignore:
+      - '.github/**'
       - 'demo/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
@@ -57,8 +58,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-java@v2
         with:
           java-version: ${{matrix.java-version}}
@@ -107,8 +106,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-java@v2
         with:
           java-version: ${{matrix.java-version}}
@@ -177,8 +174,6 @@ jobs:
             java-version: 11
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-java@v2
         with:
           java-version: ${{matrix.java-version}}
@@ -254,8 +249,6 @@ jobs:
             spark-full-version: 3.2.1
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - uses: actions/setup-java@v2
         with:
           java-version: '8'
