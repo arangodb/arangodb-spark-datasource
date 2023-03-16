@@ -33,7 +33,7 @@ export ARANGO_SPARK_VERSION=1.4.2
 Start ArangoDB cluster with docker:
 
 ```shell
-STARTER_MODE=cluster ./docker/start_db.sh
+STARTER_MODE=cluster SSL=true ./docker/start_db.sh
 ```
 
 The deployed cluster will be accessible at [http://172.28.0.1:8529](http://172.28.0.1:8529) with username `root` and
@@ -50,7 +50,7 @@ Start Spark cluster:
 Test the Spark application in embedded mode:
 
 ```shell
-mvn test
+mvn test -Djavax.net.ssl.trustStore=$(pwd)/docker/truststore/example.truststore -Djavax.net.ssl.trustStorePassword=12345678
 ```
 
 Test the Spark application against ArangoDB Oasis deployment:
@@ -59,7 +59,6 @@ Test the Spark application against ArangoDB Oasis deployment:
 mvn \
   -Dpassword=<root-password> \
   -Dendpoints=<endpoint> \
-  -Dssl.enabled=true \
   -Dssl.cert.value=<base64-encoded-cert> \
   test
 ```
@@ -78,10 +77,13 @@ Submit demo program:
 docker run -it --rm \
   -v $(pwd):/demo \
   -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
+  -v $(pwd)/docker/truststore:/truststore \
   --network arangodb \
   docker.io/bitnami/spark:3.2.1 \
   ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.2_2.12:$ARANGO_SPARK_VERSION" \
+    --conf "spark.driver.extraJavaOptions=-Djavax.net.ssl.trustStore=/truststore/example.truststore -Djavax.net.ssl.trustStorePassword=12345678" \
+    --conf "spark.executor.extraJavaOptions=-Djavax.net.ssl.trustStore=/truststore/example.truststore -Djavax.net.ssl.trustStorePassword=12345678" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
@@ -104,6 +106,5 @@ To run it against an Oasis deployment, run
 python ./python-demo/demo.py \
   --password=<root-password> \
   --endpoints=<endpoint> \
-  --ssl-enabled=true \
   --ssl-cert-value=<base64-encoded-cert>
 ```
