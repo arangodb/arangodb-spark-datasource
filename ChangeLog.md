@@ -5,6 +5,10 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.4.2] - 2023-03-16
+
+- added debug header `x-arango-spark-request-id`
+
 ## [1.4.1] - 2022-12-15
 
 - fixed filters pushdown for read mode `query` (#37)
