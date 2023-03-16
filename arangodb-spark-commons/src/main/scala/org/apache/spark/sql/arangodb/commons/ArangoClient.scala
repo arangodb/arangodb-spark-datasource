@@ -15,6 +15,7 @@ import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
 import org.apache.spark.sql.arangodb.commons.filter.PushableFilter
 import org.apache.spark.sql.types.StructType
 
+import java.util.UUID
 import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.mapAsJavaMapConverter
@@ -168,6 +169,8 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     request.putQueryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
     request.putQueryParam("keepNull", options.writeOptions.keepNull)
     request.putQueryParam("mergeObjects", options.writeOptions.mergeObjects)
+
+    request.putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
 
     request.setBody(data)
     val response = arangoDB.execute(request)
