@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.reader
 import com.arangodb.entity.CursorWarning
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
@@ -34,7 +34,7 @@ class ArangoQueryReader(schema: StructType, options: ArangoDBConf) extends Parti
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(current.getValue)
+      rowIterator = safeParser.parse(current.get)
       if (rowIterator.hasNext) {
         true
       } else {

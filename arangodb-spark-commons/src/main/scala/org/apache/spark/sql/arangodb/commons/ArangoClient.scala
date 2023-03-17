@@ -88,7 +88,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .asListRemaining()
       .asScala
       .toSeq
-      .map(_.getValue)
+      .map(_.get)
   }
 
   def readQuerySample(): Seq[String] = {
@@ -102,7 +102,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
         aqlOptions())
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    cursor.asScala.take(options.readOptions.sampleSize).toSeq.map(_.getValue)
+    cursor.asScala.take(options.readOptions.sampleSize).toSeq.map(_.get)
   }
 
   def collectionExists(): Boolean = {
@@ -165,7 +165,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .queryParam("keepNull", options.writeOptions.keepNull.toString)
       .queryParam("mergeObjects", options.writeOptions.mergeObjects.toString)
       .putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
-      .body(RawBytes.of(data.getValue))
+      .body(RawBytes.of(data.get))
       .build()
 
     // FIXME: atm silent=true cannot be used due to:
@@ -177,8 +177,8 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val serde = arangoDB.getSerde
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    val errors = serde.parse(response.getBody.getValue).iterator().asScala
-      .zip(serde.parse(data.getValue).iterator().asScala)
+    val errors = serde.parse(response.getBody.get).iterator().asScala
+      .zip(serde.parse(data.get).iterator().asScala)
       .filter(_._1.has("error"))
       .filter(_._1.get("error").booleanValue())
       .map(it => (
@@ -214,7 +214,7 @@ object ArangoClient extends Logging {
         .path(s"/_api/collection/${options.readOptions.collection.get}/shards")
         .build(),
         classOf[RawBytes])
-      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.getValue, "/shards", classOf[Array[String]])
+      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
       client.shutdown()
       shardIds
     } catch {
@@ -237,7 +237,7 @@ object ArangoClient extends Logging {
     val response = adb.execute(new Request.Builder[Void]
       .db(DbName.SYSTEM).method(Request.Method.GET).path("/_api/cluster/endpoints").build(), classOf[RawBytes])
     val res = adb.getSerde
-      .deserialize[Seq[Map[String, String]]](response.getBody.getValue, "/endpoints", classOf[Seq[Map[String, String]]])
+      .deserialize[Seq[Map[String, String]]](response.getBody.get, "/endpoints", classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
     client.shutdown()
     res

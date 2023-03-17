@@ -4,13 +4,12 @@ import com.arangodb.entity.CursorWarning
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.mapping.ArangoParserProvider
 import org.apache.spark.sql.arangodb.commons.utils.PushDownCtx
-import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
+import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.util.FailureSafeParser
 import org.apache.spark.sql.connector.read.PartitionReader
 import org.apache.spark.sql.types.StructType
 
-import java.nio.charset.StandardCharsets
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
@@ -39,7 +38,7 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(current.getValue)
+      rowIterator = safeParser.parse(current.get)
       if (rowIterator.hasNext) {
         true
       } else {

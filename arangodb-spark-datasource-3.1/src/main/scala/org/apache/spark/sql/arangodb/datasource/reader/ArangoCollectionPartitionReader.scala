@@ -38,7 +38,7 @@ class ArangoCollectionPartitionReader(inputPartition: ArangoCollectionPartition,
   final override def next: Boolean =
     if (iterator.hasNext) {
       val current = iterator.next()
-      rowIterator = safeParser.parse(current.getValue)
+      rowIterator = safeParser.parse(current.get)
       if (rowIterator.hasNext) {
         true
       } else {
