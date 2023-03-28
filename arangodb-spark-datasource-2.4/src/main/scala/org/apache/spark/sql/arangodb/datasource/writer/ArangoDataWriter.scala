@@ -21,6 +21,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
   extends DataWriter[InternalRow] with Logging {
 
   private var failures = 0
+  private var exceptions: List[Exception] = List()
   private var requestCount = 0L
   private var endpointIdx = partitionId
   private val endpoints = Stream.continually(options.driverOptions.endpoints).flatten
@@ -90,10 +91,12 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
       client.saveDocuments(payload)
       logDebug(s"Received response #$requestCount for partition $partitionId")
       failures = 0
+      exceptions = List()
     } catch {
       case e: Exception =>
         client.shutdown()
         failures += 1
+        exceptions = e :: exceptions
         endpointIdx += 1
         if ((canRetry || isConnectionException(e)) && failures < options.writeOptions.maxAttempts) {
           val delay = computeDelay()
@@ -102,7 +105,7 @@ class ArangoDataWriter(schema: StructType, options: ArangoDBConf, partitionId: I
           client = createClient()
           saveDocuments(payload)
         } else {
-          throw new ArangoDBDataWriterException(e, failures)
+          throw new ArangoDBDataWriterException(exceptions.reverse.toArray)
         }
     }
   }

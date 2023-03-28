@@ -87,7 +87,7 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
     assertThat(thrown.getCause.getCause.asInstanceOf[ArangoDBDataWriterException].attempts).isEqualTo(1)
-    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 1 times, most recent failure:")
+    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 1 times:")
 
     val validInserted = db.query(
       s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN d""",
@@ -121,7 +121,7 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
     assertThat(thrown.getCause.getCause.asInstanceOf[ArangoDBDataWriterException].attempts).isEqualTo(10)
-    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 10 times, most recent failure:")
+    assertThat(thrown.getCause.getCause.getMessage).contains("Failed 10 times:")
 
     val rootEx = thrown.getCause.getCause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
