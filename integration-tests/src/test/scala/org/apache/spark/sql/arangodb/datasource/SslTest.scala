@@ -2,7 +2,7 @@ package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
-import com.arangodb.{ArangoDB, ArangoDatabase, DbName}
+import com.arangodb.{ArangoDB, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
@@ -140,7 +140,7 @@ object SslTest {
     .getOrCreate()
 
   private def createDB(): ArangoDatabase = {
-    val db = arangoDB.db(DbName.of(database))
+    val db = arangoDB.db(database)
     if (!db.exists()) db.create()
     db
   }

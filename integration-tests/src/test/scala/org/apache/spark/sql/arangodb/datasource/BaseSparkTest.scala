@@ -4,7 +4,7 @@ import com.arangodb.entity.ServerRole
 import com.arangodb.model.CollectionCreateOptions
 import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
-import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase, DbName}
+import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
@@ -78,7 +78,7 @@ object BaseSparkTest {
       .serde(serde)
       .build()
   }
-  private val db: ArangoDatabase = arangoDB.db(DbName.of(database))
+  private val db: ArangoDatabase = arangoDB.db(database)
   private val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
   private val options = Map(
     "database" -> database,

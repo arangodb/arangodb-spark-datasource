@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.commons
 
-import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, DbName, Request}
+import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, Request}
 import com.arangodb.entity.ErrorEntity
 import com.arangodb.internal.serde.InternalSerdeProvider
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
@@ -57,7 +57,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val opts = aqlOptions().shardIds(shardId)
     logDebug(s"""Executing AQL query: \n\t$query ${if (params.nonEmpty) s"\n\t with params: $params" else ""}""")
     arangoDB
-      .db(DbName.of(options.readOptions.db))
+      .db(options.readOptions.db)
       .query(query, classOf[RawBytes], params.asJava, opts)
   }
 
@@ -65,7 +65,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val query = options.readOptions.query.get
     logDebug(s"Executing AQL query: \n\t$query")
     arangoDB
-      .db(DbName.of(options.readOptions.db))
+      .db(options.readOptions.db)
       .query(
         query,
         classOf[RawBytes],
@@ -83,7 +83,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
 
     import scala.collection.JavaConverters.iterableAsScalaIterableConverter
     arangoDB
-      .db(DbName.of(options.readOptions.db))
+      .db(options.readOptions.db)
       .query(query, classOf[RawJson], params.asJava, opts)
       .asListRemaining()
       .asScala
@@ -95,7 +95,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val query = options.readOptions.query.get
     logDebug(s"Executing AQL query: \n\t$query")
     val cursor = arangoDB
-      .db(DbName.of(options.readOptions.db))
+      .db(options.readOptions.db)
       .query(
         query,
         classOf[RawJson],
@@ -108,7 +108,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   def collectionExists(): Boolean = {
     logDebug("checking collection")
     arangoDB
-      .db(DbName.of(options.writeOptions.db))
+      .db(options.writeOptions.db)
       .collection(options.writeOptions.collection)
       .exists()
   }
@@ -120,7 +120,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .`type`(options.writeOptions.collectionType)
 
     arangoDB
-      .db(DbName.of(options.writeOptions.db))
+      .db(options.writeOptions.db)
       .collection(options.writeOptions.collection)
       .create(opts)
   }
@@ -130,7 +130,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     logDebug("truncating collection")
     try {
       arangoDB
-        .db(DbName.of(options.writeOptions.db))
+        .db(options.writeOptions.db)
         .collection(options.writeOptions.collection)
         .truncate()
       logDebug("truncated collection")
@@ -149,7 +149,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   def drop(): Unit = {
     logDebug("dropping collection")
     arangoDB
-      .db(DbName.of(options.writeOptions.db))
+      .db(options.writeOptions.db)
       .collection(options.writeOptions.collection)
       .drop()
   }
@@ -157,7 +157,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   def saveDocuments(data: RawBytes): Unit = {
     logDebug("saving batch")
     val request = new Request.Builder[RawBytes]
-      .db(DbName.of(options.writeOptions.db))
+      .db(options.writeOptions.db)
       .method(Request.Method.POST)
       .path(s"/_api/document/${options.writeOptions.collection}")
       .queryParam("waitForSync", options.writeOptions.waitForSync.toString)
@@ -209,7 +209,7 @@ object ArangoClient extends Logging {
     val adb = client.arangoDB
     try {
       val res = adb.execute(new Request.Builder[Void]()
-        .db(DbName.of(options.readOptions.db))
+        .db(options.readOptions.db)
         .method(Request.Method.GET)
         .path(s"/_api/collection/${options.readOptions.collection.get}/shards")
         .build(),
@@ -235,7 +235,7 @@ object ArangoClient extends Logging {
     val client = ArangoClient(options)
     val adb = client.arangoDB
     val response = adb.execute(new Request.Builder[Void]
-      .db(DbName.SYSTEM).method(Request.Method.GET).path("/_api/cluster/endpoints").build(), classOf[RawBytes])
+      .method(Request.Method.GET).path("/_api/cluster/endpoints").build(), classOf[RawBytes])
     val res = adb.getSerde
       .deserialize[Seq[Map[String, String]]](response.getBody.get, "/endpoints", classOf[Seq[Map[String, String]]])
       .map(it => it("endpoint").replaceFirst(".*://", ""))
