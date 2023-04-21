@@ -164,7 +164,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .queryParam("overwriteMode", options.writeOptions.overwriteMode.getValue)
       .queryParam("keepNull", options.writeOptions.keepNull.toString)
       .queryParam("mergeObjects", options.writeOptions.mergeObjects.toString)
-      .putHeaderParam("x-arango-spark-request-id", UUID.randomUUID.toString)
+      .header("x-arango-spark-request-id", UUID.randomUUID.toString)
       .body(RawBytes.of(data.get))
       .build()
 
