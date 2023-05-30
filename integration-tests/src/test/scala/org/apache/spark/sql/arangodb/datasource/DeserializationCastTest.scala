@@ -62,6 +62,7 @@ class DeserializationCastTest extends BaseSparkTest {
   def nullToIntegerCast(contentType: String): Unit = {
     // FIXME: DE-599
     assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+    assumeTrue(!SPARK_VERSION.startsWith("3.4"))
 
     doTestImplicitCast(
       StructType(Array(StructField("a", IntegerType, nullable = false))),
@@ -76,6 +77,7 @@ class DeserializationCastTest extends BaseSparkTest {
   def nullToDoubleCast(contentType: String): Unit = {
     // FIXME: DE-599
     assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+    assumeTrue(!SPARK_VERSION.startsWith("3.4"))
 
     doTestImplicitCast(
       StructType(Array(StructField("a", DoubleType, nullable = false))),
@@ -90,6 +92,7 @@ class DeserializationCastTest extends BaseSparkTest {
   def nullAsBoolean(contentType: String): Unit = {
     // FIXME: DE-599
     assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+    assumeTrue(!SPARK_VERSION.startsWith("3.4"))
 
     doTestImplicitCast(
       StructType(Array(StructField("a", BooleanType, nullable = false))),

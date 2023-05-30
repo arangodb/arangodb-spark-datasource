@@ -118,6 +118,15 @@
             </properties>
         </profile>
         <profile>
+            <id>spark-3.4</id>
+            <properties>
+                <spark.version>3.4.0</spark.version>
+                <spark.compat.version>3.4</spark.compat.version>
+                <jackson.vpack.variant/>
+                <jackson.vpack.version>4.1.0</jackson.vpack.version>
+            </properties>
+        </profile>
+        <profile>
             <id>no-deploy</id>
             <activation>
                 <property>

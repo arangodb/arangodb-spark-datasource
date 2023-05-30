@@ -187,8 +187,15 @@ class AbortTest extends BaseSparkTest {
     })
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
-    val rootEx = thrown.getCause.getCause.getCause
+
+    val cause = if(SPARK_VERSION.startsWith("3.4")) {
+      thrown.getCause
+    } else {
+      thrown.getCause.getCause
+    }
+
+    assertThat(cause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    val rootEx = cause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = rootEx.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.length).isEqualTo(1)

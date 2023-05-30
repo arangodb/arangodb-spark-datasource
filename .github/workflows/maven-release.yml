@@ -24,6 +24,14 @@ jobs:
             spark-version: 3.2
           - scala-version: 2.13
             spark-version: 3.2
+          - scala-version: 2.12
+            spark-version: 3.3
+          - scala-version: 2.13
+            spark-version: 3.3
+          - scala-version: 2.12
+            spark-version: 3.4
+          - scala-version: 2.13
+            spark-version: 3.4
 
     steps:
       - uses: actions/checkout@v2

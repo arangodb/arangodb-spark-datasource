@@ -12,6 +12,26 @@ jobs:
 
     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - scala-version: 2.11
+            spark-version: 2.4
+          - scala-version: 2.12
+            spark-version: 2.4
+          - scala-version: 2.12
+            spark-version: 3.1
+          - scala-version: 2.12
+            spark-version: 3.2
+          - scala-version: 2.13
+            spark-version: 3.2
+          - scala-version: 2.12
+            spark-version: 3.3
+          - scala-version: 2.13
+            spark-version: 3.3
+          - scala-version: 2.12
+            spark-version: 3.4
+          - scala-version: 2.13
+            spark-version: 3.4
 
     steps:
       - uses: actions/checkout@v2
