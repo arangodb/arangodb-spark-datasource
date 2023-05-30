@@ -298,7 +298,7 @@ object ArangoDBConf {
    * @param comment Additional info regarding to the removed config. For example,
    *                reasons of config deprecation, what users should use instead of it.
    */
-  case class DeprecatedConfig(key: String, version: String, comment: String)
+  final case class DeprecatedConfig(key: String, version: String, comment: String)
 
   /**
    * Maps deprecated Spark ArangoDB config keys to information about the deprecation.
@@ -320,7 +320,7 @@ object ArangoDBConf {
    *                     users that they set non-default value to an already removed config.
    * @param comment      Additional info regarding to the removed config.
    */
-  case class RemovedConfig(key: String, version: String, defaultValue: String, comment: String)
+  final case class RemovedConfig(key: String, version: String, defaultValue: String, comment: String)
 
   /**
    * The map contains info about removed Spark ArangoDB configs. Keys are Spark ArangoDB config names,
@@ -363,7 +363,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
 
   /** Return the value of Spark ArangoDB configuration property for the given key. */
   @throws[NoSuchElementException]("if key is not set")
-  def getConfString(key: String): String = settings.get(key).getOrElse(throw new NoSuchElementException(key))
+  def getConfString(key: String): String = settings.getOrElse(key, throw new NoSuchElementException(key))
 
   /**
    * Return the value of Spark ArangoDB configuration property for the given key. If the key is not set
@@ -389,7 +389,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    * Return the `string` value of Spark ArangoDB configuration property for the given key. If the key is
    * not set, return `defaultValue`.
    */
-  def getConfString(key: String, defaultValue: String): String = settings.get(key).getOrElse(defaultValue)
+  def getConfString(key: String, defaultValue: String): String = settings.getOrElse(key, defaultValue)
 
   /**
    * Return all the configuration properties that have been set (i.e. not the default).
@@ -403,7 +403,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
    */
   def getAllDefinedConfigs: Seq[(String, String, String)] =
     confEntries.values.filter(_.isPublic).map { entry =>
-      val displayValue = settings.get(entry.key).getOrElse(entry.defaultValueString)
+      val displayValue = settings.getOrElse(entry.key, entry.defaultValueString)
       (entry.key, displayValue, entry.doc)
     }.toSeq
 

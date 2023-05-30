@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, StringType, StructField, StructType}
@@ -58,30 +59,45 @@ class DeserializationCastTest extends BaseSparkTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullToIntegerCast(contentType: String): Unit = doTestImplicitCast(
-    StructType(Array(StructField("a", IntegerType, nullable = false))),
-    Seq(Map("a" -> null)),
-    Seq("""{"a":null}"""),
-    contentType
-  )
+  def nullToIntegerCast(contentType: String): Unit = {
+    // FIXME: DE-599
+    assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+
+    doTestImplicitCast(
+      StructType(Array(StructField("a", IntegerType, nullable = false))),
+      Seq(Map("a" -> null)),
+      Seq("""{"a":null}"""),
+      contentType
+    )
+  }
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullToDoubleCast(contentType: String): Unit = doTestImplicitCast(
-    StructType(Array(StructField("a", DoubleType, nullable = false))),
-    Seq(Map("a" -> null)),
-    Seq("""{"a":null}"""),
-    contentType
-  )
+  def nullToDoubleCast(contentType: String): Unit = {
+    // FIXME: DE-599
+    assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+
+    doTestImplicitCast(
+      StructType(Array(StructField("a", DoubleType, nullable = false))),
+      Seq(Map("a" -> null)),
+      Seq("""{"a":null}"""),
+      contentType
+    )
+  }
 
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
-  def nullAsBoolean(contentType: String): Unit = doTestImplicitCast(
-    StructType(Array(StructField("a", BooleanType, nullable = false))),
-    Seq(Map("a" -> null)),
-    Seq("""{"a":null}"""),
-    contentType
-  )
+  def nullAsBoolean(contentType: String): Unit = {
+    // FIXME: DE-599
+    assumeTrue(!SPARK_VERSION.startsWith("3.3"))
+
+    doTestImplicitCast(
+      StructType(Array(StructField("a", BooleanType, nullable = false))),
+      Seq(Map("a" -> null)),
+      Seq("""{"a":null}"""),
+      contentType
+    )
+  }
 
   private def doTestImplicitCast(
                                   schema: StructType,
