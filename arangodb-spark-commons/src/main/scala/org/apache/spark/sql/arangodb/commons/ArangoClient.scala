@@ -2,9 +2,8 @@ package org.apache.spark.sql.arangodb.commons
 
 import com.arangodb.{ArangoCursor, ArangoDB, ArangoDBException, Request}
 import com.arangodb.entity.ErrorEntity
-import com.arangodb.internal.serde.InternalSerdeProvider
+import com.arangodb.internal.serde.{InternalSerde, InternalSerdeProvider}
 import com.arangodb.model.{AqlQueryOptions, CollectionCreateOptions}
-import com.arangodb.serde.ArangoSerde
 import com.arangodb.util.{RawBytes, RawJson}
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.exceptions.ArangoDBMultiException
@@ -38,7 +37,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
       .build()
   }
 
-  lazy val serde: ArangoSerde = arangoDB.getSerde
+  lazy val serde: InternalSerde = arangoDB.getSerde
 
   def shutdown(): Unit = {
     logDebug("closing db client")
@@ -174,7 +173,6 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     // request.putQueryParam("silent", true)
 
     val response = arangoDB.execute(request, classOf[RawBytes])
-    val serde = arangoDB.getSerde
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
     val errors = serde.parse(response.getBody.get).iterator().asScala
