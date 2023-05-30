@@ -1,8 +1,8 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.entity.ServerRole
-import com.arangodb.mapping.ArangoJack
 import com.arangodb.model.CollectionCreateOptions
+import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDBException, ArangoDatabase}
 import com.fasterxml.jackson.core.JsonGenerator
@@ -12,12 +12,13 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
-import org.junit.jupiter.api.{AfterEach, BeforeAll}
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.params.provider.Arguments
 
 import java.sql.Date
 import java.time.LocalDate
 import java.util
+import java.util.function.Consumer
 import java.util.stream
 import scala.collection.JavaConverters.asJavaIterableConverter
 
@@ -29,11 +30,6 @@ class BaseSparkTest {
   protected val spark: SparkSession = BaseSparkTest.spark
   protected val options: Map[String, String] = BaseSparkTest.options
   protected val usersDF: DataFrame = BaseSparkTest.usersDF
-
-  @AfterEach
-  def shutdown(): Unit = {
-    arangoDB.shutdown()
-  }
 
   def isSingle: Boolean = BaseSparkTest.isSingle
 
@@ -56,28 +52,32 @@ object BaseSparkTest {
   private val rootPassword = "test"
   val endpoints = "172.28.0.1:8529,172.28.0.1:8539,172.28.0.1:8549"
   private val singleEndpoint = endpoints.split(',').head
-  private val arangoDB: ArangoDB = new ArangoDB.Builder()
-    .user(rootUser)
-    .password(rootPassword)
-    .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
-    .serializer(new ArangoJack() {
-      //noinspection ConvertExpressionToSAM
-      configure(new ArangoJack.ConfigureFunction {
-        override def configure(mapper: ObjectMapper): Unit = mapper
-          .registerModule(DefaultScalaModule)
-          .registerModule(new SimpleModule()
-            .addSerializer(classOf[Date], new JsonSerializer[Date] {
-              override def serialize(value: Date, gen: JsonGenerator, serializers: SerializerProvider): Unit =
-                gen.writeString(value.toString)
-            })
-            .addSerializer(classOf[LocalDate], new JsonSerializer[LocalDate] {
-              override def serialize(value: LocalDate, gen: JsonGenerator, serializers: SerializerProvider): Unit =
-                gen.writeString(value.toString)
-            })
-          )
-      })
+  private val arangoDB: ArangoDB = {
+    val serde = JacksonSerde.of(com.arangodb.ContentType.JSON)
+    //noinspection ConvertExpressionToSAM
+    serde.configure(new Consumer[ObjectMapper] {
+      override def accept(mapper: ObjectMapper): Unit = mapper
+        .registerModule(DefaultScalaModule)
+        .registerModule(new SimpleModule()
+          .addSerializer(classOf[Date], new JsonSerializer[Date] {
+            override def serialize(value: Date, gen: JsonGenerator, serializers: SerializerProvider): Unit =
+              gen.writeString(value.toString)
+          })
+          .addSerializer(classOf[LocalDate], new JsonSerializer[LocalDate] {
+            override def serialize(value: LocalDate, gen: JsonGenerator, serializers: SerializerProvider): Unit =
+              gen.writeString(value.toString)
+          })
+        )
+        .configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     })
-    .build()
+
+    new ArangoDB.Builder()
+      .user(rootUser)
+      .password(rootPassword)
+      .host(singleEndpoint.split(':').head, singleEndpoint.split(':')(1).toInt)
+      .serde(serde)
+      .build()
+  }
   private val db: ArangoDatabase = arangoDB.db(database)
   private val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
   private val options = Map(

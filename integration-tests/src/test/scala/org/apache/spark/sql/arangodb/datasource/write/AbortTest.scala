@@ -91,8 +91,8 @@ class AbortTest extends BaseSparkTest {
 
     val validInserted = db.query(
       s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN d""",
-      new AqlQueryOptions().count(true),
-      classOf[Int]
+      classOf[Int],
+      new AqlQueryOptions().count(true)
     ).getCount
 
     assertThat(validInserted).isEqualTo(1)

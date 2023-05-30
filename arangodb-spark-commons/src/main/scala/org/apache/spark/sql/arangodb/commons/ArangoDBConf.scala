@@ -476,7 +476,7 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   def builder(): ArangoDB.Builder = {
     val builder = new ArangoDB.Builder()
-      .useProtocol(arangoProtocol)
+      .protocol(arangoProtocol)
       .timeout(timeout)
       .user(user)
       .maxConnections(1)

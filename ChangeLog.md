@@ -5,6 +5,8 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- updated Java Driver to version `7.0`
+
 ## [1.4.3] - 2023-03-28
 
 - added previous attempts exceptions in `ArangoDBDataWriterException`

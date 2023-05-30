@@ -1,10 +1,9 @@
 package org.apache.spark.sql.arangodb.datasource.mapping
 
 import com.arangodb.jackson.dataformat.velocypack.VPackFactory
-import com.arangodb.velocypack.{VPackParser, VPackSlice}
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
 import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
-import org.apache.spark.sql.arangodb.commons.mapping.{ArangoParser, ArangoParserProvider}
+import org.apache.spark.sql.arangodb.commons.mapping.{ArangoParser, ArangoParserProvider, MappingUtils}
 import org.apache.spark.sql.arangodb.datasource.mapping.json.{JSONOptions, JacksonParser}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.types.DataType
@@ -41,5 +40,5 @@ class VPackArangoParser(schema: DataType, conf: ArangoDBConf)
   extends ArangoParserImpl(
     schema,
     createOptions(new VPackFactory(), conf),
-    (bytes: Array[Byte]) => UTF8String.fromString(new VPackParser.Builder().build().toJson(new VPackSlice(bytes), true))
+    (bytes: Array[Byte]) => UTF8String.fromString(MappingUtils.vpackToJson(bytes))
   )
