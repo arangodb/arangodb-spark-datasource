@@ -264,6 +264,24 @@ jobs:
           - spark-version: 3.2
             scala-version: 2.13
             spark-full-version: 3.2.1
+          - spark-version: 3.2
+            scala-version: 2.12
+            spark-full-version: 3.2.2
+          - spark-version: 3.2
+            scala-version: 2.13
+            spark-full-version: 3.2.2
+          - spark-version: 3.2
+            scala-version: 2.12
+            spark-full-version: 3.2.3
+          - spark-version: 3.2
+            scala-version: 2.13
+            spark-full-version: 3.2.3
+          - spark-version: 3.2
+            scala-version: 2.12
+            spark-full-version: 3.2.4
+          - spark-version: 3.2
+            scala-version: 2.13
+            spark-full-version: 3.2.4
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
