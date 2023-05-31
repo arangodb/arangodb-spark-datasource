@@ -79,7 +79,8 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
           ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
-          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name,
+          ArangoDBConf.BATCH_SIZE -> "9"
         ))
         .save()
     })
@@ -113,7 +114,8 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
           ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
-          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name,
+          ArangoDBConf.BATCH_SIZE -> "9"
         ))
         .save()
     })
@@ -150,7 +152,8 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.COLLECTION -> collectionName,
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
-          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.BATCH_SIZE -> "9"
         ))
         .save()
     })
@@ -181,14 +184,22 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
           ArangoDBConf.CONFIRM_TRUNCATE -> "true",
-          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.BATCH_SIZE -> "1"
         ))
         .save()
     })
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause.getCause).isInstanceOf(classOf[ArangoDBDataWriterException])
-    val rootEx = thrown.getCause.getCause.getCause
+
+    val cause = if(SPARK_VERSION.startsWith("3.4")) {
+      thrown.getCause
+    } else {
+      thrown.getCause.getCause
+    }
+
+    assertThat(cause).isInstanceOf(classOf[ArangoDBDataWriterException])
+    val rootEx = cause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
     val errors = rootEx.asInstanceOf[ArangoDBMultiException].errors
     assertThat(errors.length).isEqualTo(1)
