@@ -79,7 +79,8 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
           ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
-          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name
+          ArangoDBConf.COLLECTION_TYPE -> CollectionType.EDGE.name,
+          ArangoDBConf.BATCH_SIZE -> "9"
         ))
         .save()
     })
@@ -181,7 +182,8 @@ class AbortTest extends BaseSparkTest {
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
           ArangoDBConf.CONFIRM_TRUNCATE -> "true",
-          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.replace.getValue,
+          ArangoDBConf.BATCH_SIZE -> "1"
         ))
         .save()
     })

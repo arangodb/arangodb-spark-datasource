@@ -58,7 +58,8 @@ class OverwriteModeTest extends BaseSparkTest {
           ArangoDBConf.COLLECTION -> collectionName,
           ArangoDBConf.PROTOCOL -> protocol,
           ArangoDBConf.CONTENT_TYPE -> contentType,
-          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.conflict.getValue
+          ArangoDBConf.OVERWRITE_MODE -> OverwriteMode.conflict.getValue,
+          ArangoDBConf.BATCH_SIZE -> "3"
         ))
         .save()
     })
