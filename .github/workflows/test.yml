@@ -362,7 +362,7 @@ jobs:
         scala-version:
           - 2.12
         spark-version:
-          - 3.2
+          - 3.4
         topology:
           - single
         java-version:
