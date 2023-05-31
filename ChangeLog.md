@@ -5,7 +5,11 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-- updated Java Driver to version `7.0`
+## [1.5.0] - 2023-05-31
+
+- support for Spark 3.4 (#45)
+- support for Spark 3.3 (#44)
+- updated Java Driver to version `7.0` (#35)
 
 ## [1.4.3] - 2023-03-28
 
