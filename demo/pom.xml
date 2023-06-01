@@ -62,9 +62,6 @@
         </profile>
         <profile>
             <id>spark-3.3</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <spark.version>3.3.2</spark.version>
                 <spark.compat.version>3.3</spark.compat.version>
@@ -72,6 +69,9 @@
         </profile>
         <profile>
             <id>spark-3.4</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <spark.version>3.4.0</spark.version>
                 <spark.compat.version>3.4</spark.compat.version>
