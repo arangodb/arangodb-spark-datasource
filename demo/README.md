@@ -42,7 +42,7 @@ password `test`.
 Start Spark cluster:
 
 ```shell
-./docker/start_spark_3.2.sh 
+./docker/start_spark_3.3.sh 
 ```
 
 ## Run embedded
@@ -79,9 +79,9 @@ docker run -it --rm \
   -v $(pwd):/demo \
   -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   --network arangodb \
-  docker.io/bitnami/spark:3.2.4 \
+  docker.io/bitnami/spark:3.3.2 \
   ./bin/spark-submit --master spark://spark-master:7077 \
-    --packages="com.arangodb:arangodb-spark-datasource-3.2_2.12:$ARANGO_SPARK_VERSION" \
+    --packages="com.arangodb:arangodb-spark-datasource-3.3_2.12:$ARANGO_SPARK_VERSION" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
