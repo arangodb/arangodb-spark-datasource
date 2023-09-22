@@ -206,22 +206,29 @@ object ArangoClient extends Logging {
     val client = ArangoClient(options)
     val adb = client.arangoDB
     try {
+      val colName = options.readOptions.collection.get
       val res = adb.execute(new Request.Builder[Void]()
         .db(options.readOptions.db)
         .method(Request.Method.GET)
-        .path(s"/_api/collection/${options.readOptions.collection.get}/shards")
+        .path(s"/_api/collection/$colName/shards")
         .build(),
         classOf[RawBytes])
       val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
       client.shutdown()
-      shardIds
+      if (shardIds.isEmpty) {
+        // Smart Edge collections return empty shardIds (BTS-1596)
+        logWarning(s"Got empty shardIds for collection '$colName', reading will not be parallelized.")
+        Array(null)
+      } else {
+        shardIds
+      }
     } catch {
       case e: ArangoDBException =>
         client.shutdown()
         // single server < 3.8  returns Response: 500, Error: 4 - internal error
         // single server >= 3.8 returns Response: 501, Error: 9 - shards API is only available in a cluster
         if (INTERNAL_ERROR_CODE.equals(e.getErrorNum) || SHARDS_API_UNAVAILABLE_CODE.equals(e.getErrorNum)) {
-          Array("")
+          Array(null)
         } else {
           throw e
         }
