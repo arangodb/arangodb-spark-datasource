@@ -14,6 +14,7 @@ import java.util.UUID
 import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.mapAsJavaMapConverter
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 @SuppressWarnings(Array("OptionGet"))
 class ArangoClient(options: ArangoDBConf) extends Logging {
@@ -207,21 +208,23 @@ object ArangoClient extends Logging {
     val adb = client.arangoDB
     try {
       val colName = options.readOptions.collection.get
-      val res = adb.execute(new Request.Builder[Void]()
+      val props = adb.execute(new Request.Builder[Void]()
         .db(options.readOptions.db)
         .method(Request.Method.GET)
-        .path(s"/_api/collection/$colName/shards")
+        .path(s"/_api/collection/$colName/properties")
         .build(),
-        classOf[RawBytes])
-      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
+        classOf[java.util.Map[String, Any]]).getBody.asScala
+
+      val shardIds: Array[String] =
+        if (props("isSmart") == true && props("type") == 3) {
+          // Smart Edge collection (BTS-1595, BTS-1596)
+          requestShards(adb, options.readOptions.db, s"_local_$colName") ++
+            requestShards(adb, options.readOptions.db, s"_from_$colName")
+        } else {
+          requestShards(adb, options.readOptions.db, colName)
+        }
       client.shutdown()
-      if (shardIds.isEmpty) {
-        // Smart Edge collections return empty shardIds (BTS-1596)
-        logWarning(s"Got empty shardIds for collection '$colName', reading will not be parallelized.")
-        Array(null)
-      } else {
-        shardIds
-      }
+      shardIds
     } catch {
       case e: ArangoDBException =>
         client.shutdown()
@@ -233,6 +236,16 @@ object ArangoClient extends Logging {
           throw e
         }
     }
+  }
+
+  private def requestShards(adb: ArangoDB, db: String, col: String): Array[String] = {
+    val res = adb.execute(new Request.Builder[Void]()
+      .db(db)
+      .method(Request.Method.GET)
+      .path(s"/_api/collection/$col/shards")
+      .build(),
+      classOf[RawBytes])
+    adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
   }
 
   def acquireHostList(options: ArangoDBConf): Iterable[String] = {
