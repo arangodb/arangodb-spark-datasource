@@ -13,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util
 import scala.collection.JavaConverters.asJavaIterableConverter
 import scala.collection.immutable
-import scala.jdk.CollectionConverters.asJavaCollectionConverter
 
 class ReadSmartEdgeCollectionTest extends BaseSparkTest {
 
@@ -68,7 +67,7 @@ object ReadSmartEdgeCollectionTest {
       .numberOfShards(2)
       .isSmart(true)
       .smartGraphAttribute("name")
-    BaseSparkTest.db.createGraph(name, List(ed).asJavaCollection, opts)
+    BaseSparkTest.db.createGraph(name, List(ed).asJava.asInstanceOf[util.Collection[EdgeDefinition]], opts)
     BaseSparkTest.db.collection(name).insertDocuments(data.asJava.asInstanceOf[util.Collection[Any]])
   }
 }
