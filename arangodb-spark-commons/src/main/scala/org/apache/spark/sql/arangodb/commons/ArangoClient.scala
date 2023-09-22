@@ -206,13 +206,22 @@ object ArangoClient extends Logging {
     val client = ArangoClient(options)
     val adb = client.arangoDB
     try {
-      val res = adb.execute(new Request.Builder[Void]()
+      val colName = options.readOptions.collection.get
+      val props = adb.execute(new Request.Builder[Void]()
         .db(options.readOptions.db)
         .method(Request.Method.GET)
-        .path(s"/_api/collection/${options.readOptions.collection.get}/shards")
+        .path(s"/_api/collection/$colName/properties")
         .build(),
-        classOf[RawBytes])
-      val shardIds: Array[String] = adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
+        classOf[java.util.Map[String, Any]]).getBody
+
+      val shardIds: Array[String] =
+        if (props.get("isSmart") == true && props.get("type") == 3) {
+          // Smart Edge collection (BTS-1595, BTS-1596)
+          requestShards(adb, options.readOptions.db, s"_local_$colName") ++
+            requestShards(adb, options.readOptions.db, s"_from_$colName")
+        } else {
+          requestShards(adb, options.readOptions.db, colName)
+        }
       client.shutdown()
       shardIds
     } catch {
@@ -221,11 +230,21 @@ object ArangoClient extends Logging {
         // single server < 3.8  returns Response: 500, Error: 4 - internal error
         // single server >= 3.8 returns Response: 501, Error: 9 - shards API is only available in a cluster
         if (INTERNAL_ERROR_CODE.equals(e.getErrorNum) || SHARDS_API_UNAVAILABLE_CODE.equals(e.getErrorNum)) {
-          Array("")
+          Array(null)
         } else {
           throw e
         }
     }
+  }
+
+  private def requestShards(adb: ArangoDB, db: String, col: String): Array[String] = {
+    val res = adb.execute(new Request.Builder[Void]()
+      .db(db)
+      .method(Request.Method.GET)
+      .path(s"/_api/collection/$col/shards")
+      .build(),
+      classOf[RawBytes])
+    adb.getSerde.deserialize(res.getBody.get, "/shards", classOf[Array[String]])
   }
 
   def acquireHostList(options: ArangoDBConf): Iterable[String] = {

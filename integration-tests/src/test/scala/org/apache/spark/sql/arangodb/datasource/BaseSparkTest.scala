@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import com.arangodb.entity.ServerRole
+import com.arangodb.entity.{License, ServerRole}
 import com.arangodb.model.CollectionCreateOptions
 import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
@@ -33,7 +33,9 @@ class BaseSparkTest {
 
   def isSingle: Boolean = BaseSparkTest.isSingle
 
-  def isCluster: Boolean = !BaseSparkTest.isSingle
+  def isCluster: Boolean = BaseSparkTest.isCluster
+
+  def isEnterprise: Boolean = BaseSparkTest.isEnterprise
 }
 
 object BaseSparkTest {
@@ -78,8 +80,10 @@ object BaseSparkTest {
       .serde(serde)
       .build()
   }
-  private val db: ArangoDatabase = arangoDB.db(database)
-  private val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
+  val db: ArangoDatabase = arangoDB.db(database)
+  val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
+  val isCluster: Boolean = !isSingle
+  val isEnterprise: Boolean = arangoDB.getVersion.getLicense == License.ENTERPRISE
   private val options = Map(
     "database" -> database,
     "user" -> user,
