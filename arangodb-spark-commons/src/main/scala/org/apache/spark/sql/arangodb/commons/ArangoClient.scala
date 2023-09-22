@@ -14,7 +14,6 @@ import java.util.UUID
 import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.mapAsJavaMapConverter
-import scala.jdk.CollectionConverters.MapHasAsScala
 
 @SuppressWarnings(Array("OptionGet"))
 class ArangoClient(options: ArangoDBConf) extends Logging {
@@ -213,10 +212,10 @@ object ArangoClient extends Logging {
         .method(Request.Method.GET)
         .path(s"/_api/collection/$colName/properties")
         .build(),
-        classOf[java.util.Map[String, Any]]).getBody.asScala
+        classOf[java.util.Map[String, Any]]).getBody
 
       val shardIds: Array[String] =
-        if (props("isSmart") == true && props("type") == 3) {
+        if (props.get("isSmart") == true && props.get("type") == 3) {
           // Smart Edge collection (BTS-1595, BTS-1596)
           requestShards(adb, options.readOptions.db, s"_local_$colName") ++
             requestShards(adb, options.readOptions.db, s"_from_$colName")
