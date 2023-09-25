@@ -3,6 +3,7 @@ package org.apache.spark.sql.arangodb.datasource.write
 import com.arangodb.ArangoCollection
 import com.arangodb.entity.BaseDocument
 import com.arangodb.model.OverwriteMode
+import com.arangodb.util.RawJson
 import org.apache.spark.SparkException
 import org.apache.spark.sql.SaveMode
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
@@ -13,6 +14,8 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+
+import scala.jdk.CollectionConverters.{iterableAsScalaIterableConverter, mapAsJavaMapConverter}
 
 
 class OverwriteModeTest extends BaseSparkTest {
@@ -165,7 +168,15 @@ class OverwriteModeTest extends BaseSparkTest {
       ))
       .save()
 
-    assertThat(collection.count().getCount).isEqualTo(1L)
+    val count = collection.count().getCount
+    if (count > 1L) {
+      // debug test failure
+      val allDocs = db.query("FOR d in @@col RETURN d", classOf[RawJson],
+        Map("@col" -> collectionName).asInstanceOf[Map[String, AnyRef]].asJava).asScala
+      println("docs in collection: ")
+      for (d <- allDocs) println(d.get())
+    }
+    assertThat(count).isEqualTo(1L)
     val c = collection.getDocument("Carlsen", classOf[BaseDocument])
     assertThat(c.getProperties.containsKey("name")).isTrue
     assertThat(c.getProperties.get("name")).isNull()
