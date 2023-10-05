@@ -5,6 +5,8 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- dropped support for Spark 2.4
+
 ## [1.5.1] - 2023-09-25
 
 - fixed reading from smart edge collections (#47)

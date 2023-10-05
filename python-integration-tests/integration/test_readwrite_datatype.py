@@ -94,8 +94,8 @@ def test_round_trip_read_write(spark: SparkSession, protocol: str, content_type:
 
 @pytest.mark.parametrize("protocol,content_type", test_basespark.protocol_and_content_type)
 def test_round_trip_read_write_decimal_type(spark: SparkSession, protocol: str, content_type: str):
-    if content_type != "vpack" or spark.version.startswith("2.4"):
-        pytest.xfail("vpack and Spark 2.4 don't support round trip decimal types")
+    if content_type != "vpack":
+        pytest.xfail("vpack does not support round trip decimal types")
 
     schema_with_decimal = StructType(copy.deepcopy(struct_fields))
     schema_with_decimal.add(StructField("decimal", DecimalType(38, 18), nullable=False))

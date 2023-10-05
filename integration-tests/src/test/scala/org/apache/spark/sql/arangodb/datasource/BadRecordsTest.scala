@@ -106,9 +106,7 @@ class BadRecordsTest extends BaseSparkTest {
 
     assertThat(thrown.getCause).isInstanceOf(classOf[SparkException])
     assertThat(thrown.getCause).hasMessageContaining("Malformed record")
-    if (!SPARK_VERSION.startsWith("2.4")) { // [SPARK-25886]
-      assertThat(thrown.getCause).hasCauseInstanceOf(classOf[BadRecordException])
-    }
+    assertThat(thrown.getCause).hasCauseInstanceOf(classOf[BadRecordException])
   }
 
   private def doTestBadRecord(

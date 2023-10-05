@@ -61,13 +61,6 @@
 
     <profiles>
         <profile>
-            <id>scala-2.11</id>
-            <properties>
-                <scala.version>2.11.12</scala.version>
-                <scala.compat.version>2.11</scala.compat.version>
-            </properties>
-        </profile>
-        <profile>
             <id>scala-2.12</id>
             <properties>
                 <scala.version>2.12.15</scala.version>
@@ -79,15 +72,6 @@
             <properties>
                 <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-            </properties>
-        </profile>
-        <profile>
-            <id>spark-2.4</id>
-            <properties>
-                <spark.version>2.4.8</spark.version>
-                <spark.compat.version>2.4</spark.compat.version>
-                <jackson.vpack.variant>_2.6</jackson.vpack.variant>
-                <jackson.vpack.version>0.2.0</jackson.vpack.version>
             </properties>
         </profile>
         <profile>

@@ -101,7 +101,6 @@ class ReadWriteDataTypeTest extends BaseSparkTest {
   def roundTripReadWriteDecimalType(protocol: String, contentType: String): Unit = {
     // FIXME
     assumeTrue(contentType == "vpack")
-    assumeTrue(!SPARK_VERSION.startsWith("2.4"))
 
     val schemaWithDecimal = schema.add(StructField("decimal", DecimalType(38, 18), nullable = false))
     val df: DataFrame = spark.createDataFrame(spark.sparkContext.parallelize(data), schemaWithDecimal)
