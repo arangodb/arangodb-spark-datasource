@@ -61,8 +61,7 @@ def check_bad_record(db: arango.database.StandardDatabase, spark: SparkSession, 
 
     e.match("SparkException")
     e.match("Malformed record")
-    if not spark.version.startswith("2.4"):
-        e.match("BadRecordException")
+    e.match("BadRecordException")
 
 
 @pytest.mark.parametrize("content_type", content_types)
