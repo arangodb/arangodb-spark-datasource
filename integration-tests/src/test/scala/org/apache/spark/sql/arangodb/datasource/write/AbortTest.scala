@@ -91,7 +91,7 @@ class AbortTest extends BaseSparkTest {
     assertThat(thrown.getCause.getCause.getMessage).contains("Failed 1 times:")
 
     val validInserted = db.query(
-      s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN d""",
+      s"""FOR d IN $collectionName FILTER d.name == "valid" RETURN 1""",
       classOf[Int],
       new AqlQueryOptions().count(true)
     ).getCount
