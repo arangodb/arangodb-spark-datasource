@@ -1,4 +1,4 @@
-![ArangoDB-Logo](https://www.arangodb.com/docs/assets/arangodb_logo_2016_inverted.png)
+![ArangoDB-Logo](https://arangodb.com/wp-content/uploads/2023/09/ArangoDB-dark-logo-2022.png)
 
 # ArangoDB Datasource for Apache Spark
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.arangodb/arangodb-spark-datasource-3.1_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.arangodb/arangodb-spark-datasource-3.1_2.12)
