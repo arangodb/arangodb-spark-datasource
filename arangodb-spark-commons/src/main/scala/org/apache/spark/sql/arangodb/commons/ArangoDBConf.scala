@@ -155,6 +155,13 @@ object ArangoDBConf {
     .booleanConf
     .createWithDefault(true)
 
+  val TTL = "ttl"
+  val DEFAULT_TTL = 30
+  val ttlConf: ConfigEntry[Int] = ConfigBuilder(TTL)
+    .doc("cursor ttl in seconds")
+    .intConf
+    .createWithDefault(DEFAULT_TTL)
+
   val PARSE_MODE = "mode"
   val parseModeConf: ConfigEntry[String] = ConfigBuilder(PARSE_MODE)
     .doc("allows a mode for dealing with corrupt records during parsing")
@@ -273,6 +280,7 @@ object ArangoDBConf {
     SAMPLE_SIZE -> sampleSizeConf,
     FILL_BLOCK_CACHE -> fillBlockCacheConf,
     STREAM -> streamConf,
+    TTL -> ttlConf,
     PARSE_MODE -> parseModeConf,
     COLUMN_NAME_OF_CORRUPT_RECORD -> columnNameOfCorruptRecordConf,
 
@@ -530,6 +538,8 @@ class ArangoDBReadConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
   val fillBlockCache: Boolean = getConf(fillBlockCacheConf)
 
   val stream: Boolean = getConf(streamConf)
+
+  val ttl: Int = getConf(ttlConf)
 
   val parseMode: ParseMode = ParseMode.fromString(getConf(parseModeConf))
 

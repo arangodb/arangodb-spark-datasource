@@ -21,6 +21,7 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
   private def aqlOptions(): AqlQueryOptions = {
     val opt = new AqlQueryOptions()
       .stream(options.readOptions.stream)
+      .ttl(options.readOptions.ttl)
       .fillBlockCache(options.readOptions.fillBlockCache)
       .batchSize(options.readOptions.batchSize)
     opt
