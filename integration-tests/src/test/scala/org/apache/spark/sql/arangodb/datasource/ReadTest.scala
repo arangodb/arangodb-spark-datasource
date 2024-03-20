@@ -229,9 +229,9 @@ class ReadTest extends BaseSparkTest {
   def readTtl(protocol: String, contentType: String): Unit = {
     val query =
       """
-        |FOR i IN 1..3
-        |RETURN { value: SLEEP(2) }
-        |""".stripMargin.replaceAll("\n", "")
+        |FOR i IN 1..10
+        |RETURN { value: null }
+        |""".stripMargin.replaceAll("\n", " ")
 
     val df = spark.read
       .format(BaseSparkTest.arangoDatasource)
@@ -248,18 +248,11 @@ class ReadTest extends BaseSparkTest {
       .load()
 
     val thrown: Throwable = catchThrowable(new ThrowingCallable() {
-      override def call(): Unit = df.show()
+      override def call(): Unit = df.foreach(_ => Thread.sleep(2000L))
     })
 
-    assertThat(thrown)
-      .isInstanceOf(classOf[SparkException])
-
-    assertThat(thrown.getCause.getSuppressed).isNotEmpty
-    assertThat(thrown.getCause.getSuppressed.head).isInstanceOf(classOf[ArangoDBException])
-
-    val aEx = thrown.getCause.getSuppressed.head.asInstanceOf[ArangoDBException]
-    assertThat(aEx.getResponseCode).isEqualTo(404)
-    assertThat(aEx.getErrorNum).isEqualTo(1600)
-    assertThat(aEx.getMessage).contains("cursor not found")
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getMessage).contains("Error: 1600")
+    assertThat(thrown.getMessage).contains("cursor not found")
   }
 }
