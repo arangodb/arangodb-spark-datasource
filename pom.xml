@@ -5,7 +5,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>1.5.1</version>
+    <version>1.6.0</version>
 
     <name>${project.artifactId}</name>
     <description>ArangoDB Datasource for Apache Spark</description>

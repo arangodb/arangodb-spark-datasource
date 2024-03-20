@@ -5,6 +5,10 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.6.0] - 2024-03-20
+
+- support to query `ttl` (#50)
+- updated Java Driver to version `7.5.1`
 - dropped support for Spark 2.4
 
 ## [1.5.1] - 2023-09-25
