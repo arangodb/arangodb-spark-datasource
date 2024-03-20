@@ -49,12 +49,12 @@ class ReadTest extends BaseSparkTest {
   @Test
   def readCollectionSql(): Unit = {
     val litalien = spark.sql(
-      """
-        |SELECT likes
-        |FROM users
-        |WHERE name == ("Prudence" AS first, "Litalien" AS last)
-        |    AND likes == ARRAY("swimming", "chess")
-        |""".stripMargin)
+        """
+          |SELECT likes
+          |FROM users
+          |WHERE name == ("Prudence" AS first, "Litalien" AS last)
+          |    AND likes == ARRAY("swimming", "chess")
+          |""".stripMargin)
       .first()
     assertThat(litalien.get(0)).isEqualTo(Seq("swimming", "chess"))
   }
@@ -139,7 +139,7 @@ class ReadTest extends BaseSparkTest {
     val badRecords = df.filter("badRecord IS NOT NULL").persist()
       .select("badRecord")
       .collect()
-      .map(_ (0).asInstanceOf[String])
+      .map(_(0).asInstanceOf[String])
 
     assertThat(badRecords).hasSize(1)
     assertThat(badRecords.head).contains(""""v":"3""")
@@ -191,7 +191,7 @@ class ReadTest extends BaseSparkTest {
 
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
-  def reatTimeout(protocol: String, contentType: String): Unit = {
+  def readTimeout(protocol: String, contentType: String): Unit = {
     val query =
       """
         |RETURN { value: SLEEP(5) }
@@ -224,4 +224,35 @@ class ReadTest extends BaseSparkTest {
       .isInstanceOf(classOf[TimeoutException])
   }
 
+  @ParameterizedTest
+  @MethodSource(Array("provideProtocolAndContentType"))
+  def readTtl(protocol: String, contentType: String): Unit = {
+    val query =
+      """
+        |FOR i IN 1..10
+        |RETURN { value: null }
+        |""".stripMargin.replaceAll("\n", " ")
+
+    val df = spark.read
+      .format(BaseSparkTest.arangoDatasource)
+      .schema(StructType(Array(
+        StructField("value", NullType)
+      )))
+      .options(options + (
+        ArangoDBConf.QUERY -> query,
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.CONTENT_TYPE -> contentType,
+        ArangoDBConf.BATCH_SIZE -> "1",
+        ArangoDBConf.TTL -> "1"
+      ))
+      .load()
+
+    val thrown: Throwable = catchThrowable(new ThrowingCallable() {
+      override def call(): Unit = df.foreach(_ => Thread.sleep(2000L))
+    })
+
+    assertThat(thrown).isInstanceOf(classOf[SparkException])
+    assertThat(thrown.getMessage).contains("Error: 1600")
+    assertThat(thrown.getMessage).contains("cursor not found")
+  }
 }
