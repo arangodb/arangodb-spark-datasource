@@ -136,7 +136,15 @@ jobs:
       matrix:
         python-version: [3.9]
         scala-version: [2.12]
-        spark-version: [3.1, 3.2, 3.3, 3.4]
+        spark:
+          - spark-version: 3.1
+            pyspark-version: 3.1.3
+          - spark-version: 3.2
+            pyspark-version: 3.2.4
+          - spark-version: 3.3
+            pyspark-version: 3.3.3
+          - spark-version: 3.4
+            pyspark-version: 3.4.0
         topology: [single, cluster]
         java-version: [8, 11]
         docker-img: ["docker.io/arangodb/arangodb:3.11.8"]
@@ -166,13 +174,13 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyspark~=${{matrix.spark-version}}.0
+          pip install pyspark==${{matrix.spark.pyspark-version}}
           pip install -r python-integration-tests/test-requirements.txt
       - name: Build Spark Datasource Artifact
         run: |
-          mvn -e --no-transfer-progress -DskipTests -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark-version}} package
-          find . -name "arangodb-spark-datasource-${{matrix.spark-version}}_*-jar-with-dependencies.jar" -exec cp {} ./arangodb-spark-datasource-under-test.jar \;
-      - name: Run tests for PySpark ${{matrix.spark-version}} on Python ${{matrix.python-version}}
+          mvn -e --no-transfer-progress -DskipTests -Pscala-${{matrix.scala-version}} -Pspark-${{matrix.spark.spark-version}} package
+          find . -name "arangodb-spark-datasource-${{matrix.spark.spark-version}}_*-jar-with-dependencies.jar" -exec cp {} ./arangodb-spark-datasource-under-test.jar \;
+      - name: Run tests for PySpark ${{matrix.spark.spark-version}} on Python ${{matrix.python-version}}
         run: |
           pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
 
