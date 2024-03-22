@@ -5,6 +5,8 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- updated `arangodb-java-driver` to version `7.6.0`
+
 ## [1.6.0] - 2024-03-20
 
 - support to query `ttl` (#50)
