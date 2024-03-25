@@ -46,24 +46,24 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.10.13
-          - docker.io/arangodb/enterprise:3.10.13
-          - docker.io/arangodb/arangodb:3.11.8
-          - docker.io/arangodb/enterprise:3.11.8
+          - docker.io/arangodb/arangodb:3.11
+          - docker.io/arangodb/enterprise:3.11
+          - docker.io/arangodb/arangodb:3.12
+          - docker.io/arangodb/enterprise:3.12
         exclude:
           - scala-version: 2.13
             spark-version: 3.1
-          - docker-img: docker.io/arangodb/arangodb:3.10.13
+          - docker-img: docker.io/arangodb/arangodb:3.11
             java-version: 8
-          - docker-img: docker.io/arangodb/enterprise:3.10.13
+          - docker-img: docker.io/arangodb/enterprise:3.11
             java-version: 8
-          - docker-img: docker.io/arangodb/enterprise:3.10.13
+          - docker-img: docker.io/arangodb/enterprise:3.11
             topology: single
-          - docker-img: docker.io/arangodb/arangodb:3.11.8
+          - docker-img: docker.io/arangodb/arangodb:3.12
             java-version: 11
-          - docker-img: docker.io/arangodb/enterprise:3.11.8
+          - docker-img: docker.io/arangodb/enterprise:3.12
             java-version: 8
-          - docker-img: docker.io/arangodb/enterprise:3.11.8
+          - docker-img: docker.io/arangodb/enterprise:3.12
             topology: single
 
     steps:
@@ -103,7 +103,7 @@ jobs:
         java-version:
           - 8
         docker-img:
-          - docker.io/arangodb/arangodb:3.11.8
+          - docker.io/arangodb/arangodb:3.12
         exclude:
           - scala-version: 2.13
             spark-version: 3.1
@@ -147,7 +147,7 @@ jobs:
             pyspark-version: 3.4.0
         topology: [single, cluster]
         java-version: [8, 11]
-        docker-img: ["docker.io/arangodb/arangodb:3.11.8"]
+        docker-img: ["docker.io/arangodb/arangodb:3.12"]
         exclude:
           - topology: cluster
             java-version: 8
@@ -206,7 +206,7 @@ jobs:
           - 8
           - 11
         docker-img:
-          - docker.io/arangodb/arangodb:3.11.8
+          - docker.io/arangodb/arangodb:3.12
         exclude:
           - scala-version: 2.13
             spark-version: 3.1
@@ -314,7 +314,7 @@ jobs:
         run: ./docker/start_db.sh
         env:
           STARTER_MODE: cluster
-          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.11.8
+          DOCKER_IMAGE: docker.io/arangodb/arangodb:3.12
       - name: Info
         run: mvn -version
       - name: Install
@@ -339,7 +339,7 @@ jobs:
 #        java-version:
 #          - 11
 #        docker-img:
-#          - docker.io/arangodb/arangodb:3.11.8
+#          - docker.io/arangodb/arangodb:3.12
 #
 #    steps:
 #      - uses: actions/checkout@v2
