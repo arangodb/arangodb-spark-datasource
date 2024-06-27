@@ -225,7 +225,6 @@ jobs:
       - timeout
       - checkout
       - load_cache
-      - mvn-info
       - config_gpg
       - deploy:
           scala-version: <<parameters.scala-version>>
@@ -243,7 +242,6 @@ jobs:
       - timeout
       - checkout
       - load_cache
-      - mvn-info
       - config_gpg
       - deploy:
           scala-version: <<parameters.scala-version>>
