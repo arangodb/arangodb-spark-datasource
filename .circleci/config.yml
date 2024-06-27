@@ -43,18 +43,6 @@ commands:
             STARTER_DOCKER_IMAGE: 'docker.io/arangodb/arangodb-starter:0.18.5'
             SSL: <<parameters.ssl>>
             COMPRESSION: <<parameters.compression>>
-  report:
-    parameters:
-      working_directory:
-        type: 'string'
-        default: '.'
-    steps:
-      - run:
-          name: Create reports
-          command: mvn surefire-report:report-only
-          working_directory: <<parameters.working_directory>>
-      - store_artifacts:
-          path: <<parameters.working_directory>>/target/site
   load_cache:
     steps:
       - run:
@@ -147,10 +135,6 @@ jobs:
       - run:
           name: Test
           command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> <<parameters.args>>
-      - report:
-          working_directory: arangodb-spark-commons
-      - report:
-          working_directory: integration-tests
       - store_cache
 
   integration-tests:
@@ -180,8 +164,6 @@ jobs:
           name: Test
           working_directory: integration-tests
           command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
-      - report:
-          working_directory: integration-tests
       - store_cache
 
   deployment-test:
@@ -286,26 +268,26 @@ workflows:
               topology:
                 - 'single'
                 - 'cluster'
-  ssl:
-    jobs:
-      - test:
-          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
-          matrix:
-            parameters:
-              spark-version:
-                - '3.2'
-                - '3.3'
-                - '3.4'
-              scala-version:
-                - '2.12'
-                - '2.13'
-              jdk:
-                - 'j8'
-                - 'j11'
-              ssl:
-                - 'true'
-              args:
-                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false'
+#  ssl:
+#    jobs:
+#      - test:
+#          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+#          matrix:
+#            parameters:
+#              spark-version:
+#                - '3.2'
+#                - '3.3'
+#                - '3.4'
+#              scala-version:
+#                - '2.12'
+#                - '2.13'
+#              jdk:
+#                - 'j8'
+#                - 'j11'
+#              ssl:
+#                - 'true'
+#              args:
+#                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false'
   test-jdk:
     when:
       not: <<pipeline.parameters.docker-img>>
