@@ -19,7 +19,6 @@ mvn -Pspark-${sparkVersion} -Pscala-${scalaVersion} process-sources
 ```
 Reports:
 - [arangodb-spark-commons](arangodb-spark-commons/target/scalastyle-output.xml)
-- [arangodb-spark-datasource-3.1](arangodb-spark-datasource-3.1/target/scalastyle-output.xml)
 - [arangodb-spark-datasource-3.2](arangodb-spark-datasource-3.2/target/scalastyle-output.xml)
 - [arangodb-spark-datasource-3.3](arangodb-spark-datasource-3.3/target/scalastyle-output.xml)
 - [arangodb-spark-datasource-3.4](arangodb-spark-datasource-3.4/target/scalastyle-output.xml)
@@ -30,7 +29,6 @@ mvn -Pspark-${sparkVersion} -Pscala-${scalaVersion} test-compile
 ```
 Reports:
 - [arangodb-spark-commons](arangodb-spark-commons/target/scapegoat/scapegoat.html)
-- [arangodb-spark-datasource-3.1](arangodb-spark-datasource-3.1/target/scapegoat/scapegoat.html)
 - [arangodb-spark-datasource-3.2](arangodb-spark-datasource-3.2/target/scapegoat/scapegoat.html)
 - [arangodb-spark-datasource-3.3](arangodb-spark-datasource-3.3/target/scapegoat/scapegoat.html)
 - [arangodb-spark-datasource-3.4](arangodb-spark-datasource-3.4/target/scapegoat/scapegoat.html)

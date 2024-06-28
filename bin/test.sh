@@ -3,9 +3,6 @@
 # exit when any command fails
 set -e
 
-mvn clean -Pspark-3.1 -Pscala-2.12
-mvn test -Pspark-3.1 -Pscala-2.12
-
 mvn clean -Pspark-3.2 -Pscala-2.12
 mvn test -Pspark-3.2 -Pscala-2.12
 
