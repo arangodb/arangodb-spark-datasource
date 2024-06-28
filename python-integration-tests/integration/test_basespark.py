@@ -78,7 +78,7 @@ def spark(database_conn, pytestconfig):
     spark_session = SparkSession.builder \
         .appName("ArangoDBPySparkTest") \
         .master("local[*]") \
-        .config("spark.driver.host", "127.0.0.1") \
+        .config("spark.driver.host", "172.28.0.1") \
         .config("spark.jars", pytestconfig.getoption("datasource_jar_loc")) \
         .getOrCreate()
     setup_users_df(database_conn, spark_session)
