@@ -63,14 +63,14 @@
         <profile>
             <id>scala-2.12</id>
             <properties>
-                <scala.version>2.12.19</scala.version>
+                <scala.version>2.12.15</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
             </properties>
         </profile>
         <profile>
             <id>scala-2.13</id>
             <properties>
-                <scala.version>2.13.14</scala.version>
+                <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
             </properties>
         </profile>
