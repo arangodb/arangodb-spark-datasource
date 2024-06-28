@@ -127,7 +127,7 @@ class AbortTest extends BaseSparkTest {
 
     val rootEx = thrown.getCause.getCause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
-    assertThat(rootEx.getMessage.lines())
+    assertThat(rootEx.getMessage.linesIterator.toList.asJavaCollection.stream())
       .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k1","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
       .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k2","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
       .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k3","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
