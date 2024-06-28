@@ -54,7 +54,7 @@
         <sonar.scala.scapegoat.reportPaths>
             ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
         </sonar.scala.scapegoat.reportPaths>
-        <scapegoat.version>2.1.6</scapegoat.version>
+        <scapegoat.version>1.4.17</scapegoat.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
