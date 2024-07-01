@@ -259,7 +259,8 @@ jobs:
       - timeout
       - checkout
       - setup_remote_docker
-      - start-db
+      - start-db:
+          topology: 'cluster'
       - load_cache
       - run:
           name: mvn version
