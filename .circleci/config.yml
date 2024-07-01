@@ -12,9 +12,12 @@ executors:
   j11:
     docker:
       - image: 'cimg/openjdk:11.0'
-  p39:
+  p310:
     docker:
-      - image: 'cimg/python:3.9'
+      - image: 'cimg/python:3.10'
+  p311:
+    docker:
+      - image: 'cimg/python:3.11'
   p312:
     docker:
       - image: 'cimg/python:3.12'
@@ -205,12 +208,14 @@ jobs:
         default: '2.12'
       spark-version:
         type: 'string'
+      python-executor:
+        type: 'string'
       pyspark-version:
         type: 'string'
       jdk:
         type: 'string'
         default: '11.0.23-tem'
-    executor: 'p312'
+    executor: <<parameters.python-executor>>
     steps:
       - timeout
       - checkout
@@ -451,6 +456,8 @@ workflows:
           name: test-pyspark-<<matrix.pyspark-version>>
           matrix:
             parameters:
+              python-executor:
+                - 'p310'
               spark-version:
                 - '3.2'
               pyspark-version:
@@ -459,6 +466,8 @@ workflows:
           name: test-pyspark-<<matrix.pyspark-version>>
           matrix:
             parameters:
+              python-executor:
+                - 'p310'
               spark-version:
                 - '3.3'
               pyspark-version:
@@ -467,6 +476,8 @@ workflows:
           name: test-pyspark-<<matrix.pyspark-version>>
           matrix:
             parameters:
+              python-executor:
+                - 'p312'
               spark-version:
                 - '3.4'
               pyspark-version:
