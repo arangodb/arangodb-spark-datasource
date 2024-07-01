@@ -39,6 +39,7 @@
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-commons-${spark.compat.version}_${scala.compat.version}</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

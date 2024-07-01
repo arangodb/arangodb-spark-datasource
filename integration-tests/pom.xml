@@ -20,16 +20,19 @@
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-datasource-${spark.compat.version}_${scala.compat.version}</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-spark-commons-${spark.compat.version}_${scala.compat.version}</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>jackson-serde-json</artifactId>
             <version>7.1.0</version>
+            <scope>test</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -49,6 +52,7 @@
             <groupId>com.arangodb</groupId>
             <artifactId>jackson-serde-vpack</artifactId>
             <version>7.1.0</version>
+            <scope>test</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.arangodb</groupId>

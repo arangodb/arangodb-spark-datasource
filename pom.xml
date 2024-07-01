@@ -54,7 +54,6 @@
         <sonar.scala.scapegoat.reportPaths>
             ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
         </sonar.scala.scapegoat.reportPaths>
-        <scapegoat.version>1.4.17</scapegoat.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
@@ -63,8 +62,9 @@
         <profile>
             <id>scala-2.12</id>
             <properties>
-                <scala.version>2.12.15</scala.version>
+                <scala.version>2.12.19</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
+                <scapegoat.version>2.1.6</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -72,6 +72,7 @@
             <properties>
                 <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
+                <scapegoat.version>1.4.17</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -84,14 +85,14 @@
         <profile>
             <id>spark-3.3</id>
             <properties>
-                <spark.version>3.3.3</spark.version>
+                <spark.version>3.3.4</spark.version>
                 <spark.compat.version>3.3</spark.compat.version>
             </properties>
         </profile>
         <profile>
             <id>spark-3.4</id>
             <properties>
-                <spark.version>3.4.1</spark.version>
+                <spark.version>3.4.3</spark.version>
                 <spark.compat.version>3.4</spark.compat.version>
             </properties>
         </profile>
@@ -163,11 +164,13 @@
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver-shaded</artifactId>
             <version>7.7.1</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>jackson-dataformat-velocypack</artifactId>
             <version>4.3.0</version>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -416,6 +419,28 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireExplicitDependencyScope/>
+                                <requireMavenVersion>
+                                    <version>3.7</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
