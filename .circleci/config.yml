@@ -388,7 +388,7 @@ workflows:
               ssl:
                 - 'true'
               args:
-                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false'
+                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -Dsurefire.failIfNoSpecifiedTests=false'
   test-jdk:
     when:
       not: <<pipeline.parameters.docker-img>>
