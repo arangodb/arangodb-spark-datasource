@@ -3,7 +3,7 @@ package org.apache.spark.sql.arangodb.datasource
 import com.arangodb.ArangoDBException
 import org.apache.spark.SparkException
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, Protocol}
 import org.apache.spark.sql.functions.col
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
@@ -192,6 +192,8 @@ class ReadTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def readTimeout(protocol: String, contentType: String): Unit = {
+    assumeTrue(protocol != Protocol.HTTP2.name)
+
     val query =
       """
         |RETURN { value: SLEEP(5) }

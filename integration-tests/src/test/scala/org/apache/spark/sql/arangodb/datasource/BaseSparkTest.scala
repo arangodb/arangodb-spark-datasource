@@ -43,7 +43,9 @@ object BaseSparkTest {
   def provideProtocolAndContentType(): stream.Stream[Arguments] = java.util.stream.Stream.of(
       Arguments.of("vst", "vpack"),
       Arguments.of("http", "vpack"),
-      Arguments.of("http", "json")
+      Arguments.of("http", "json"),
+      Arguments.of("http2", "vpack"),
+      Arguments.of("http2", "json")
     )
     .filter(args => {
       val protocol = args.get()(0).asInstanceOf[String]

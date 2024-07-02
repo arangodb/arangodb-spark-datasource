@@ -45,8 +45,8 @@ object ArangoDBConf {
   val protocolConf: ConfigEntry[String] = ConfigBuilder(PROTOCOL)
     .doc("communication protocol")
     .stringConf
-    .checkValues(Set(Protocol.HTTP.name, Protocol.VST.name))
-    .createWithDefault(Protocol.HTTP.name)
+    .checkValues(Set(Protocol.HTTP.name, Protocol.HTTP2.name, Protocol.VST.name))
+    .createWithDefault(Protocol.HTTP2.name)
 
   val CONTENT_TYPE = "contentType"
   val contentTypeConf: ConfigEntry[String] = ConfigBuilder(CONTENT_TYPE)
@@ -473,6 +473,8 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
     case (Protocol.VST, ContentType.JSON) => throw new IllegalArgumentException("Json over VST is not supported")
     case (Protocol.HTTP, ContentType.VPACK) => com.arangodb.Protocol.HTTP_VPACK
     case (Protocol.HTTP, ContentType.JSON) => com.arangodb.Protocol.HTTP_JSON
+    case (Protocol.HTTP2, ContentType.VPACK) => com.arangodb.Protocol.HTTP2_VPACK
+    case (Protocol.HTTP2, ContentType.JSON) => com.arangodb.Protocol.HTTP2_JSON
   }
 
   val sslEnabled: Boolean = getConf(sslEnabledConf)
