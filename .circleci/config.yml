@@ -445,8 +445,6 @@ workflows:
                 - '2.12'
                 - '2.13'
               spark-full-version:
-                - '3.4.0'
-                - '3.4.1'
                 - '3.4.2'
                 - '3.4.3'
   test-python:
@@ -472,7 +470,7 @@ workflows:
               spark-version:
                 - '3.3'
               pyspark-version:
-                - '3.3.3'
+                - '3.3.4'
       - python-integration-tests:
           name: test-pyspark-<<matrix.pyspark-version>>
           matrix:
@@ -482,7 +480,7 @@ workflows:
               spark-version:
                 - '3.4'
               pyspark-version:
-                - '3.4.1'
+                - '3.4.3'
   deploy:
     jobs:
       - deploy:

@@ -19,25 +19,25 @@
 
 package org.apache.spark.sql.arangodb.datasource.mapping.json
 
-
-import java.io.{ByteArrayOutputStream, CharConversionException}
-import java.nio.charset.MalformedInputException
-import scala.collection.mutable.ArrayBuffer
-import scala.util.control.NonFatal
 import com.fasterxml.jackson.core._
-import org.apache.spark.{SparkRuntimeException, SparkUpgradeException}
+import org.apache.spark.SparkUpgradeException
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.catalyst.{InternalRow, NoopFilters, StructFilters}
 import org.apache.spark.sql.catalyst.expressions._
-import org.apache.spark.sql.catalyst.util._
 import org.apache.spark.sql.catalyst.util.LegacyDateFormats.FAST_DATE_FORMAT
 import org.apache.spark.sql.catalyst.util.ResolveDefaultColumns._
+import org.apache.spark.sql.catalyst.util._
+import org.apache.spark.sql.catalyst.{InternalRow, NoopFilters, StructFilters}
 import org.apache.spark.sql.errors.QueryExecutionErrors
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.{CalendarInterval, UTF8String}
 import org.apache.spark.util.Utils
+
+import java.io.{ByteArrayOutputStream, CharConversionException}
+import java.nio.charset.MalformedInputException
+import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 
 /**
  * Constructs a parser for a given schema that translates a json string to an [[InternalRow]].
@@ -576,13 +576,7 @@ class JacksonParser(
    */
   private def convertCauseForPartialResult(err: Throwable): Throwable = err match {
     case CannotParseJSONFieldException(fieldName, fieldValue, jsonType, dataType) =>
-      new SparkRuntimeException(
-        errorClass = "CANNOT_PARSE_JSON_FIELD",
-        messageParameters = Map(
-          "fieldName" -> toSQLValue(fieldName, StringType),
-          "fieldValue" -> fieldValue,
-          "jsonType" -> jsonType.toString(),
-          "dataType" -> toSQLType(dataType)))
+      QueryExecutionErrors.cannotParseJSONFieldError(fieldName, fieldValue, jsonType, dataType)
     case EmptyJsonFieldValueException(dataType) =>
       QueryExecutionErrors.emptyJsonFieldValueError(dataType)
     case _ => err
