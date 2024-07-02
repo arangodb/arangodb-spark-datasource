@@ -179,6 +179,8 @@ jobs:
         default: '2.12'
       spark-version:
         type: 'string'
+      spark-full-version:
+        type: 'string'
     executor: 'j11'
     steps:
       - timeout
@@ -196,9 +198,13 @@ jobs:
           name: mvn install
           command: mvn install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
       - run:
+          name: mvn dependency:tree
+          working_directory: integration-tests
+          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dspark.version=<<parameters.spark-full-version>>
+      - run:
           name: Test
           working_directory: integration-tests
-          command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+          command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dspark.version=<<parameters.spark-full-version>>
       - store_cache
 
   python-integration-tests:
@@ -243,37 +249,6 @@ jobs:
       - run:
           name: Test
           command: pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
-      - store_cache
-
-  deployment-test:
-    parameters:
-      scala-version:
-        type: 'string'
-        default: '2.12'
-      spark-version:
-        type: 'string'
-      spark-full-version:
-        type: 'string'
-    executor: 'j11'
-    steps:
-      - timeout
-      - checkout
-      - setup_remote_docker
-      - start-db:
-          topology: 'cluster'
-      - load_cache
-      - run:
-          name: mvn version
-          command: mvn --version
-      - run:
-          name: mvn dependency:tree
-          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
-      - run:
-          name: mvn install
-          command: mvn install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
-      - run:
-          name: Deployment Test
-          command: mvn -f ./demo/pom.xml -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dspark.version=<<parameters.spark-full-version>> -DimportPath=docker/import test
       - store_cache
 
   deploy:
@@ -386,27 +361,12 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
-  integration-tests:
-    when:
-      not: <<pipeline.parameters.docker-img>>
-    jobs:
-      - integration-tests:
-          name: integration-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
-          matrix:
-            parameters:
-              spark-version:
-                - '3.2'
-                - '3.3'
-                - '3.4'
-              scala-version:
-                - '2.12'
-                - '2.13'
   test-spark-versions:
     when:
       not: <<pipeline.parameters.docker-img>>
     jobs:
-      - deployment-test:
-          name: test-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
             parameters:
               spark-version:
@@ -420,8 +380,8 @@ workflows:
                 - '3.2.2'
                 - '3.2.3'
                 - '3.2.4'
-      - deployment-test:
-          name: test-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
             parameters:
               spark-version:
@@ -435,8 +395,8 @@ workflows:
                 - '3.3.2'
                 - '3.3.3'
                 - '3.3.4'
-      - deployment-test:
-          name: test-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
             parameters:
               spark-version:
