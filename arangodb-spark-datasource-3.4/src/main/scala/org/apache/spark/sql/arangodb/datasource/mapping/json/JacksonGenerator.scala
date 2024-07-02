@@ -83,7 +83,13 @@ private[sql] class JacksonGenerator(
   }
 
   private val gen = {
-    if (options.pretty) generator.setPrettyPrinter(new DefaultPrettyPrinter("")) else generator
+    if (options.pretty) {
+      generator.setPrettyPrinter(new DefaultPrettyPrinter(""))
+    }
+    if (options.writeNonAsciiCharacterAsCodePoint) {
+      generator.setHighestNonEscapedChar(0x7F)
+    }
+    generator
   }
 
   private val lineSeparator: String = options.lineSeparatorInWrite
@@ -150,9 +156,9 @@ private[sql] class JacksonGenerator(
 
     case TimestampNTZType =>
       (row: SpecializedGetters, ordinal: Int) =>
-      val timestampString =
-        timestampNTZFormatter.format(DateTimeUtils.microsToLocalDateTime(row.getLong(ordinal)))
-      gen.writeString(timestampString)
+        val timestampString =
+          timestampNTZFormatter.format(DateTimeUtils.microsToLocalDateTime(row.getLong(ordinal)))
+        gen.writeString(timestampString)
 
     case DateType =>
       (row: SpecializedGetters, ordinal: Int) =>
@@ -224,7 +230,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeFields(
-      row: InternalRow, schema: StructType, fieldWriters: Seq[ValueWriter]): Unit = {
+                           row: InternalRow, schema: StructType, fieldWriters: Seq[ValueWriter]): Unit = {
     var i = 0
     while (i < row.numFields) {
       val field = schema(i)
@@ -247,7 +253,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeArrayData(
-      array: ArrayData, fieldWriter: ValueWriter): Unit = {
+                              array: ArrayData, fieldWriter: ValueWriter): Unit = {
     var i = 0
     while (i < array.numElements()) {
       if (!array.isNullAt(i)) {
@@ -260,7 +266,7 @@ private[sql] class JacksonGenerator(
   }
 
   private def writeMapData(
-      map: MapData, mapType: MapType, fieldWriter: ValueWriter): Unit = {
+                            map: MapData, mapType: MapType, fieldWriter: ValueWriter): Unit = {
     val keyArray = map.keyArray()
     val valueArray = map.valueArray()
     var i = 0

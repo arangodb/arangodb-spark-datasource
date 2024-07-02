@@ -1,6 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import com.arangodb.entity.{License, ServerRole}
+import com.arangodb.entity.{ArangoDBVersion, License, ServerRole}
 import com.arangodb.model.CollectionCreateOptions
 import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
@@ -41,10 +41,34 @@ class BaseSparkTest {
 object BaseSparkTest {
 
   def provideProtocolAndContentType(): stream.Stream[Arguments] = java.util.stream.Stream.of(
-    Arguments.of("vst", "vpack"),
-    Arguments.of("http", "vpack"),
-    Arguments.of("http", "json")
-  )
+      Arguments.of("vst", "vpack"),
+      Arguments.of("http", "vpack"),
+      Arguments.of("http", "json")
+    )
+    .filter(args => {
+      val protocol = args.get()(0).asInstanceOf[String]
+      protocol != "vst" || isLessThanVersion(version.getVersion, 3, 12, 0)
+    })
+
+  def isAtLeastVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Boolean = compareVersion(version, otherMajor, otherMinor, otherPatch) >= 0
+
+  def isLessThanVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Boolean = compareVersion(version, otherMajor, otherMinor, otherPatch) < 0
+
+  private def compareVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Int = {
+    val parts = version.split("-")(0).split("\\.")
+    val major = parts(0).toInt
+    val minor = parts(1).toInt
+    val patch = parts(2).toInt
+    val majorComparison = Integer.compare(major, otherMajor)
+    if (majorComparison != 0) {
+      return majorComparison
+    }
+    val minorComparison = Integer.compare(minor, otherMinor)
+    if (minorComparison != 0) {
+      return minorComparison
+    }
+    Integer.compare(patch, otherPatch)
+  }
 
   val arangoDatasource: String = classOf[DefaultSource].getName
   private val database = "sparkConnectorTest"
@@ -83,7 +107,8 @@ object BaseSparkTest {
   val db: ArangoDatabase = arangoDB.db(database)
   val isSingle: Boolean = arangoDB.getRole == ServerRole.SINGLE
   val isCluster: Boolean = !isSingle
-  val isEnterprise: Boolean = arangoDB.getVersion.getLicense == License.ENTERPRISE
+  val version: ArangoDBVersion = arangoDB.getVersion
+  val isEnterprise: Boolean = version.getLicense == License.ENTERPRISE
   private val options = Map(
     "database" -> database,
     "user" -> user,

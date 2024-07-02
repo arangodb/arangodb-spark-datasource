@@ -127,15 +127,15 @@ class AbortTest extends BaseSparkTest {
 
     val rootEx = thrown.getCause.getCause.getCause
     assertThat(rootEx).isInstanceOf(classOf[ArangoDBMultiException])
-    val eMessage = rootEx.getMessage
-    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k1","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
-    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k2","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
-    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k3","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
-    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k4","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
-    assertThat(eMessage).contains("""Error: 1233 - edge attribute missing or invalid for record: {"_key":"k5","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}""")
-    assertThat(eMessage).contains("""Error: 1221 - illegal document key for record: {"_key":"???","name":"invalidKey","_from":"from/from","_to":"to/to"}""")
-    assertThat(eMessage).doesNotContain("k6")
-    assertThat(eMessage).doesNotContain("k7")
+    assertThat(rootEx.getMessage.linesIterator.toList.asJavaCollection.stream())
+      .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k1","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
+      .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k2","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
+      .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k3","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
+      .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k4","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
+      .anyMatch(line => line.contains("Error: 1233") && line.contains("""{"_key":"k5","name":"invalidFrom","_from":"invalidFrom","_to":"to/to"}"""))
+      .anyMatch(line => line.contains("Error: 1221") && line.contains("""{"_key":"???","name":"invalidKey","_from":"from/from","_to":"to/to"}"""))
+      .noneMatch(line => line.contains("k6"))
+      .noneMatch(line => line.contains("k7"))
   }
 
   @ParameterizedTest
@@ -192,7 +192,7 @@ class AbortTest extends BaseSparkTest {
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
 
-    val cause = if(SPARK_VERSION.startsWith("3.4")) {
+    val cause = if (SPARK_VERSION.startsWith("3.4")) {
       thrown.getCause
     } else {
       thrown.getCause.getCause

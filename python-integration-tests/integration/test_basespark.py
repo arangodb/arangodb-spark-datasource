@@ -33,7 +33,6 @@ users_schema = StructType([
 ])
 
 protocol_and_content_type = [
-    ("vst", "vpack"),
     ("http", "vpack"),
     ("http", "json")
 ]

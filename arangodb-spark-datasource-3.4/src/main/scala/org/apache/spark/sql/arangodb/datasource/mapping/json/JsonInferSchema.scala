@@ -21,13 +21,14 @@ package org.apache.spark.sql.arangodb.datasource.mapping.json
 
 import com.fasterxml.jackson.core._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.arangodb.datasource.mapping.json.JacksonUtils.nextUntil
 import org.apache.spark.sql.catalyst.analysis.TypeCoercion
 import org.apache.spark.sql.catalyst.expressions.ExprUtils
-import org.apache.spark.sql.catalyst.json.JacksonUtils.nextUntil
 import org.apache.spark.sql.catalyst.util.LegacyDateFormats.FAST_DATE_FORMAT
 import org.apache.spark.sql.catalyst.util._
 import org.apache.spark.sql.errors.QueryExecutionErrors
 import org.apache.spark.sql.internal.SQLConf
+import org.apache.spark.sql.internal.SQLConf.LegacyBehaviorPolicy
 import org.apache.spark.sql.types._
 import org.apache.spark.util.Utils
 
@@ -54,7 +55,7 @@ private[sql] class JsonInferSchema(options: JSONOptions) extends Serializable {
     forTimestampNTZ = true)
 
   private def handleJsonErrorsByParseMode(parseMode: ParseMode,
-      columnNameOfCorruptRecord: String, e: Throwable): Option[StructType] = {
+                                          columnNameOfCorruptRecord: String, e: Throwable): Option[StructType] = {
     parseMode match {
       case PermissiveMode =>
         Some(StructType(Array(StructField(columnNameOfCorruptRecord, StringType))))
@@ -68,12 +69,12 @@ private[sql] class JsonInferSchema(options: JSONOptions) extends Serializable {
   /**
    * Infer the type of a collection of json records in three stages:
    *   1. Infer the type of each record
-   *   2. Merge types by choosing the lowest type necessary to cover equal keys
-   *   3. Replace any remaining null fields with string, the top type
+   *      2. Merge types by choosing the lowest type necessary to cover equal keys
+   *      3. Replace any remaining null fields with string, the top type
    */
   def infer[T](
-      json: RDD[T],
-      createParser: (JsonFactory, T) => JsonParser): StructType = {
+                json: RDD[T],
+                createParser: (JsonFactory, T) => JsonParser): StructType = {
     val parseMode = options.parseMode
     val columnNameOfCorruptRecord = options.columnNameOfCorruptRecord
 
@@ -88,8 +89,8 @@ private[sql] class JsonInferSchema(options: JSONOptions) extends Serializable {
             Some(inferField(parser))
           }
         } catch {
-          case e @ (_: RuntimeException | _: JsonProcessingException |
-                    _: MalformedInputException) =>
+          case e@(_: RuntimeException | _: JsonProcessingException |
+                  _: MalformedInputException) =>
             handleJsonErrorsByParseMode(parseMode, columnNameOfCorruptRecord, e)
           case e: CharConversionException if options.encoding.isEmpty =>
             val msg =
@@ -146,15 +147,17 @@ private[sql] class JsonInferSchema(options: JSONOptions) extends Serializable {
         val field = parser.getText
         lazy val decimalTry = allCatch opt {
           val bigDecimal = decimalParser(field)
-            DecimalType(bigDecimal.precision, bigDecimal.scale)
+          DecimalType(bigDecimal.precision, bigDecimal.scale)
         }
+        val timestampType = SQLConf.get.timestampType
         if (options.prefersDecimal && decimalTry.isDefined) {
           decimalTry.get
+        } else if (options.inferTimestamp && (SQLConf.get.legacyTimeParserPolicy ==
+          LegacyBehaviorPolicy.LEGACY || timestampType == TimestampNTZType) &&
+          timestampNTZFormatter.parseWithoutTimeZoneOptional(field, false).isDefined) {
+          timestampType
         } else if (options.inferTimestamp &&
-            timestampNTZFormatter.parseWithoutTimeZoneOptional(field, false).isDefined) {
-          SQLConf.get.timestampType
-        } else if (options.inferTimestamp &&
-            timestampFormatter.parseOptional(field).isDefined) {
+          timestampFormatter.parseOptional(field).isDefined) {
           TimestampType
         } else {
           StringType
@@ -226,7 +229,7 @@ private[sql] class JsonInferSchema(options: JSONOptions) extends Serializable {
    * drops NullTypes or converts them to StringType based on provided options.
    */
   private[json] def canonicalizeType(
-      tpe: DataType, options: JSONOptions): Option[DataType] = tpe match {
+                                      tpe: DataType, options: JSONOptions): Option[DataType] = tpe match {
     case at: ArrayType =>
       canonicalizeType(at.elementType, options)
         .map(t => at.copy(elementType = t))
@@ -273,10 +276,10 @@ object JsonInferSchema {
   }
 
   def withCorruptField(
-      struct: StructType,
-      other: DataType,
-      columnNameOfCorruptRecords: String,
-      parseMode: ParseMode): StructType = parseMode match {
+                        struct: StructType,
+                        other: DataType,
+                        columnNameOfCorruptRecords: String,
+                        parseMode: ParseMode): StructType = parseMode match {
     case PermissiveMode =>
       // If we see any other data type at the root level, we get records that cannot be
       // parsed. So, we use the struct as the data type and add the corrupt field to the schema.
@@ -284,7 +287,7 @@ object JsonInferSchema {
         // If this given struct does not have a column used for corrupt records,
         // add this field.
         val newFields: Array[StructField] =
-        StructField(columnNameOfCorruptRecords, StringType, nullable = true) +: struct.fields
+          StructField(columnNameOfCorruptRecords, StringType, nullable = true) +: struct.fields
         // Note: other code relies on this sorting for correctness, so don't remove it!
         java.util.Arrays.sort(newFields, structFieldComparator)
         StructType(newFields)
@@ -306,8 +309,8 @@ object JsonInferSchema {
    * Remove top-level ArrayType wrappers and merge the remaining schemas
    */
   def compatibleRootType(
-      columnNameOfCorruptRecords: String,
-      parseMode: ParseMode): (DataType, DataType) => DataType = {
+                          columnNameOfCorruptRecords: String,
+                          parseMode: ParseMode): (DataType, DataType) => DataType = {
     // Since we support array of json objects at the top level,
     // we need to check the element type and find the root level data type.
     case (ArrayType(ty1, _), ty2) =>

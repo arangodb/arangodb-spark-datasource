@@ -43,10 +43,10 @@ import scala.util.control.NonFatal
  * Constructs a parser for a given schema that translates a json string to an [[InternalRow]].
  */
 class JacksonParser(
-    schema: DataType,
-    val options: JSONOptions,
-    allowArrayAsStructs: Boolean = false,
-    filters: Seq[Filter] = Seq.empty) extends Logging {
+                     schema: DataType,
+                     val options: JSONOptions,
+                     allowArrayAsStructs: Boolean = false,
+                     filters: Seq[Filter] = Seq.empty) extends Logging {
 
   import JacksonUtils._
   import com.fasterxml.jackson.core.JsonToken._
@@ -119,8 +119,9 @@ class JacksonParser(
     } else {
       new NoopFilters
     }
-    (parser: JsonParser) => parseJsonToken[Iterable[InternalRow]](parser, st) {
-      case START_OBJECT => convertObject(parser, st, fieldConverters, jsonFilters, isRoot = true)
+    (parser: JsonParser) =>
+      parseJsonToken[Iterable[InternalRow]](parser, st) {
+        case START_OBJECT => convertObject(parser, st, fieldConverters, jsonFilters, isRoot = true)
         // SPARK-3308: support reading top level JSON arrays and take every element
         // in such an array as a row
         //
@@ -134,54 +135,56 @@ class JacksonParser(
         // List([str_a_1,null])
         // List([str_a_2,null], [null,str_b_3])
         //
-      case START_ARRAY if allowArrayAsStructs =>
-        val array = convertArray(parser, elementConverter, isRoot = true)
-        // Here, as we support reading top level JSON arrays and take every element
-        // in such an array as a row, this case is possible.
-        if (array.numElements() == 0) {
-          Array.empty[InternalRow]
-        } else {
-          array.toArray[InternalRow](schema)
-        }
-      case START_ARRAY =>
-        throw QueryExecutionErrors.cannotParseJsonArraysAsStructsError()
-    }
+        case START_ARRAY if allowArrayAsStructs =>
+          val array = convertArray(parser, elementConverter, isRoot = true, arrayAsStructs = true)
+          // Here, as we support reading top level JSON arrays and take every element
+          // in such an array as a row, this case is possible.
+          if (array.numElements() == 0) {
+            Array.empty[InternalRow]
+          } else {
+            array.toArray[InternalRow](schema)
+          }
+        case START_ARRAY =>
+          throw QueryExecutionErrors.cannotParseJsonArraysAsStructsError()
+      }
   }
 
   private def makeMapRootConverter(mt: MapType): JsonParser => Iterable[InternalRow] = {
     val fieldConverter = makeConverter(mt.valueType)
-    (parser: JsonParser) => parseJsonToken[Iterable[InternalRow]](parser, mt) {
-      case START_OBJECT => Some(InternalRow(convertMap(parser, fieldConverter)))
-    }
+    (parser: JsonParser) =>
+      parseJsonToken[Iterable[InternalRow]](parser, mt) {
+        case START_OBJECT => Some(InternalRow(convertMap(parser, fieldConverter)))
+      }
   }
 
   private def makeArrayRootConverter(at: ArrayType): JsonParser => Iterable[InternalRow] = {
     val elemConverter = makeConverter(at.elementType)
-    (parser: JsonParser) => parseJsonToken[Iterable[InternalRow]](parser, at) {
-      case START_ARRAY => Some(InternalRow(convertArray(parser, elemConverter)))
-      case START_OBJECT if at.elementType.isInstanceOf[StructType] =>
-        // This handles the case when an input JSON object is a structure but
-        // the specified schema is an array of structures. In that case, the input JSON is
-        // considered as an array of only one element of struct type.
-        // This behavior was introduced by changes for SPARK-19595.
-        //
-        // For example, if the specified schema is ArrayType(new StructType().add("i", IntegerType))
-        // and JSON input as below:
-        //
-        // [{"i": 1}, {"i": 2}]
-        // [{"i": 3}]
-        // {"i": 4}
-        //
-        // The last row is considered as an array with one element, and result of conversion:
-        //
-        // Seq(Row(1), Row(2))
-        // Seq(Row(3))
-        // Seq(Row(4))
-        //
-        val st = at.elementType.asInstanceOf[StructType]
-        val fieldConverters = st.map(_.dataType).map(makeConverter).toArray
-        Some(InternalRow(new GenericArrayData(convertObject(parser, st, fieldConverters).toArray)))
-    }
+    (parser: JsonParser) =>
+      parseJsonToken[Iterable[InternalRow]](parser, at) {
+        case START_ARRAY => Some(InternalRow(convertArray(parser, elemConverter)))
+        case START_OBJECT if at.elementType.isInstanceOf[StructType] =>
+          // This handles the case when an input JSON object is a structure but
+          // the specified schema is an array of structures. In that case, the input JSON is
+          // considered as an array of only one element of struct type.
+          // This behavior was introduced by changes for SPARK-19595.
+          //
+          // For example, if the specified schema is ArrayType(new StructType().add("i", IntegerType))
+          // and JSON input as below:
+          //
+          // [{"i": 1}, {"i": 2}]
+          // [{"i": 3}]
+          // {"i": 4}
+          //
+          // The last row is considered as an array with one element, and result of conversion:
+          //
+          // Seq(Row(1), Row(2))
+          // Seq(Row(3))
+          // Seq(Row(4))
+          //
+          val st = at.elementType.asInstanceOf[StructType]
+          val fieldConverters = st.map(_.dataType).map(makeConverter).toArray
+          Some(InternalRow(new GenericArrayData(convertObject(parser, st, fieldConverters).toArray)))
+      }
   }
 
   private val decimalParser = ExprUtils.getDecimalParser(options.locale)
@@ -192,147 +195,160 @@ class JacksonParser(
    */
   def makeConverter(dataType: DataType): ValueConverter = dataType match {
     case BooleanType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Boolean](parser, dataType) {
-        case VALUE_TRUE => true
-        case VALUE_FALSE => false
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Boolean](parser, dataType) {
+          case VALUE_TRUE => true
+          case VALUE_FALSE => false
+        }
 
     case ByteType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Byte](parser, dataType) {
-        case VALUE_NUMBER_INT => parser.getByteValue
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Byte](parser, dataType) {
+          case VALUE_NUMBER_INT => parser.getByteValue
+        }
 
     case ShortType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Short](parser, dataType) {
-        case VALUE_NUMBER_INT => parser.getShortValue
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Short](parser, dataType) {
+          case VALUE_NUMBER_INT => parser.getShortValue
+        }
 
     case IntegerType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Integer](parser, dataType) {
-        case VALUE_NUMBER_INT => parser.getIntValue
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Integer](parser, dataType) {
+          case VALUE_NUMBER_INT => parser.getIntValue
+        }
 
     case LongType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Long](parser, dataType) {
-        case VALUE_NUMBER_INT => parser.getLongValue
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Long](parser, dataType) {
+          case VALUE_NUMBER_INT => parser.getLongValue
+        }
 
     case FloatType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Float](parser, dataType) {
-        case VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT =>
-          parser.getFloatValue
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Float](parser, dataType) {
+          case VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT =>
+            parser.getFloatValue
 
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          // Special case handling for NaN and Infinity.
-          parser.getText match {
-            case "NaN" if options.allowNonNumericNumbers =>
-              Float.NaN
-            case "+INF" | "+Infinity" | "Infinity" if options.allowNonNumericNumbers =>
-              Float.PositiveInfinity
-            case "-INF" | "-Infinity" if options.allowNonNumericNumbers =>
-              Float.NegativeInfinity
-            case _ => throw QueryExecutionErrors.cannotParseStringAsDataTypeError(
-              parser, VALUE_STRING, FloatType)
-          }
-      }
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            // Special case handling for NaN and Infinity.
+            parser.getText match {
+              case "NaN" if options.allowNonNumericNumbers =>
+                Float.NaN
+              case "+INF" | "+Infinity" | "Infinity" if options.allowNonNumericNumbers =>
+                Float.PositiveInfinity
+              case "-INF" | "-Infinity" if options.allowNonNumericNumbers =>
+                Float.NegativeInfinity
+              case _ => throw QueryExecutionErrors.cannotParseStringAsDataTypeError(
+                parser, VALUE_STRING, FloatType)
+            }
+        }
 
     case DoubleType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Double](parser, dataType) {
-        case VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT =>
-          parser.getDoubleValue
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Double](parser, dataType) {
+          case VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT =>
+            parser.getDoubleValue
 
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          // Special case handling for NaN and Infinity.
-          parser.getText match {
-            case "NaN" if options.allowNonNumericNumbers =>
-              Double.NaN
-            case "+INF" | "+Infinity" | "Infinity" if options.allowNonNumericNumbers =>
-              Double.PositiveInfinity
-            case "-INF" | "-Infinity" if options.allowNonNumericNumbers =>
-              Double.NegativeInfinity
-            case _ => throw QueryExecutionErrors.cannotParseStringAsDataTypeError(
-              parser, VALUE_STRING, DoubleType)
-          }
-      }
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            // Special case handling for NaN and Infinity.
+            parser.getText match {
+              case "NaN" if options.allowNonNumericNumbers =>
+                Double.NaN
+              case "+INF" | "+Infinity" | "Infinity" if options.allowNonNumericNumbers =>
+                Double.PositiveInfinity
+              case "-INF" | "-Infinity" if options.allowNonNumericNumbers =>
+                Double.NegativeInfinity
+              case _ => throw QueryExecutionErrors.cannotParseStringAsDataTypeError(
+                parser, VALUE_STRING, DoubleType)
+            }
+        }
 
     case StringType =>
-      (parser: JsonParser) => parseJsonToken[UTF8String](parser, dataType) {
-        case VALUE_STRING =>
-          UTF8String.fromString(parser.getText)
+      (parser: JsonParser) =>
+        parseJsonToken[UTF8String](parser, dataType) {
+          case VALUE_STRING =>
+            UTF8String.fromString(parser.getText)
 
-        case _ =>
-          // Note that it always tries to convert the data as string without the case of failure.
-          val writer = new ByteArrayOutputStream()
-          Utils.tryWithResource(factory.createGenerator(writer, JsonEncoding.UTF8)) {
-            generator => generator.copyCurrentStructure(parser)
-          }
-          UTF8String.fromBytes(writer.toByteArray)
-      }
+          case _ =>
+            // Note that it always tries to convert the data as string without the case of failure.
+            val writer = new ByteArrayOutputStream()
+            Utils.tryWithResource(factory.createGenerator(writer, JsonEncoding.UTF8)) {
+              generator => generator.copyCurrentStructure(parser)
+            }
+            UTF8String.fromBytes(writer.toByteArray)
+        }
 
     case TimestampType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Long](parser, dataType) {
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          try {
-            timestampFormatter.parse(parser.getText)
-          } catch {
-            case NonFatal(e) =>
-              // If fails to parse, then tries the way used in 2.0 and 1.x for backwards
-              // compatibility if enabled.
-              if (!enableParsingFallbackForTimestampType) {
-                throw e
-              }
-              val str = DateTimeUtils.cleanLegacyTimestampStr(UTF8String.fromString(parser.getText))
-              DateTimeUtils.stringToTimestamp(str, options.zoneId).getOrElse(throw e)
-          }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Long](parser, dataType) {
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            try {
+              timestampFormatter.parse(parser.getText)
+            } catch {
+              case NonFatal(e) =>
+                // If fails to parse, then tries the way used in 2.0 and 1.x for backwards
+                // compatibility if enabled.
+                if (!enableParsingFallbackForTimestampType) {
+                  throw e
+                }
+                val str = DateTimeUtils.cleanLegacyTimestampStr(UTF8String.fromString(parser.getText))
+                DateTimeUtils.stringToTimestamp(str, options.zoneId).getOrElse(throw e)
+            }
 
-        case VALUE_NUMBER_INT =>
-          parser.getLongValue * 1000L
-      }
+          case VALUE_NUMBER_INT =>
+            parser.getLongValue * 1000L
+        }
 
     case TimestampNTZType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Long](parser, dataType) {
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          timestampNTZFormatter.parseWithoutTimeZone(parser.getText, false)
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Long](parser, dataType) {
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            timestampNTZFormatter.parseWithoutTimeZone(parser.getText, false)
+        }
 
     case DateType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Integer](parser, dataType) {
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          try {
-            dateFormatter.parse(parser.getText)
-          } catch {
-            case NonFatal(e) =>
-              // If fails to parse, then tries the way used in 2.0 and 1.x for backwards
-              // compatibility if enabled.
-              if (!enableParsingFallbackForDateType) {
-                throw e
-              }
-              val str = DateTimeUtils.cleanLegacyTimestampStr(UTF8String.fromString(parser.getText))
-              DateTimeUtils.stringToDate(str).getOrElse {
-                // In Spark 1.5.0, we store the data as number of days since epoch in string.
-                // So, we just convert it to Int.
-                try {
-                  RebaseDateTime.rebaseJulianToGregorianDays(parser.getText.toInt)
-                } catch {
-                  case _: NumberFormatException => throw e
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Integer](parser, dataType) {
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            try {
+              dateFormatter.parse(parser.getText)
+            } catch {
+              case NonFatal(e) =>
+                // If fails to parse, then tries the way used in 2.0 and 1.x for backwards
+                // compatibility if enabled.
+                if (!enableParsingFallbackForDateType) {
+                  throw e
                 }
-              }.asInstanceOf[Integer]
-          }
-      }
+                val str = DateTimeUtils.cleanLegacyTimestampStr(UTF8String.fromString(parser.getText))
+                DateTimeUtils.stringToDate(str).getOrElse {
+                  // In Spark 1.5.0, we store the data as number of days since epoch in string.
+                  // So, we just convert it to Int.
+                  try {
+                    RebaseDateTime.rebaseJulianToGregorianDays(parser.getText.toInt)
+                  } catch {
+                    case _: NumberFormatException => throw e
+                  }
+                }.asInstanceOf[Integer]
+            }
+        }
 
     case BinaryType =>
-      (parser: JsonParser) => parseJsonToken[Array[Byte]](parser, dataType) {
-        case VALUE_STRING => parser.getBinaryValue
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[Array[Byte]](parser, dataType) {
+          case VALUE_STRING => parser.getBinaryValue
+        }
 
     case dt: DecimalType =>
-      (parser: JsonParser) => parseJsonToken[Decimal](parser, dataType) {
-        case (VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT) =>
-          Decimal(parser.getDecimalValue, dt.precision, dt.scale)
-        case VALUE_STRING if parser.getTextLength >= 1 =>
-          val bigDecimal = decimalParser(parser.getText)
-          Decimal(bigDecimal, dt.precision, dt.scale)
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[Decimal](parser, dataType) {
+          case (VALUE_NUMBER_INT | VALUE_NUMBER_FLOAT) =>
+            Decimal(parser.getDecimalValue, dt.precision, dt.scale)
+          case VALUE_STRING if parser.getTextLength >= 1 =>
+            val bigDecimal = decimalParser(parser.getText)
+            Decimal(bigDecimal, dt.precision, dt.scale)
+        }
 
     case CalendarIntervalType => (parser: JsonParser) =>
       parseJsonToken[CalendarInterval](parser, dataType) {
@@ -356,29 +372,33 @@ class JacksonParser(
 
     case st: StructType =>
       val fieldConverters = st.map(_.dataType).map(makeConverter).toArray
-      (parser: JsonParser) => parseJsonToken[InternalRow](parser, dataType) {
-        case START_OBJECT => convertObject(parser, st, fieldConverters).get
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[InternalRow](parser, dataType) {
+          case START_OBJECT => convertObject(parser, st, fieldConverters).get
+        }
 
     case at: ArrayType =>
       val elementConverter = makeConverter(at.elementType)
-      (parser: JsonParser) => parseJsonToken[ArrayData](parser, dataType) {
-        case START_ARRAY => convertArray(parser, elementConverter)
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[ArrayData](parser, dataType) {
+          case START_ARRAY => convertArray(parser, elementConverter)
+        }
 
     case mt: MapType =>
       val valueConverter = makeConverter(mt.valueType)
-      (parser: JsonParser) => parseJsonToken[MapData](parser, dataType) {
-        case START_OBJECT => convertMap(parser, valueConverter)
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[MapData](parser, dataType) {
+          case START_OBJECT => convertMap(parser, valueConverter)
+        }
 
     case udt: UserDefinedType[_] =>
       makeConverter(udt.sqlType)
 
     case _: NullType =>
-      (parser: JsonParser) => parseJsonToken[java.lang.Long](parser, dataType) {
-        case _ => null
-      }
+      (parser: JsonParser) =>
+        parseJsonToken[java.lang.Long](parser, dataType) {
+          case _ => null
+        }
 
     // We don't actually hit this exception though, we keep it for understandability
     case _ => throw QueryExecutionErrors.unsupportedTypeError(dataType)
@@ -391,8 +411,8 @@ class JacksonParser(
    */
   @scala.annotation.tailrec
   private def parseJsonToken[R >: Null](
-      parser: JsonParser,
-      dataType: DataType)(f: PartialFunction[JsonToken, R]): R = {
+                                         parser: JsonParser,
+                                         dataType: DataType)(f: PartialFunction[JsonToken, R]): R = {
     parser.getCurrentToken match {
       case FIELD_NAME =>
         // There are useless FIELD_NAMEs between START_OBJECT and END_OBJECT tokens
@@ -412,25 +432,25 @@ class JacksonParser(
    * except for string and binary types, this also throws an exception.
    */
   private def failedConversion[R >: Null](
-      parser: JsonParser,
-      dataType: DataType): PartialFunction[JsonToken, R] = {
+                                           parser: JsonParser,
+                                           dataType: DataType): PartialFunction[JsonToken, R] = {
 
     // SPARK-25040: Disallows empty strings for data types except for string and binary types.
     // But treats empty strings as null for certain types if the legacy config is enabled.
     case VALUE_STRING if parser.getTextLength < 1 && allowEmptyString =>
       dataType match {
         case FloatType | DoubleType | TimestampType | DateType =>
-          throw QueryExecutionErrors.emptyJsonFieldValueError(dataType)
+          throw EmptyJsonFieldValueException(dataType)
         case _ => null
       }
 
     case VALUE_STRING if parser.getTextLength < 1 =>
-      throw QueryExecutionErrors.emptyJsonFieldValueError(dataType)
+      throw EmptyJsonFieldValueException(dataType)
 
     case token =>
       // We cannot parse this token based on the given data type. So, we throw a
       // RuntimeException and this exception will be caught by `parse` method.
-      throw QueryExecutionErrors.cannotParseJSONFieldError(parser, token, dataType)
+      throw CannotParseJSONFieldException(parser.getCurrentName, parser.getText, token, dataType)
   }
 
   /**
@@ -438,11 +458,11 @@ class JacksonParser(
    * Fields in the json that are not defined in the requested schema will be dropped.
    */
   private def convertObject(
-      parser: JsonParser,
-      schema: StructType,
-      fieldConverters: Array[ValueConverter],
-      structFilters: StructFilters = new NoopFilters(),
-      isRoot: Boolean = false): Option[InternalRow] = {
+                             parser: JsonParser,
+                             schema: StructType,
+                             fieldConverters: Array[ValueConverter],
+                             structFilters: StructFilters = new NoopFilters(),
+                             isRoot: Boolean = false): Option[InternalRow] = {
     val row = new GenericInternalRow(schema.length)
     var badRecordException: Option[Throwable] = None
     var skipRow = false
@@ -458,6 +478,11 @@ class JacksonParser(
             schema.existenceDefaultsBitmask(index) = false
           } catch {
             case e: SparkUpgradeException => throw e
+            case err: PartialValueException if enablePartialResults =>
+              badRecordException = badRecordException.orElse(Some(err.cause))
+              row.update(index, err.partialResult)
+              skipRow = structFilters.skipRow(row, index)
+              schema.existenceDefaultsBitmask(index) = false
             case NonFatal(e) if isRoot || enablePartialResults =>
               badRecordException = badRecordException.orElse(Some(e))
               parser.skipChildren()
@@ -480,8 +505,8 @@ class JacksonParser(
    * Parse an object as a Map, preserving all fields.
    */
   private def convertMap(
-      parser: JsonParser,
-      fieldConverter: ValueConverter): MapData = {
+                          parser: JsonParser,
+                          fieldConverter: ValueConverter): MapData = {
     val keys = ArrayBuffer.empty[UTF8String]
     val values = ArrayBuffer.empty[Any]
     var badRecordException: Option[Throwable] = None
@@ -507,7 +532,7 @@ class JacksonParser(
     if (badRecordException.isEmpty) {
       mapData
     } else {
-      throw PartialResultException(InternalRow(mapData), badRecordException.get)
+      throw PartialMapDataResultException(mapData, badRecordException.get)
     }
   }
 
@@ -515,9 +540,10 @@ class JacksonParser(
    * Parse an object as a Array.
    */
   private def convertArray(
-      parser: JsonParser,
-      fieldConverter: ValueConverter,
-      isRoot: Boolean = false): ArrayData = {
+                            parser: JsonParser,
+                            fieldConverter: ValueConverter,
+                            isRoot: Boolean = false,
+                            arrayAsStructs: Boolean = false): ArrayData = {
     val values = ArrayBuffer.empty[Any]
     var badRecordException: Option[Throwable] = None
 
@@ -537,21 +563,35 @@ class JacksonParser(
 
     if (badRecordException.isEmpty) {
       arrayData
+    } else if (arrayAsStructs) {
+      throw PartialResultArrayException(arrayData.toArray[InternalRow](schema),
+        badRecordException.get)
     } else {
-      throw PartialResultException(InternalRow(arrayData), badRecordException.get)
+      throw PartialArrayDataResultException(arrayData, badRecordException.get)
     }
+  }
+
+  /**
+   * Converts the non-stacktrace exceptions to user-friendly QueryExecutionErrors.
+   */
+  private def convertCauseForPartialResult(err: Throwable): Throwable = err match {
+    case CannotParseJSONFieldException(fieldName, fieldValue, jsonType, dataType) =>
+      QueryExecutionErrors.cannotParseJSONFieldError(fieldName, fieldValue, jsonType, dataType)
+    case EmptyJsonFieldValueException(dataType) =>
+      QueryExecutionErrors.emptyJsonFieldValueError(dataType)
+    case _ => err
   }
 
   /**
    * Parse the JSON input to the set of [[InternalRow]]s.
    *
    * @param recordLiteral an optional function that will be used to generate
-   *   the corrupt record text instead of record.toString
+   *                      the corrupt record text instead of record.toString
    */
   def parse[T](
-      record: T,
-      createParser: (JsonFactory, T) => JsonParser,
-      recordLiteral: T => UTF8String): Iterable[InternalRow] = {
+                record: T,
+                createParser: (JsonFactory, T) => JsonParser,
+                recordLiteral: T => UTF8String): Iterable[InternalRow] = {
     try {
       Utils.tryWithResource(createParser(factory, record)) { parser =>
         // a null first token is equivalent to testing for input.trim.isEmpty
@@ -566,11 +606,11 @@ class JacksonParser(
       }
     } catch {
       case e: SparkUpgradeException => throw e
-      case e @ (_: RuntimeException | _: JsonProcessingException | _: MalformedInputException) =>
+      case e@(_: RuntimeException | _: JsonProcessingException | _: MalformedInputException) =>
         // JSON parser currently doesn't support partial results for corrupted records.
         // For such records, all fields other than the field configured by
         // `columnNameOfCorruptRecord` are set to `null`.
-        throw BadRecordException(() => recordLiteral(record), () => None, e)
+        throw BadRecordException(() => recordLiteral(record), () => Array.empty, e)
       case e: CharConversionException if options.encoding.isEmpty =>
         val msg =
           """JSON parser cannot handle a character in its input.
@@ -578,12 +618,31 @@ class JacksonParser(
             |""".stripMargin + e.getMessage
         val wrappedCharException = new CharConversionException(msg)
         wrappedCharException.initCause(e)
-        throw BadRecordException(() => recordLiteral(record), () => None, wrappedCharException)
+        throw BadRecordException(() => recordLiteral(record), () => Array.empty,
+          wrappedCharException)
       case PartialResultException(row, cause) =>
         throw BadRecordException(
           record = () => recordLiteral(record),
-          partialResult = () => Some(row),
+          partialResults = () => Array(row),
+          convertCauseForPartialResult(cause))
+      case PartialResultArrayException(rows, cause) =>
+        throw BadRecordException(
+          record = () => recordLiteral(record),
+          partialResults = () => rows,
           cause)
+      // These exceptions should never be thrown outside of JacksonParser.
+      // They are used for the control flow in the parser. We add them here for completeness
+      // since they also indicate a bad record.
+      case PartialArrayDataResultException(arrayData, cause) =>
+        throw BadRecordException(
+          record = () => recordLiteral(record),
+          partialResults = () => Array(InternalRow(arrayData)),
+          convertCauseForPartialResult(cause))
+      case PartialMapDataResultException(mapData, cause) =>
+        throw BadRecordException(
+          record = () => recordLiteral(record),
+          partialResults = () => Array(InternalRow(mapData)),
+          convertCauseForPartialResult(cause))
     }
   }
 }

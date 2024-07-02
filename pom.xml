@@ -5,7 +5,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>1.6.0</version>
+    <version>1.7.0-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>ArangoDB Datasource for Apache Spark</description>
@@ -54,7 +54,6 @@
         <sonar.scala.scapegoat.reportPaths>
             ${project.build.directory}/scapegoat/scapegoat-scalastyle.xml
         </sonar.scala.scapegoat.reportPaths>
-        <scapegoat.version>1.4.14</scapegoat.version>
         <maven.deploy.skip>true</maven.deploy.skip>
         <scalastyle.skip>true</scalastyle.skip>
     </properties>
@@ -63,8 +62,9 @@
         <profile>
             <id>scala-2.12</id>
             <properties>
-                <scala.version>2.12.15</scala.version>
+                <scala.version>2.12.19</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
+                <scapegoat.version>2.1.6</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -72,15 +72,7 @@
             <properties>
                 <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-            </properties>
-        </profile>
-        <profile>
-            <id>spark-3.1</id>
-            <properties>
-                <spark.version>3.1.3</spark.version>
-                <spark.compat.version>3.1</spark.compat.version>
-                <jackson.vpack.variant/>
-                <jackson.vpack.version>4.1.0</jackson.vpack.version>
+                <scapegoat.version>1.4.17</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -88,26 +80,20 @@
             <properties>
                 <spark.version>3.2.4</spark.version>
                 <spark.compat.version>3.2</spark.compat.version>
-                <jackson.vpack.variant/>
-                <jackson.vpack.version>4.1.0</jackson.vpack.version>
             </properties>
         </profile>
         <profile>
             <id>spark-3.3</id>
             <properties>
-                <spark.version>3.3.3</spark.version>
+                <spark.version>3.3.4</spark.version>
                 <spark.compat.version>3.3</spark.compat.version>
-                <jackson.vpack.variant/>
-                <jackson.vpack.version>4.1.0</jackson.vpack.version>
             </properties>
         </profile>
         <profile>
             <id>spark-3.4</id>
             <properties>
-                <spark.version>3.4.1</spark.version>
+                <spark.version>3.4.3</spark.version>
                 <spark.compat.version>3.4</spark.compat.version>
-                <jackson.vpack.variant/>
-                <jackson.vpack.version>4.1.0</jackson.vpack.version>
             </properties>
         </profile>
         <profile>
@@ -158,7 +144,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.7.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -177,12 +163,14 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver-shaded</artifactId>
-            <version>7.6.0</version>
+            <version>7.7.1</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>jackson-dataformat-velocypack${jackson.vpack.variant}</artifactId>
-            <version>${jackson.vpack.version}</version>
+            <artifactId>jackson-dataformat-velocypack</artifactId>
+            <version>4.3.0</version>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
@@ -227,7 +215,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.22.0</version>
+            <version>3.26.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -252,7 +240,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.8.2</version>
+                <version>5.10.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -268,12 +256,6 @@
                 <version>${scala.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.apache.xbean</groupId>
-                <artifactId>xbean-asm6-shaded</artifactId>
-                <version>4.10</version>
-                <scope>provided</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -284,7 +266,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.5.1</version>
+                <version>4.7.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -316,7 +298,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
+                <version>0.8.12</version>
                 <configuration>
                     <append>true</append>
                     <excludes>
@@ -357,7 +339,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.3.0</version>
                 <configuration>
                     <argLine>@{argLine} -Duser.timezone=UTC</argLine>
                 </configuration>
@@ -365,7 +347,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.1.2</version>
                 <configuration>
                     <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
                 </configuration>
@@ -397,7 +379,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.2.4</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -411,7 +393,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -424,7 +406,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.4.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -437,6 +419,28 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireExplicitDependencyScope/>
+                                <requireMavenVersion>
+                                    <version>3.7</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 

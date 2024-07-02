@@ -1,0 +1,540 @@
+version: 2.1
+
+parameters:
+  docker-img:
+    type: 'string'
+    default: ''
+
+executors:
+  j8:
+    docker:
+      - image: 'cimg/openjdk:8.0'
+  j11:
+    docker:
+      - image: 'cimg/openjdk:11.0'
+  p310:
+    docker:
+      - image: 'cimg/python:3.10'
+  p311:
+    docker:
+      - image: 'cimg/python:3.11'
+  p312:
+    docker:
+      - image: 'cimg/python:3.12'
+
+commands:
+  timeout:
+    parameters:
+      duration:
+        default: '5m'
+        type: 'string'
+    steps:
+      - run:
+          name: Cancel job after <<parameters.duration>>
+          background: true
+          command: |
+            sleep <<parameters.duration>>
+            echo "Cancelling job as <<parameters.duration>> has elapsed"
+            curl --fail -X POST -H "Circle-Token: ${CIRCLE_TOKEN}" "https://circleci.com/api/v1.1/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BUILD_NUM}/cancel"
+  install-sdk:
+    parameters:
+      sdk:
+        type: 'string'
+      version:
+        type: 'string'
+    steps:
+      - restore_cache:
+          key: sdk-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-<<parameters.sdk>>-<<parameters.version>>
+      - run:
+          name: Install SDK
+          command: |
+            curl -s "https://get.sdkman.io" | bash
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk version
+            sdk install <<parameters.sdk>> <<parameters.version>>
+            sdk default <<parameters.sdk>> <<parameters.version>>
+            sdk use <<parameters.sdk>> <<parameters.version>>
+            echo '### SDKMAN ###' >> "$BASH_ENV"
+            echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> "$BASH_ENV"
+            echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> "$BASH_ENV"
+            source "$BASH_ENV"
+      - save_cache:
+          key: sdk-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-<<parameters.sdk>>-<<parameters.version>>
+          paths:
+            - ~/.sdkman
+  start-db:
+    parameters:
+      docker-img:
+        type: 'string'
+        default: <<pipeline.parameters.docker-img>>
+      topology:
+        type: 'string'
+        default: 'single'
+      ssl:
+        type: 'string'
+        default: 'false'
+      compression:
+        type: 'string'
+        default: 'false'
+    steps:
+      - run:
+          name: Start Database
+          command: ./docker/start_db.sh
+          environment:
+            DOCKER_IMAGE: <<parameters.docker-img>>
+            STARTER_MODE: <<parameters.topology>>
+            STARTER_DOCKER_IMAGE: 'docker.io/arangodb/arangodb-starter:0.18.5'
+            SSL: <<parameters.ssl>>
+            COMPRESSION: <<parameters.compression>>
+  report:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    steps:
+      - run:
+          name: surefire reports
+          command: mvn surefire-report:report-only -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - store_artifacts:
+          path: integration-tests/target/site
+  load_cache:
+    steps:
+      - run:
+          name: Generate Cache Checksum
+          command: find . -name 'pom.xml' | sort | xargs cat > /tmp/maven_cache_seed
+      - restore_cache:
+          key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
+  store_cache:
+    steps:
+      - save_cache:
+          key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
+          paths:
+            - ~/.m2/repository
+  config_gpg:
+    steps:
+      - run:
+          name: Configure GPG
+          command: echo $GPG_PRIVATE_KEY | base64 --decode | gpg --batch --no-tty --import --yes
+  deploy:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    steps:
+      - run:
+          name: Deploy to Apache Maven Central
+          command: mvn -s .circleci/maven-release-settings.xml -Ddeploy -Dmaven.test.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> deploy
+  release:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    steps:
+      - run:
+          name: Release to Apache Maven Central
+          command: mvn -s .circleci/maven-release-settings.xml -Ddeploy -Dmaven.test.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> nexus-staging:release
+          environment:
+            MAVEN_OPTS: "--add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED"
+
+jobs:
+
+  test:
+    parameters:
+      docker-img:
+        type: 'string'
+        default: <<pipeline.parameters.docker-img>>
+      topology:
+        type: 'string'
+        default: 'cluster'
+      ssl:
+        type: 'string'
+        default: 'false'
+      jdk:
+        type: 'string'
+        default: 'j11'
+      scala-version:
+        type: 'string'
+        default: '2.12'
+      spark-version:
+        type: 'string'
+      args:
+        type: 'string'
+        default: ''
+    executor: <<parameters.jdk>>
+    steps:
+      - timeout
+      - checkout
+      - setup_remote_docker
+      - start-db:
+          docker-img: <<parameters.docker-img>>
+          topology: <<parameters.topology>>
+          ssl: <<parameters.ssl>>
+      - load_cache
+      - run:
+          name: mvn version
+          command: mvn --version
+      - run:
+          name: mvn dependency:tree
+          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - run:
+          name: Test
+          command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> <<parameters.args>>
+      - report:
+          scala-version: <<parameters.scala-version>>
+          spark-version: <<parameters.spark-version>>
+      - store_cache
+
+  integration-tests:
+    parameters:
+      scala-version:
+        type: 'string'
+        default: '2.12'
+      spark-version:
+        type: 'string'
+      spark-full-version:
+        type: 'string'
+    executor: 'j11'
+    steps:
+      - timeout
+      - checkout
+      - setup_remote_docker
+      - start-db
+      - load_cache
+      - run:
+          name: mvn version
+          command: mvn --version
+      - run:
+          name: mvn dependency:tree
+          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - run:
+          name: mvn install
+          command: mvn install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - run:
+          name: mvn dependency:tree
+          working_directory: integration-tests
+          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dspark.version=<<parameters.spark-full-version>>
+      - run:
+          name: Test
+          working_directory: integration-tests
+          command: mvn test -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dspark.version=<<parameters.spark-full-version>>
+      - report:
+          scala-version: <<parameters.scala-version>>
+          spark-version: <<parameters.spark-version>>
+      - store_cache
+
+  python-integration-tests:
+    parameters:
+      scala-version:
+        type: 'string'
+        default: '2.12'
+      spark-version:
+        type: 'string'
+      python-executor:
+        type: 'string'
+      pyspark-version:
+        type: 'string'
+      jdk:
+        type: 'string'
+        default: '11.0.23-tem'
+    executor: <<parameters.python-executor>>
+    steps:
+      - timeout
+      - checkout
+      - setup_remote_docker
+      - install-sdk:
+          sdk: 'java'
+          version: <<parameters.jdk>>
+      - install-sdk:
+          sdk: 'maven'
+          version: '3.9.8'
+      - start-db:
+          topology: 'cluster'
+      - load_cache
+      - run:
+          name: Install python dependencies
+          command: |
+            python -m pip install --upgrade pip
+            pip install pyspark==<<parameters.pyspark-version>>
+            pip install -r python-integration-tests/test-requirements.txt
+      - run:
+          name: Build Spark Datasource
+          command: |
+            mvn package -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+            find . -name "arangodb-spark-datasource-<<parameters.spark-version>>_*-jar-with-dependencies.jar" -exec cp {} ./arangodb-spark-datasource-under-test.jar \;
+      - run:
+          name: Test
+          command: pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
+      - store_cache
+
+  demo:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    executor: 'j11'
+    steps:
+      - timeout
+      - checkout
+      - setup_remote_docker
+      - start-db:
+          topology: 'cluster'
+      - load_cache
+      - run:
+          name: mvn version
+          command: mvn --version
+      - run:
+          name: mvn dependency:tree
+          command: mvn dependency:tree -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - run:
+          name: mvn install
+          command: mvn install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
+      - run:
+          name: Deployment Test
+          command: mvn -f ./demo/pom.xml -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -DimportPath=docker/import test
+      - store_cache
+
+  deploy:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    executor: 'j11'
+    steps:
+      - timeout
+      - checkout
+      - load_cache
+      - config_gpg
+      - deploy:
+          scala-version: <<parameters.scala-version>>
+          spark-version: <<parameters.spark-version>>
+      - store_cache
+
+  release:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    executor: 'j11'
+    steps:
+      - timeout
+      - checkout
+      - load_cache
+      - config_gpg
+      - deploy:
+          scala-version: <<parameters.scala-version>>
+          spark-version: <<parameters.spark-version>>
+      - release:
+          scala-version: <<parameters.scala-version>>
+          spark-version: <<parameters.spark-version>>
+      - store_cache
+
+workflows:
+  test-adb-version:
+    when:
+      not: <<pipeline.parameters.docker-img>>
+    jobs:
+      - test:
+          name: test-spark<<matrix.spark-version>>-<<matrix.topology>>-<<matrix.docker-img>>
+          matrix:
+            parameters:
+              docker-img:
+                - 'docker.io/arangodb/arangodb:3.11'
+                - 'docker.io/arangodb/arangodb:3.12'
+                - 'docker.io/arangodb/enterprise:3.11'
+                - 'docker.io/arangodb/enterprise:3.12'
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              topology:
+                - 'single'
+                - 'cluster'
+  test-adb-topology:
+    when: <<pipeline.parameters.docker-img>>
+    jobs:
+      - test:
+          name: test-spark<<matrix.spark-version>>-<<matrix.topology>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              topology:
+                - 'single'
+                - 'cluster'
+  #  ssl:
+  #    jobs:
+  #      - test:
+  #          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+  #          matrix:
+  #            parameters:
+  #              spark-version:
+  #                - '3.2'
+  #                - '3.3'
+  #                - '3.4'
+  #              scala-version:
+  #                - '2.12'
+  #                - '2.13'
+  #              jdk:
+  #                - 'j8'
+  #                - 'j11'
+  #              ssl:
+  #                - 'true'
+  #              args:
+  #                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false'
+  test-jdk:
+    when:
+      not: <<pipeline.parameters.docker-img>>
+    jobs:
+      - test:
+          name: test-<<matrix.jdk>>-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              jdk:
+                - 'j8'
+                - 'j11'
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+  test-spark-versions:
+    when:
+      not: <<pipeline.parameters.docker-img>>
+    jobs:
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+              scala-version:
+                - '2.12'
+                - '2.13'
+              spark-full-version:
+                - '3.2.0'
+                - '3.2.1'
+                - '3.2.2'
+                - '3.2.3'
+                - '3.2.4'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.3'
+              scala-version:
+                - '2.12'
+                - '2.13'
+              spark-full-version:
+                - '3.3.0'
+                - '3.3.1'
+                - '3.3.2'
+                - '3.3.3'
+                - '3.3.4'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+              spark-full-version:
+                - '3.4.2'
+                - '3.4.3'
+  test-python:
+    when:
+      not: <<pipeline.parameters.docker-img>>
+    jobs:
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p310'
+              spark-version:
+                - '3.2'
+              pyspark-version:
+                - '3.2.4'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p310'
+              spark-version:
+                - '3.3'
+              pyspark-version:
+                - '3.3.4'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p312'
+              spark-version:
+                - '3.4'
+              pyspark-version:
+                - '3.4.3'
+  demo:
+    jobs:
+      - demo:
+          name: demo-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+  deploy:
+    jobs:
+      - deploy:
+          name: deploy-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+          context: java-release
+          filters:
+            tags:
+              only: /^deploy.*/
+            branches:
+              ignore: /.*/
+  release:
+    jobs:
+      - release:
+          name: release-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+          context: java-release
+          filters:
+            tags:
+              only: /^release.*/
+            branches:
+              ignore: /.*/
