@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.datasource.TestUtils.isLessThanVersion
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.junit.jupiter.api.BeforeAll
@@ -51,26 +52,6 @@ object BaseSparkTest {
       val protocol = args.get()(0).asInstanceOf[String]
       protocol != "vst" || isLessThanVersion(version.getVersion, 3, 12, 0)
     })
-
-  def isAtLeastVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Boolean = compareVersion(version, otherMajor, otherMinor, otherPatch) >= 0
-
-  def isLessThanVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Boolean = compareVersion(version, otherMajor, otherMinor, otherPatch) < 0
-
-  private def compareVersion(version: String, otherMajor: Int, otherMinor: Int, otherPatch: Int): Int = {
-    val parts = version.split("-")(0).split("\\.")
-    val major = parts(0).toInt
-    val minor = parts(1).toInt
-    val patch = parts(2).toInt
-    val majorComparison = Integer.compare(major, otherMajor)
-    if (majorComparison != 0) {
-      return majorComparison
-    }
-    val minorComparison = Integer.compare(minor, otherMinor)
-    if (minorComparison != 0) {
-      return minorComparison
-    }
-    Integer.compare(patch, otherPatch)
-  }
 
   val arangoDatasource: String = classOf[DefaultSource].getName
   private val database = "sparkConnectorTest"
