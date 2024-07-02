@@ -369,26 +369,26 @@ workflows:
               topology:
                 - 'single'
                 - 'cluster'
-  #  ssl:
-  #    jobs:
-  #      - test:
-  #          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
-  #          matrix:
-  #            parameters:
-  #              spark-version:
-  #                - '3.2'
-  #                - '3.3'
-  #                - '3.4'
-  #              scala-version:
-  #                - '2.12'
-  #                - '2.13'
-  #              jdk:
-  #                - 'j8'
-  #                - 'j11'
-  #              ssl:
-  #                - 'true'
-  #              args:
-  #                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -DfailIfNoTests=false'
+  ssl:
+    jobs:
+      - test:
+          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.2'
+                - '3.3'
+                - '3.4'
+              scala-version:
+                - '2.12'
+                - '2.13'
+              jdk:
+                - 'j8'
+                - 'j11'
+              ssl:
+                - 'true'
+              args:
+                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -Dsurefire.failIfNoSpecifiedTests=false'
   test-jdk:
     when:
       not: <<pipeline.parameters.docker-img>>
