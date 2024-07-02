@@ -69,9 +69,14 @@ object Protocol {
     override val name: String = "http"
   }
 
+  case object HTTP2 extends Protocol {
+    override val name: String = "http2"
+  }
+
   def apply(value: String): Protocol = value match {
     case VST.name => VST
     case HTTP.name => HTTP
+    case HTTP2.name => HTTP2
     case _ => throw new IllegalArgumentException(s"${ArangoDBConf.PROTOCOL}: $value")
   }
 }

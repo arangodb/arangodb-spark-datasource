@@ -1,5 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
+import com.arangodb.entity.ArangoDBVersion
 import com.arangodb.serde.jackson.JacksonSerde
 import com.arangodb.spark.DefaultSource
 import com.arangodb.{ArangoDB, ArangoDatabase}
@@ -7,10 +8,15 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import org.apache.spark.sql.arangodb.commons.ArangoDBConf
+import org.apache.spark.sql.arangodb.datasource.TestUtils.isLessThanVersion
 import org.apache.spark.sql.types.{IntegerType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
-import org.junit.jupiter.api.{AfterEach, BeforeEach, Test}
+import org.junit.jupiter.api.{AfterAll, BeforeAll}
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
@@ -24,53 +30,20 @@ import javax.net.ssl.{SSLContext, TrustManagerFactory}
 @EnabledIfSystemProperty(named = "SslTest", matches = "true")
 class SslTest {
   private val arangoDB: ArangoDB = SslTest.arangoDB
-  private val db: ArangoDatabase = SslTest.db
+  private val version: ArangoDBVersion = arangoDB.getVersion
   private val spark: SparkSession = SslTest.spark
   private val options: Map[String, String] = SslTest.options
 
-  @BeforeEach
-  def startup(): Unit = {
-    println(arangoDB.getVersion.getVersion)
-    val col = db.collection("sslTest")
-    if (!col.exists()) col.create()
-
-    import scala.collection.JavaConverters.seqAsJavaListConverter
-
-    SslTest.createDF(
-      "sslTest",
-      Seq(
-        Map(
-          "str" -> "s1",
-          "int" -> 1
-        ),
-        Map(
-          "str" -> "s2",
-          "int" -> 2
-        ),
-        Map(
-          "str" -> "s3",
-          "int" -> 3
-        )
-      ).asInstanceOf[Seq[Any]].asJava,
-      StructType(Array(
-        StructField("str", StringType),
-        StructField("int", IntegerType)
-      ))
-    )
-  }
-
-  @AfterEach
-  def shutdown(): Unit = {
-    db.collection("sslTest").drop()
-    arangoDB.shutdown()
-  }
-
-
-  @Test
-  def sslTest(): Unit = {
+  @ParameterizedTest
+  @ValueSource(strings = Array("vst", "http", "http2"))
+  def sslTest(protocol: String): Unit = {
+    assumeTrue(protocol != "vst" || isLessThanVersion(version.getVersion, 3, 12, 0))
     val df = spark.read
       .format(classOf[DefaultSource].getName)
-      .options(options + ("table" -> "sslTest"))
+      .options(options ++ Map(
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.COLLECTION -> "sslTest"
+      ))
       .load()
     df.show()
   }
@@ -126,13 +99,13 @@ object SslTest {
   }
   private val db: ArangoDatabase = createDB()
   private val options = Map(
-    "ssl.enabled" -> "true",
-    "ssl.verifyHost" -> "false",
-    "ssl.cert.value" -> b64cert,
-    "database" -> database,
-    "user" -> user,
-    "password" -> password,
-    "endpoints" -> endpoints
+    ArangoDBConf.SSL_ENABLED -> "true",
+    ArangoDBConf.SSL_VERIFY_HOST -> "false",
+    ArangoDBConf.SSL_CERT_VALUE -> b64cert,
+    ArangoDBConf.DB -> database,
+    ArangoDBConf.USER -> user,
+    ArangoDBConf.PASSWORD -> password,
+    ArangoDBConf.ENDPOINTS -> endpoints
   )
 
   private val spark: SparkSession = SparkSession.builder()
@@ -171,4 +144,41 @@ object SslTest {
   def dropTable(name: String): Unit = {
     db.collection(name).drop()
   }
+
+  @BeforeAll
+  def startup(): Unit = {
+    val col = db.collection("sslTest")
+    if (!col.exists()) col.create()
+
+    import scala.collection.JavaConverters.seqAsJavaListConverter
+
+    SslTest.createDF(
+      "sslTest",
+      Seq(
+        Map(
+          "str" -> "s1",
+          "int" -> 1
+        ),
+        Map(
+          "str" -> "s2",
+          "int" -> 2
+        ),
+        Map(
+          "str" -> "s3",
+          "int" -> 3
+        )
+      ).asInstanceOf[Seq[Any]].asJava,
+      StructType(Array(
+        StructField("str", StringType),
+        StructField("int", IntegerType)
+      ))
+    )
+  }
+
+  @AfterAll
+  def shutdown(): Unit = {
+    db.collection("sslTest").drop()
+    arangoDB.shutdown()
+  }
+
 }
