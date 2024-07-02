@@ -68,6 +68,12 @@ object ArangoDBConf {
     .booleanConf
     .createWithDefault(false)
 
+  val SSL_VERIFY_HOST = "ssl.verifyHost"
+  val verifyHostConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_VERIFY_HOST)
+    .doc("hostname verification")
+    .booleanConf
+    .createWithDefault(true)
+
   val SSL_CERT_VALUE = "ssl.cert.value"
   val sslCertValueConf: OptionalConfigEntry[String] = ConfigBuilder(SSL_CERT_VALUE)
     .doc("base64 encoded certificate")
@@ -262,6 +268,7 @@ object ArangoDBConf {
     CONTENT_TYPE -> contentTypeConf,
     TIMEOUT -> timeoutConf,
     SSL_ENABLED -> sslEnabledConf,
+    SSL_VERIFY_HOST -> verifyHostConf,
     SSL_CERT_VALUE -> sslCertValueConf,
     SSL_CERT_TYPE -> sslCertTypeConf,
     SSL_CERT_ALIAS -> sslCertAliasConf,
@@ -470,6 +477,8 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val sslEnabled: Boolean = getConf(sslEnabledConf)
 
+  val verifyHost: Boolean = getConf(verifyHostConf)
+
   val sslCertValue: Option[String] = getConf(sslCertValueConf)
 
   val sslCertType: String = getConf(sslCertTypeConf)
@@ -494,6 +503,7 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
       builder
         .useSsl(true)
         .sslContext(getSslContext)
+        .verifyHost(verifyHost)
     }
 
     endpoints
