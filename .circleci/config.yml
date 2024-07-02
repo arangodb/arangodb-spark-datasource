@@ -12,6 +12,9 @@ executors:
   j11:
     docker:
       - image: 'cimg/openjdk:11.0'
+  j17:
+    docker:
+      - image: 'cimg/openjdk:17.0'
   p310:
     docker:
       - image: 'cimg/python:3.10'
@@ -154,7 +157,7 @@ jobs:
         default: 'false'
       jdk:
         type: 'string'
-        default: 'j11'
+        default: 'j17'
       scala-version:
         type: 'string'
         default: '2.12'
@@ -196,7 +199,7 @@ jobs:
         type: 'string'
       spark-full-version:
         type: 'string'
-    executor: 'j11'
+    executor: 'j17'
     steps:
       - timeout
       - checkout
@@ -238,7 +241,7 @@ jobs:
         type: 'string'
       jdk:
         type: 'string'
-        default: '11.0.23-tem'
+        default: '17.0.11-tem'
     executor: <<parameters.python-executor>>
     steps:
       - timeout
@@ -275,7 +278,7 @@ jobs:
         type: 'string'
       spark-version:
         type: 'string'
-    executor: 'j11'
+    executor: 'j17'
     steps:
       - timeout
       - checkout
@@ -303,7 +306,7 @@ jobs:
         type: 'string'
       spark-version:
         type: 'string'
-    executor: 'j11'
+    executor: 'j17'
     steps:
       - timeout
       - checkout
@@ -320,7 +323,7 @@ jobs:
         type: 'string'
       spark-version:
         type: 'string'
-    executor: 'j11'
+    executor: 'j17'
     steps:
       - timeout
       - checkout
@@ -372,7 +375,7 @@ workflows:
   ssl:
     jobs:
       - test:
-          name: ssl-<<matrix.jdk>>-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+          name: ssl-<<matrix.scala-version>>-spark<<matrix.spark-version>>
           matrix:
             parameters:
               spark-version:
@@ -382,9 +385,6 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
-              jdk:
-                - 'j8'
-                - 'j11'
               ssl:
                 - 'true'
               args:
@@ -400,6 +400,7 @@ workflows:
               jdk:
                 - 'j8'
                 - 'j11'
+                - 'j17'
               spark-version:
                 - '3.2'
                 - '3.3'
