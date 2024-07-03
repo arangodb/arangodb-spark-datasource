@@ -34,7 +34,9 @@ users_schema = StructType([
 
 protocol_and_content_type = [
     ("http", "vpack"),
-    ("http", "json")
+    ("http", "json"),
+    ("http2", "vpack"),
+    ("http2", "json")
 ]
 
 

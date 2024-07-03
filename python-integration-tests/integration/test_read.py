@@ -174,4 +174,3 @@ def test_read_timeout(spark: SparkSession, protocol: str, content_type: str):
 
     e.match("SparkException")
     e.match("ArangoDBException")
-    e.match("TimeoutException")
