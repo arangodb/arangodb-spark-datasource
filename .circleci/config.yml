@@ -462,6 +462,8 @@ workflows:
           name: test-pyspark-<<matrix.pyspark-version>>
           matrix:
             parameters:
+              jdk:
+                - '11.0.23-tem'
               python-executor:
                 - 'p310'
               spark-version:
