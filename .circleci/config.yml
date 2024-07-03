@@ -46,8 +46,6 @@ commands:
       version:
         type: 'string'
     steps:
-      - restore_cache:
-          key: sdk-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-<<parameters.sdk>>-<<parameters.version>>
       - run:
           name: Install SDK
           command: |
@@ -61,10 +59,6 @@ commands:
             echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> "$BASH_ENV"
             echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> "$BASH_ENV"
             source "$BASH_ENV"
-      - save_cache:
-          key: sdk-{{ .Environment.CIRCLE_JOB }}-{{ arch }}-<<parameters.sdk>>-<<parameters.version>>
-          paths:
-            - ~/.sdkman
   start-db:
     parameters:
       docker-img:
@@ -247,12 +241,20 @@ jobs:
       - timeout
       - checkout
       - setup_remote_docker
+      - restore_cache:
+          name: restore SDKMAN cache
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
       - install-sdk:
           sdk: 'java'
           version: <<parameters.jdk>>
       - install-sdk:
           sdk: 'maven'
           version: '3.9.8'
+      - save_cache:
+          name: save SDKMAN cache
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+          paths:
+            - ~/.sdkman
       - start-db:
           topology: 'cluster'
       - load_cache
