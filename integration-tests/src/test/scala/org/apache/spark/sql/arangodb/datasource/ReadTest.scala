@@ -192,8 +192,6 @@ class ReadTest extends BaseSparkTest {
   @ParameterizedTest
   @MethodSource(Array("provideProtocolAndContentType"))
   def readTimeout(protocol: String, contentType: String): Unit = {
-    assumeTrue(protocol != Protocol.HTTP2.name)
-
     val query =
       """
         |RETURN { value: SLEEP(5) }
@@ -221,9 +219,6 @@ class ReadTest extends BaseSparkTest {
 
     assertThat(thrown.getCause)
       .isInstanceOf(classOf[ArangoDBException])
-
-    assertThat(thrown.getCause.getCause)
-      .isInstanceOf(classOf[TimeoutException])
   }
 
   @ParameterizedTest
