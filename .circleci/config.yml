@@ -302,6 +302,34 @@ jobs:
           command: mvn -f ./demo/pom.xml -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -DimportPath=docker/import test
       - store_cache
 
+  sonar:
+    parameters:
+      scala-version:
+        type: 'string'
+      spark-version:
+        type: 'string'
+    executor: 'j17'
+    resource_class: 'large'
+    steps:
+      - timeout
+      - checkout
+      - setup_remote_docker
+      - start-db:
+          topology: 'cluster'
+      - load_cache
+      - restore_cache:
+          name: Restore Sonar cache
+          key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
+      - run:
+          name: Build and analyze
+          command: mvn -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -Dgpg.skip=true -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=arangodb_arangodb-spark-datasource
+      - save_cache:
+          name: Save Sonar cache
+          key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
+          paths:
+            - ~/.sonar/cache
+      - store_cache
+
   deploy:
     parameters:
       scala-version:
@@ -493,6 +521,8 @@ workflows:
               pyspark-version:
                 - '3.4.3'
   demo:
+    when:
+      not: <<pipeline.parameters.docker-img>>
     jobs:
       - demo:
           name: demo-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
@@ -505,6 +535,18 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
+  sonar:
+    when:
+      not: <<pipeline.parameters.docker-img>>
+    jobs:
+      - sonar:
+          name: sonar
+          matrix:
+            parameters:
+              spark-version:
+                - '3.4'
+              scala-version:
+                - '2.12'
   deploy:
     jobs:
       - deploy:
