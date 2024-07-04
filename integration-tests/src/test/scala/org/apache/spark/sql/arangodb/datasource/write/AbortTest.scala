@@ -192,7 +192,7 @@ class AbortTest extends BaseSparkTest {
 
     assertThat(thrown).isInstanceOf(classOf[SparkException])
 
-    val cause = if (SPARK_VERSION.startsWith("3.4")) {
+    val cause = if (SPARK_VERSION.startsWith("3.4") || SPARK_VERSION.startsWith("3.5")) {
       thrown.getCause
     } else {
       thrown.getCause.getCause
