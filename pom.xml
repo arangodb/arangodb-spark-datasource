@@ -176,6 +176,7 @@
                             <stagingProfileId>84aff6e87e214c</stagingProfileId>
                             <autoReleaseAfterClose>false</autoReleaseAfterClose>
                             <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                            <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
                         </configuration>
                     </plugin>
                 </plugins>
