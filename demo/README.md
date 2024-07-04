@@ -15,7 +15,7 @@ There are demos available written in Scala & Python (using PySpark) as outlined 
 
 This demo requires:
 
-- JDK 1.8 or 11
+- JDK 8, 11 or 17
 - `maven`
 - `docker`
 
@@ -42,7 +42,15 @@ password `test`.
 Start Spark cluster:
 
 ```shell
-./docker/start_spark_3.4.sh 
+./docker/start_spark.sh 
+```
+
+## Install locally
+
+NB: this is only needed for SNAPSHOT versions.
+
+```shell
+mvn -f ../pom.xml install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true -Pscala-2.12 -Pspark-3.5
 ```
 
 ## Run embedded
@@ -50,7 +58,7 @@ Start Spark cluster:
 Test the Spark application in embedded mode:
 
 ```shell
-mvn test
+mvn test -Pscala-2.12 -Pspark-3.5
 ```
 
 Test the Spark application against ArangoDB Oasis deployment:
@@ -69,7 +77,7 @@ mvn \
 Package the application:
 
 ```shell
-mvn -DskipTests=true package
+mvn package -Dmaven.test.skip=true -Pscala-2.12 -Pspark-3.5
 ```
 
 Submit demo program:
@@ -78,10 +86,11 @@ Submit demo program:
 docker run -it --rm \
   -v $(pwd):/demo \
   -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
+  -v $HOME/.m2/repository:/opt/bitnami/spark/.m2/repository \
   --network arangodb \
-  docker.io/bitnami/spark:3.4.0 \
+  docker.io/bitnami/spark:3.5.1 \
   ./bin/spark-submit --master spark://spark-master:7077 \
-    --packages="com.arangodb:arangodb-spark-datasource-3.4_2.12:$ARANGO_SPARK_VERSION" \
+    --packages="com.arangodb:arangodb-spark-datasource-3.5_2.12:$ARANGO_SPARK_VERSION" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
 ```
 
