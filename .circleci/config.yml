@@ -355,7 +355,8 @@ jobs:
         type: 'string'
     executor: 'j17'
     steps:
-      - timeout
+      - timeout:
+          duration: '10m'
       - checkout
       - load_cache
       - config_gpg
