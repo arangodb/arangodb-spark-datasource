@@ -60,8 +60,6 @@ class DeserializationCastTest extends BaseSparkTest {
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
   def nullToIntegerCast(contentType: String): Unit = {
-    assumeTrue(!SPARK_VERSION.startsWith("3.2"))
-
     doTestImplicitCast(
       StructType(Array(StructField("a", IntegerType, nullable = false))),
       Seq(Map("a" -> null)),
@@ -73,8 +71,6 @@ class DeserializationCastTest extends BaseSparkTest {
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
   def nullToDoubleCast(contentType: String): Unit = {
-    assumeTrue(!SPARK_VERSION.startsWith("3.2"))
-
     doTestImplicitCast(
       StructType(Array(StructField("a", DoubleType, nullable = false))),
       Seq(Map("a" -> null)),
@@ -86,8 +82,6 @@ class DeserializationCastTest extends BaseSparkTest {
   @ParameterizedTest
   @ValueSource(strings = Array("vpack", "json"))
   def nullAsBoolean(contentType: String): Unit = {
-    assumeTrue(!SPARK_VERSION.startsWith("3.2"))
-
     doTestImplicitCast(
       StructType(Array(StructField("a", BooleanType, nullable = false))),
       Seq(Map("a" -> null)),
