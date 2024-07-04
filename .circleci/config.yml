@@ -385,6 +385,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               topology:
                 - 'single'
                 - 'cluster'
@@ -399,6 +400,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               topology:
                 - 'single'
                 - 'cluster'
@@ -412,6 +414,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -435,6 +438,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -484,6 +488,18 @@ workflows:
               spark-full-version:
                 - '3.4.2'
                 - '3.4.3'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '3.5'
+              scala-version:
+                - '2.12'
+                - '2.13'
+              spark-full-version:
+                - '3.5.0'
+                - '3.5.1'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -520,6 +536,16 @@ workflows:
                 - '3.4'
               pyspark-version:
                 - '3.4.3'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p312'
+              spark-version:
+                - '3.5'
+              pyspark-version:
+                - '3.5.1'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -532,6 +558,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -544,7 +571,7 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
   deploy:
@@ -557,6 +584,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -576,6 +604,7 @@ workflows:
                 - '3.2'
                 - '3.3'
                 - '3.4'
+                - '3.5'
               scala-version:
                 - '2.12'
                 - '2.13'

@@ -18,12 +18,10 @@
     <profiles>
         <profile>
             <id>scala-2.12</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <scala.version>2.12.19</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
+                <scapegoat.version>2.1.6</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -31,6 +29,7 @@
             <properties>
                 <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
+                <scapegoat.version>1.4.17</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -38,6 +37,7 @@
             <properties>
                 <spark.version>3.2.4</spark.version>
                 <spark.compat.version>3.2</spark.compat.version>
+                <jackson.version>2.12.3</jackson.version>
             </properties>
         </profile>
         <profile>
@@ -45,16 +45,23 @@
             <properties>
                 <spark.version>3.3.4</spark.version>
                 <spark.compat.version>3.3</spark.compat.version>
+                <jackson.version>2.13.4</jackson.version>
             </properties>
         </profile>
         <profile>
             <id>spark-3.4</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <properties>
                 <spark.version>3.4.3</spark.version>
                 <spark.compat.version>3.4</spark.compat.version>
+                <jackson.version>2.14.2</jackson.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>spark-3.5</id>
+            <properties>
+                <spark.version>3.5.1</spark.version>
+                <spark.compat.version>3.5</spark.compat.version>
+                <jackson.version>2.15.2</jackson.version>
             </properties>
         </profile>
         <profile>
@@ -111,6 +118,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>

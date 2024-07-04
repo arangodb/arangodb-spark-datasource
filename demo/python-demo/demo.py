@@ -18,7 +18,7 @@ def create_spark_session() -> SparkSession:
     spark = SparkSession.builder \
         .appName("ArangoDBPySparkDataTypesExample") \
         .master("local[*]") \
-        .config("spark.jars.packages", f"com.arangodb:arangodb-spark-datasource-3.4_2.12:{arango_spark_version}") \
+        .config("spark.jars.packages", f"com.arangodb:arangodb-spark-datasource-3.5_2.12:{arango_spark_version}") \
         .getOrCreate()
 
     return spark

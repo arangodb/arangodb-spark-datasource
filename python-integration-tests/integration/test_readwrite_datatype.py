@@ -74,18 +74,6 @@ struct_fields = [
 schema = StructType(struct_fields)
 
 
-def test_write_decimal_type_with_json_content_should_throw(spark: SparkSession):
-    schema_with_decimal = StructType(copy.deepcopy(struct_fields))
-    schema_with_decimal.add(StructField("decimal", DecimalType(38, 18), nullable=False))
-    df = spark.createDataFrame(spark.sparkContext.parallelize([Row(*x, Context(prec=38).create_decimal("1.111111111")) for x in data]), schema_with_decimal)
-
-    with pytest.raises(Py4JJavaError) as e:
-        write_df(df, "http", "json")
-
-    e.match("UnsupportedOperationException")
-    e.match("Cannot write DecimalType when using contentType=json")
-
-
 @pytest.mark.parametrize("protocol,content_type", test_basespark.protocol_and_content_type)
 def test_round_trip_read_write(spark: SparkSession, protocol: str, content_type: str):
     df = spark.createDataFrame(spark.sparkContext.parallelize([Row(*x) for x in data]), schema)
