@@ -5,7 +5,12 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-- updated `arangodb-java-driver` to version `7.6.0`
+## [1.7.0] - 2024-07-04
+
+- added support for Spark 3.5 (#58)
+- added support to protocol `http2` (DE-596, #55)
+- added configuration `ssl.verifyHost` to disable TLS hostname verification (DE-790, #54)
+- updated `arangodb-java-driver` to version `7.7.1`
 
 ## [1.6.0] - 2024-03-20
 
