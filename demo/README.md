@@ -88,7 +88,7 @@ docker run -it --rm \
   -v $(pwd)/docker/.ivy2:/opt/bitnami/spark/.ivy2 \
   -v $HOME/.m2/repository:/opt/bitnami/spark/.m2/repository \
   --network arangodb \
-  docker.io/bitnami/spark:3.5.1 \
+  docker.io/bitnami/spark:3.5.2 \
   ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.5_2.12:$ARANGO_SPARK_VERSION" \
     --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
