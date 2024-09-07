@@ -36,18 +36,34 @@ class SslTest {
 
   @ParameterizedTest
   @ValueSource(strings = Array("vst", "http", "http2"))
-  def sslTest(protocol: String): Unit = {
+  def sslB64CertTest(protocol: String): Unit = {
     assumeTrue(protocol != "vst" || isLessThanVersion(version.getVersion, 3, 12, 0))
     val df = spark.read
       .format(classOf[DefaultSource].getName)
       .options(options ++ Map(
         ArangoDBConf.PROTOCOL -> protocol,
-        ArangoDBConf.COLLECTION -> "sslTest"
+        ArangoDBConf.COLLECTION -> "sslTest",
+        ArangoDBConf.SSL_CERT_VALUE -> SslTest.b64cert,
       ))
       .load()
     df.show()
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = Array("vst", "http", "http2"))
+  def sslTrustStorePathTest(protocol: String): Unit = {
+    assumeTrue(protocol != "vst" || isLessThanVersion(version.getVersion, 3, 12, 0))
+    val df = spark.read
+      .format(classOf[DefaultSource].getName)
+      .options(options ++ Map(
+        ArangoDBConf.PROTOCOL -> protocol,
+        ArangoDBConf.COLLECTION -> "sslTest",
+        ArangoDBConf.SSL_TRUST_STORE_PATH -> "src/test/resources/cert.p12",
+        ArangoDBConf.SSL_TRUST_STORE_PASSWORD -> "12345678"
+      ))
+      .load()
+    df.show()
+  }
 }
 
 object SslTest {
@@ -101,7 +117,6 @@ object SslTest {
   private val options = Map(
     ArangoDBConf.SSL_ENABLED -> "true",
     ArangoDBConf.SSL_VERIFY_HOST -> "false",
-    ArangoDBConf.SSL_CERT_VALUE -> b64cert,
     ArangoDBConf.DB -> database,
     ArangoDBConf.USER -> user,
     ArangoDBConf.PASSWORD -> password,
