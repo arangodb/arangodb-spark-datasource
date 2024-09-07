@@ -1,13 +1,13 @@
 package org.apache.spark.sql.arangodb.commons
 
-import com.arangodb.{ArangoDB, entity}
 import com.arangodb.model.OverwriteMode
+import com.arangodb.{ArangoDB, entity}
 import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config._
 import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, DropMalformedMode, FailFastMode, ParseMode, PermissiveMode}
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, FileInputStream}
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 import java.util
@@ -69,10 +69,22 @@ object ArangoDBConf {
     .createWithDefault(false)
 
   val SSL_VERIFY_HOST = "ssl.verifyHost"
-  val verifyHostConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_VERIFY_HOST)
+  val sslVerifyHostConf: ConfigEntry[Boolean] = ConfigBuilder(SSL_VERIFY_HOST)
     .doc("hostname verification")
     .booleanConf
     .createWithDefault(true)
+
+  val SSL_TRUST_STORE_PASSWORD = "ssl.trustStore.password"
+  val sslTrustStorePasswordConf: OptionalConfigEntry[String] = ConfigBuilder(SSL_TRUST_STORE_PASSWORD)
+    .doc("trustStore password")
+    .stringConf
+    .createOptional
+
+  val SSL_TRUST_STORE_PATH = "ssl.trustStore.path"
+  val sslTrustStorePathConf: OptionalConfigEntry[String] = ConfigBuilder(SSL_TRUST_STORE_PATH)
+    .doc("trustStore path")
+    .stringConf
+    .createOptional
 
   val SSL_CERT_VALUE = "ssl.cert.value"
   val sslCertValueConf: OptionalConfigEntry[String] = ConfigBuilder(SSL_CERT_VALUE)
@@ -100,7 +112,7 @@ object ArangoDBConf {
 
   val SSL_KEYSTORE_TYPE = "ssl.keystore.type"
   val sslKeystoreTypeConf: ConfigEntry[String] = ConfigBuilder(SSL_KEYSTORE_TYPE)
-    .doc("keystore type")
+    .doc("keystore type, deprecated: use ssl.trustStore.type instead")
     .stringConf
     .createWithDefault("jks")
 
@@ -268,7 +280,9 @@ object ArangoDBConf {
     CONTENT_TYPE -> contentTypeConf,
     TIMEOUT -> timeoutConf,
     SSL_ENABLED -> sslEnabledConf,
-    SSL_VERIFY_HOST -> verifyHostConf,
+    SSL_VERIFY_HOST -> sslVerifyHostConf,
+    SSL_TRUST_STORE_PASSWORD -> sslTrustStorePasswordConf,
+    SSL_TRUST_STORE_PATH -> sslTrustStorePathConf,
     SSL_CERT_VALUE -> sslCertValueConf,
     SSL_CERT_TYPE -> sslCertTypeConf,
     SSL_CERT_ALIAS -> sslCertAliasConf,
@@ -479,7 +493,11 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val sslEnabled: Boolean = getConf(sslEnabledConf)
 
-  val verifyHost: Boolean = getConf(verifyHostConf)
+  val verifyHost: Boolean = getConf(sslVerifyHostConf)
+
+  val sslTrustStorePassword: Option[String] = getConf(sslTrustStorePasswordConf)
+
+  val sslTrustStorePath: Option[String] = getConf(sslTrustStorePathConf)
 
   val sslCertValue: Option[String] = getConf(sslCertValueConf)
 
@@ -489,6 +507,7 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val sslAlgorithm: String = getConf(sslAlgorithmConf)
 
+  // FIXME: merge with sslTrustStoreType
   val sslKeystoreType: String = getConf(sslKeystoreTypeConf)
 
   val sslProtocol: String = getConf(sslProtocolConf)
@@ -514,21 +533,35 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
     builder
   }
 
-  def getSslContext: SSLContext = sslCertValue match {
-    case Some(b64cert) =>
-      val is = new ByteArrayInputStream(Base64.getDecoder.decode(b64cert))
+  def getSslContext: SSLContext = {
+    if (sslCertValue.isDefined) {
+      val is = new ByteArrayInputStream(Base64.getDecoder.decode(sslCertValue.get))
       val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
       val ks = KeyStore.getInstance(sslKeystoreType)
       ks.load(null) // scalastyle:ignore null
       ks.setCertificateEntry(sslCertAlias, cert)
-      val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
-      tmf.init(ks)
-      val sc = SSLContext.getInstance(sslProtocol)
-      sc.init(null, tmf.getTrustManagers, null) // scalastyle:ignore null
-      sc
-    case None => SSLContext.getDefault
+      createSslContext(ks)
+    } else if (sslTrustStorePath.isDefined) {
+      val ks = KeyStore.getInstance(sslKeystoreType)
+      val is = new FileInputStream(sslTrustStorePath.get)
+      try {
+        ks.load(is, sslTrustStorePassword.map(_.toCharArray).orNull)
+      } finally {
+        is.close()
+      }
+      createSslContext(ks)
+    } else {
+      SSLContext.getDefault
+    }
   }
 
+  private def createSslContext(ks: KeyStore): SSLContext = {
+    val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
+    tmf.init(ks)
+    val sc = SSLContext.getInstance(sslProtocol)
+    sc.init(null, tmf.getTrustManagers, null) // scalastyle:ignore null
+    sc
+  }
 
 }
 
