@@ -14,7 +14,6 @@ import java.util
 import java.util.Base64
 import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.collection.JavaConverters.{mapAsJavaMapConverter, mapAsScalaMapConverter}
-import scala.util.Using
 
 object ArangoDBConf {
 
@@ -544,8 +543,11 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
       createSslContext(ks)
     } else if (sslTrustStorePath.isDefined) {
       val ks = KeyStore.getInstance(sslKeystoreType)
-      Using(new FileInputStream(sslTrustStorePath.get)) { is =>
+      val is = new FileInputStream(sslTrustStorePath.get)
+      try {
         ks.load(is, sslTrustStorePassword.map(_.toCharArray).orNull)
+      } finally {
+        is.close()
       }
       createSslContext(ks)
     } else {
