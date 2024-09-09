@@ -507,7 +507,6 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
 
   val sslAlgorithm: String = getConf(sslAlgorithmConf)
 
-  // FIXME: merge with sslTrustStoreType
   val sslKeystoreType: String = getConf(sslKeystoreTypeConf)
 
   val sslProtocol: String = getConf(sslProtocolConf)

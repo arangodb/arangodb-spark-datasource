@@ -27,16 +27,16 @@ For the python demo, you will also need
 Set environment variables:
 
 ```shell
-export ARANGO_SPARK_VERSION=1.7.0
+export ARANGO_SPARK_VERSION=1.8.0-SNAPSHOT
 ```
 
 Start ArangoDB cluster with docker:
 
 ```shell
-STARTER_MODE=cluster ./docker/start_db.sh
+SSL=true STARTER_MODE=cluster ./docker/start_db.sh
 ```
 
-The deployed cluster will be accessible at [http://172.28.0.1:8529](http://172.28.0.1:8529) with username `root` and
+The deployed cluster will be accessible at [https://172.28.0.1:8529](http://172.28.0.1:8529) with username `root` and
 password `test`.
 
 Start Spark cluster:
@@ -58,16 +58,18 @@ mvn -f ../pom.xml install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc
 Test the Spark application in embedded mode:
 
 ```shell
-mvn test -Pscala-2.12 -Pspark-3.5
+mvn \
+  -Pscala-2.12 -Pspark-3.5 \
+  test
 ```
 
 Test the Spark application against ArangoDB Oasis deployment:
 
 ```shell
 mvn \
+  -Pscala-2.12 -Pspark-3.5 \
   -Dpassword=<root-password> \
   -Dendpoints=<endpoint> \
-  -Dssl.enabled=true \
   -Dssl.cert.value=<base64-encoded-cert> \
   test
 ```
@@ -91,7 +93,7 @@ docker run -it --rm \
   docker.io/bitnami/spark:3.5.2 \
   ./bin/spark-submit --master spark://spark-master:7077 \
     --packages="com.arangodb:arangodb-spark-datasource-3.5_2.12:$ARANGO_SPARK_VERSION" \
-    --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar
+    --class Demo /demo/target/demo-$ARANGO_SPARK_VERSION.jar    
 ```
 
 ## Python(PySpark) Demo
@@ -105,6 +107,7 @@ pip install -r ./python-demo/requirements.txt
 To run the PySpark demo, run 
 ```shell
 python ./python-demo/demo.py \
+  --ssl-enabled=true \
   --endpoints=172.28.0.1:8529,172.28.0.1:8539,172.28.0.1:8549
 ```
 
