@@ -5,6 +5,8 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- updated Java Driver to version `7.9.0`
+- added support to load SSL Trust Store from file (DE-502, #61)
 - dropped support for Spark 3.2
 
 ## [1.7.0] - 2024-07-04
