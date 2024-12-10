@@ -176,8 +176,8 @@ class ArangoClient(options: ArangoDBConf) extends Logging {
     val response = arangoDB.execute(request, classOf[RawBytes])
 
     import scala.collection.JavaConverters.asScalaIteratorConverter
-    val errors = serde.parse(response.getBody.get, "/").iterator().asScala
-      .zip(serde.parse(data.get, "/").iterator().asScala)
+    val errors = serde.parse(response.getBody.get, "").iterator().asScala
+      .zip(serde.parse(data.get, "").iterator().asScala)
       .filter(_._1.has("error"))
       .filter(_._1.get("error").booleanValue())
       .map(it => (
