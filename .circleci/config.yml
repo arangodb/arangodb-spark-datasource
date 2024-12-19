@@ -26,10 +26,6 @@ executors:
       - image: 'cimg/python:3.12'
 
 commands:
-  setup_docker:
-    steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
   timeout:
     parameters:
       duration:
@@ -168,7 +164,7 @@ jobs:
     steps:
       - timeout
       - checkout
-      - setup_docker
+      - setup_remote_docker
       - start-db:
           docker-img: <<parameters.docker-img>>
           topology: <<parameters.topology>>
@@ -201,7 +197,7 @@ jobs:
     steps:
       - timeout
       - checkout
-      - setup_docker
+      - setup_remote_docker
       - start-db
       - load_cache
       - run:
@@ -244,7 +240,7 @@ jobs:
     steps:
       - timeout
       - checkout
-      - setup_docker
+      - setup_remote_docker
       - restore_cache:
           name: restore SDKMAN cache
           key: sdkman-{{ .Environment.CIRCLE_JOB }}
@@ -288,7 +284,7 @@ jobs:
     steps:
       - timeout
       - checkout
-      - setup_docker
+      - setup_remote_docker
       - start-db:
           topology: 'cluster'
           ssl: 'true'
@@ -318,7 +314,7 @@ jobs:
     steps:
       - timeout
       - checkout
-      - setup_docker
+      - setup_remote_docker
       - start-db:
           topology: 'cluster'
       - load_cache
