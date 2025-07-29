@@ -5,7 +5,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>1.8.0</version>
+    <version>1.9.0-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>ArangoDB Datasource for Apache Spark</description>
@@ -122,57 +122,6 @@
             <modules>
                 <module>integration-tests</module>
             </modules>
-        </profile>
-        <profile>
-            <id>deploy-gh</id>
-            <activation>
-                <property>
-                    <name>deployGH</name>
-                </property>
-            </activation>
-            <distributionManagement>
-                <repository>
-                    <id>github</id>
-                    <name>GitHub arangodb/arangodb-spark-datasource Apache Maven Packages</name>
-                    <url>https://maven.pkg.github.com/arangodb/arangodb-spark-datasource</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>deploy-ossrh</id>
-            <activation>
-                <property>
-                    <name>deploy</name>
-                </property>
-            </activation>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <repository>
-                    <id>ossrh</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                </repository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.7.0</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <stagingProfileId>84aff6e87e214c</stagingProfileId>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-                            <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 
@@ -379,11 +328,14 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.2</version>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.8.0</version>
+                <extensions>true</extensions>
                 <configuration>
-                    <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
                 </configuration>
             </plugin>
             <plugin>

@@ -123,18 +123,6 @@ commands:
       - run:
           name: Deploy to Apache Maven Central
           command: mvn -s .circleci/maven-release-settings.xml -Ddeploy -Dmaven.test.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> deploy
-  release:
-    parameters:
-      scala-version:
-        type: 'string'
-      spark-version:
-        type: 'string'
-    steps:
-      - run:
-          name: Release to Apache Maven Central
-          command: mvn -s .circleci/maven-release-settings.xml -Ddeploy -Dmaven.test.skip=true -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> nexus-staging:release
-          environment:
-            MAVEN_OPTS: "--add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED"
 
 jobs:
 
@@ -349,27 +337,6 @@ jobs:
           spark-version: <<parameters.spark-version>>
       - store_cache
 
-  release:
-    parameters:
-      scala-version:
-        type: 'string'
-      spark-version:
-        type: 'string'
-    executor: 'j17'
-    steps:
-      - timeout:
-          duration: '20m'
-      - checkout
-      - load_cache
-      - config_gpg
-      - deploy:
-          scala-version: <<parameters.scala-version>>
-          spark-version: <<parameters.spark-version>>
-      - release:
-          scala-version: <<parameters.scala-version>>
-          spark-version: <<parameters.spark-version>>
-      - store_cache
-
 workflows:
   test-adb-version:
     when:
@@ -563,24 +530,5 @@ workflows:
           filters:
             tags:
               only: /^deploy.*/
-            branches:
-              ignore: /.*/
-  release:
-    jobs:
-      - release:
-          name: release-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
-          matrix:
-            parameters:
-              spark-version:
-                - '3.3'
-                - '3.4'
-                - '3.5'
-              scala-version:
-                - '2.12'
-                - '2.13'
-          context: java-release
-          filters:
-            tags:
-              only: /^release.*/
             branches:
               ignore: /.*/
