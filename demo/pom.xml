@@ -33,14 +33,6 @@
             </properties>
         </profile>
         <profile>
-            <id>spark-3.3</id>
-            <properties>
-                <spark.version>3.3.4</spark.version>
-                <spark.compat.version>3.3</spark.compat.version>
-                <jackson.version>2.13.4</jackson.version>
-            </properties>
-        </profile>
-        <profile>
             <id>spark-3.4</id>
             <properties>
                 <spark.version>3.4.4</spark.version>
