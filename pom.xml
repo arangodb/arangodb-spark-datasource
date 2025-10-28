@@ -77,17 +77,9 @@
             </properties>
         </profile>
         <profile>
-            <id>spark-3.3</id>
-            <properties>
-                <spark.version>3.3.4</spark.version>
-                <spark.compat.version>3.3</spark.compat.version>
-                <jackson.version>2.13.4</jackson.version>
-            </properties>
-        </profile>
-        <profile>
             <id>spark-3.4</id>
             <properties>
-                <spark.version>3.4.3</spark.version>
+                <spark.version>3.4.4</spark.version>
                 <spark.compat.version>3.4</spark.compat.version>
                 <jackson.version>2.14.2</jackson.version>
             </properties>
@@ -95,7 +87,7 @@
         <profile>
             <id>spark-3.5</id>
             <properties>
-                <spark.version>3.5.2</spark.version>
+                <spark.version>3.5.7</spark.version>
                 <spark.compat.version>3.5</spark.compat.version>
                 <jackson.version>2.15.2</jackson.version>
             </properties>

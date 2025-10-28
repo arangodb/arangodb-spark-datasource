@@ -15,21 +15,18 @@ executors:
   j17:
     docker:
       - image: 'cimg/openjdk:17.0'
-  p310:
-    docker:
-      - image: 'cimg/python:3.10'
-  p311:
-    docker:
-      - image: 'cimg/python:3.11'
   p312:
     docker:
       - image: 'cimg/python:3.12'
+  p313:
+    docker:
+      - image: 'cimg/python:3.13'
 
 commands:
   timeout:
     parameters:
       duration:
-        default: '5m'
+        default: '10m'
         type: 'string'
     steps:
       - run:
@@ -349,7 +346,6 @@ workflows:
               docker-img:
                 - 'docker.io/arangodb/enterprise:3.12'
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               topology:
@@ -363,7 +359,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               topology:
@@ -376,7 +371,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               scala-version:
@@ -399,7 +393,6 @@ workflows:
                 - 'j11'
                 - 'j17'
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               scala-version:
@@ -414,21 +407,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.3'
-              scala-version:
-                - '2.12'
-                - '2.13'
-              spark-full-version:
-                - '3.3.0'
-                - '3.3.1'
-                - '3.3.2'
-                - '3.3.3'
-                - '3.3.4'
-      - integration-tests:
-          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
-          matrix:
-            parameters:
-              spark-version:
                 - '3.4'
               scala-version:
                 - '2.12'
@@ -436,6 +414,7 @@ workflows:
               spark-full-version:
                 - '3.4.2'
                 - '3.4.3'
+                - '3.4.4'
       - integration-tests:
           name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
@@ -449,22 +428,17 @@ workflows:
                 - '3.5.0'
                 - '3.5.1'
                 - '3.5.2'
+                - '3.5.3'
+                - '3.5.4'
+                - '3.5.5'
+                - '3.5.6'
+                - '3.5.7'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
     jobs:
       - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>
-          matrix:
-            parameters:
-              python-executor:
-                - 'p310'
-              spark-version:
-                - '3.3'
-              pyspark-version:
-                - '3.3.4'
-      - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
           matrix:
             parameters:
               python-executor:
@@ -472,17 +446,18 @@ workflows:
               spark-version:
                 - '3.4'
               pyspark-version:
-                - '3.4.3'
+                - '3.4.4'
       - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
           matrix:
             parameters:
               python-executor:
                 - 'p312'
+                - 'p313'
               spark-version:
                 - '3.5'
               pyspark-version:
-                - '3.5.2'
+                - '3.5.7'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -492,7 +467,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               scala-version:
@@ -517,7 +491,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.3'
                 - '3.4'
                 - '3.5'
               scala-version:
