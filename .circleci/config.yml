@@ -441,7 +441,7 @@ workflows:
       not: <<pipeline.parameters.docker-img>>
     jobs:
       - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
           matrix:
             parameters:
               python-executor:
@@ -453,7 +453,7 @@ workflows:
               pyspark-version:
                 - '3.4.4'
       - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
           matrix:
             parameters:
               python-executor:
@@ -463,7 +463,7 @@ workflows:
               spark-version:
                 - '3.5'
               pyspark-version:
-                - '3.5.7'
+                - '3.5.6'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>

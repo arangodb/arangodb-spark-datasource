@@ -43,7 +43,7 @@
         <profile>
             <id>spark-3.5</id>
             <properties>
-                <spark.version>3.5.7</spark.version>
+                <spark.version>3.5.6</spark.version>
                 <spark.compat.version>3.5</spark.compat.version>
                 <jackson.version>2.15.2</jackson.version>
             </properties>
