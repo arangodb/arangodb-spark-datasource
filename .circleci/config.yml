@@ -443,7 +443,6 @@ workflows:
             parameters:
               python-executor:
                 - 'p312'
-                - 'p313'
               spark-version:
                 - '3.4'
               pyspark-version:
@@ -458,7 +457,7 @@ workflows:
               spark-version:
                 - '3.5'
               pyspark-version:
-                - '3.5.6'
+                - '3.5.7'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
