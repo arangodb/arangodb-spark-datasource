@@ -15,3 +15,6 @@ mvn test -Pspark-3.4 -Pscala-2.13
 
 mvn clean -Pspark-3.5 -Pscala-2.13
 mvn test -Pspark-3.5 -Pscala-2.13
+
+mvn clean -Pspark-4.0 -Pscala-2.13
+mvn test -Pspark-4.0 -Pscala-2.13

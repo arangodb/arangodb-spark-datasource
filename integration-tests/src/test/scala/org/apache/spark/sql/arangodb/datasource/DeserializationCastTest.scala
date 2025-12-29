@@ -1,6 +1,5 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.types.{BooleanType, DoubleType, IntegerType, StringType, StructField, StructType}

@@ -1,9 +1,9 @@
 package org.apache.spark.sql.arangodb.datasource
 
-import org.apache.spark.{SPARK_VERSION, SparkException}
+import org.apache.spark.{SPARK_VERSION, SparkException, SparkRuntimeException}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
-import org.apache.spark.sql.catalyst.util.{BadRecordException, DropMalformedMode, FailFastMode, ParseMode}
+import org.apache.spark.sql.catalyst.util.{BadRecordException, DropMalformedMode, FailFastMode}
 import org.apache.spark.sql.types._
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
@@ -104,9 +104,12 @@ class BadRecordsTest extends BaseSparkTest {
       override def call(): Unit = df.collect()
     })
 
-    assertThat(thrown.getCause).isInstanceOf(classOf[SparkException])
-    assertThat(thrown.getCause).hasMessageContaining("Malformed record")
-    assertThat(thrown.getCause).hasCauseInstanceOf(classOf[BadRecordException])
+    assertThat(thrown).isInstanceOfAny(classOf[SparkException], classOf[SparkRuntimeException])
+    assertThat(thrown).hasMessageContaining("Malformed record")
+
+    if (SPARK_VERSION.startsWith("3")) {
+      assertThat(thrown.getCause).hasCauseInstanceOf(classOf[BadRecordException])
+    }
   }
 
   private def doTestBadRecord(
