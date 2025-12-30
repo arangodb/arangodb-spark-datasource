@@ -383,9 +383,20 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
-                - '4.0'
               scala-version:
                 - '2.12'
+                - '2.13'
+              ssl:
+                - 'true'
+              args:
+                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -Dsurefire.failIfNoSpecifiedTests=false'
+      - test:
+          name: ssl-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
                 - '2.13'
               ssl:
                 - 'true'
@@ -403,13 +414,22 @@ workflows:
                 - 'j8'
                 - 'j11'
                 - 'j17'
-                - 'j21'
               spark-version:
                 - '3.4'
                 - '3.5'
-                - '4.0'
               scala-version:
                 - '2.12'
+                - '2.13'
+      - test:
+          name: test-<<matrix.jdk>>-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              jdk:
+                - 'j17'
+                - 'j21'
+              spark-version:
+                - '4.0'
+              scala-version:
                 - '2.13'
   test-spark-versions:
     when:
@@ -504,9 +524,16 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
-                - '4.0'
               scala-version:
                 - '2.12'
+                - '2.13'
+      - demo:
+          name: demo-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
                 - '2.13'
   sonar:
     when:
