@@ -71,9 +71,9 @@
         <profile>
             <id>scala-2.13</id>
             <properties>
-                <scala.version>2.13.8</scala.version>
+                <scala.version>2.13.18</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-                <scapegoat.version>1.4.17</scapegoat.version>
+                <scapegoat.version>3.2.4</scapegoat.version>
             </properties>
         </profile>
         <profile>
@@ -245,7 +245,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.7.2</version>
+                <version>4.9.2</version>
                 <executions>
                     <execution>
                         <goals>
