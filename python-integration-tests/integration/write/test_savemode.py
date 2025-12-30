@@ -84,14 +84,15 @@ def test_savemode_overwrite_should_throw_whenused_alone(chess_df: pyspark.sql.Da
         "contentType": content_type
     }])
 
-    with pytest.raises(java.lang.IllegalStateException) as e:
+    with pytest.raises(Py4JJavaError) as e:
         chess_df.write \
             .format(arango_datasource_name) \
             .mode("Overwrite") \
             .options(**all_opts) \
             .save()
 
-    e.match("confirmTruncate")
+    assert "IllegalStateException" in str(e.value)
+    assert "confirmTruncate" in str(e.value)
 
 
 @pytest.mark.parametrize("protocol,content_type", protocol_and_content_type)
