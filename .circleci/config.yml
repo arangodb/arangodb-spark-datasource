@@ -55,8 +55,8 @@ commands:
             source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
             yes | sdk install <<parameters.sdk>> <<parameters.version>>
-            sdk default <<parameters.sdk>> <<parameters.version>>
-            sdk use <<parameters.sdk>> <<parameters.version>>
+            yes | sdk default <<parameters.sdk>> <<parameters.version>>
+            yes | sdk use <<parameters.sdk>> <<parameters.version>>
             sdk current
             echo '### SDKMAN ###' >> "$BASH_ENV"
             echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> "$BASH_ENV"
