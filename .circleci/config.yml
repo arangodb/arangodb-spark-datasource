@@ -15,6 +15,9 @@ executors:
   j17:
     docker:
       - image: 'cimg/openjdk:17.0'
+  j21:
+    docker:
+      - image: 'cimg/openjdk:21.0'
   p312:
     docker:
       - image: 'cimg/python:3.12'
@@ -77,7 +80,6 @@ commands:
           environment:
             DOCKER_IMAGE: <<parameters.docker-img>>
             STARTER_MODE: <<parameters.topology>>
-            STARTER_DOCKER_IMAGE: 'docker.io/arangodb/arangodb-starter:0.18.5'
             SSL: <<parameters.ssl>>
             COMPRESSION: <<parameters.compression>>
   report:
@@ -139,7 +141,7 @@ jobs:
         default: 'j17'
       scala-version:
         type: 'string'
-        default: '2.12'
+        default: '2.13'
       spark-version:
         type: 'string'
       args:
@@ -173,7 +175,7 @@ jobs:
     parameters:
       scala-version:
         type: 'string'
-        default: '2.12'
+        default: '2.13'
       spark-version:
         type: 'string'
       spark-full-version:
@@ -211,7 +213,7 @@ jobs:
     parameters:
       scala-version:
         type: 'string'
-        default: '2.12'
+        default: '2.13'
       spark-version:
         type: 'string'
       python-executor:
@@ -234,7 +236,7 @@ jobs:
           version: <<parameters.jdk>>
       - install-sdk:
           sdk: 'maven'
-          version: '3.9.8'
+          version: '3.9.12'
       - save_cache:
           name: save SDKMAN cache
           key: sdkman-{{ .Environment.CIRCLE_JOB }}
@@ -348,6 +350,7 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               topology:
                 - 'single'
                 - 'cluster'
@@ -361,6 +364,7 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               topology:
                 - 'single'
                 - 'cluster'
@@ -373,6 +377,7 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -392,9 +397,11 @@ workflows:
                 - 'j8'
                 - 'j11'
                 - 'j17'
+                - 'j21'
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -433,6 +440,17 @@ workflows:
                 - '3.5.5'
                 - '3.5.6'
                 - '3.5.7'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13'
+              spark-full-version:
+                - '4.0.0'
+                - '4.0.1'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -458,6 +476,17 @@ workflows:
                 - '3.5'
               pyspark-version:
                 - '3.5.7'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p312'
+                - 'p313'
+              spark-version:
+                - '4.0'
+              pyspark-version:
+                - '4.0.1'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -469,6 +498,7 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               scala-version:
                 - '2.12'
                 - '2.13'
@@ -481,9 +511,9 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.5'
+                - '4.0'
               scala-version:
-                - '2.12'
+                - '2.13'
   deploy:
     jobs:
       - deploy:
@@ -493,6 +523,7 @@ workflows:
               spark-version:
                 - '3.4'
                 - '3.5'
+                - '4.0'
               scala-version:
                 - '2.12'
                 - '2.13'
