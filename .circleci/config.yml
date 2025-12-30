@@ -51,8 +51,10 @@ commands:
           command: |
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sdk selfupdate force
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
-            sdk install <<parameters.sdk>> <<parameters.version>>
+            yes | sdk install <<parameters.sdk>> <<parameters.version>>
             sdk default <<parameters.sdk>> <<parameters.version>>
             sdk use <<parameters.sdk>> <<parameters.version>>
             echo '### SDKMAN ###' >> "$BASH_ENV"
@@ -94,19 +96,29 @@ commands:
           command: mvn surefire-report:report-only -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
       - store_artifacts:
           path: integration-tests/target/site
-  load_cache:
+  load_maven_cache:
     steps:
       - run:
           name: Generate Cache Checksum
           command: find . -name 'pom.xml' | sort | xargs cat > /tmp/maven_cache_seed
       - restore_cache:
           key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
-  store_cache:
+  store_maven_cache:
     steps:
       - save_cache:
           key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
           paths:
             - ~/.m2/repository
+  load_sdkman_cache:
+    steps:
+      - restore_cache:
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+  store_sdkman_cache:
+    steps:
+      - save_cache:
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+          paths:
+            - ~/.sdkman
   config_gpg:
     steps:
       - run:
@@ -156,7 +168,7 @@ jobs:
           docker-img: <<parameters.docker-img>>
           topology: <<parameters.topology>>
           ssl: <<parameters.ssl>>
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -169,7 +181,7 @@ jobs:
       - report:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
   integration-tests:
     parameters:
@@ -186,7 +198,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - start-db
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -207,7 +219,7 @@ jobs:
       - report:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
   python-integration-tests:
     parameters:
@@ -228,23 +240,17 @@ jobs:
       - timeout
       - checkout
       - setup_remote_docker
-      - restore_cache:
-          name: restore SDKMAN cache
-          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+      - load_sdkman_cache
       - install-sdk:
           sdk: 'java'
           version: <<parameters.jdk>>
       - install-sdk:
           sdk: 'maven'
           version: '3.9.12'
-      - save_cache:
-          name: save SDKMAN cache
-          key: sdkman-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - ~/.sdkman
+      - store_sdkman_cache
       - start-db:
           topology: 'cluster'
-      - load_cache
+      - load_maven_cache
       - run:
           name: Install python dependencies
           command: |
@@ -259,7 +265,7 @@ jobs:
       - run:
           name: Test
           command: pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
-      - store_cache
+      - store_maven_cache
 
   demo:
     parameters:
@@ -275,7 +281,7 @@ jobs:
       - start-db:
           topology: 'cluster'
           ssl: 'true'
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -288,7 +294,7 @@ jobs:
       - run:
           name: Deployment Test
           command: mvn -f ./demo/pom.xml -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -DimportPath=docker/import test
-      - store_cache
+      - store_maven_cache
 
   sonar:
     parameters:
@@ -304,7 +310,7 @@ jobs:
       - setup_remote_docker
       - start-db:
           topology: 'cluster'
-      - load_cache
+      - load_maven_cache
       - restore_cache:
           name: Restore Sonar cache
           key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
@@ -316,7 +322,7 @@ jobs:
           key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
           paths:
             - ~/.sonar/cache
-      - store_cache
+      - store_maven_cache
 
   deploy:
     parameters:
@@ -329,12 +335,12 @@ jobs:
       - timeout:
           duration: '20m'
       - checkout
-      - load_cache
+      - load_maven_cache
       - config_gpg
       - deploy:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
 workflows:
   test-adb-version:
