@@ -41,9 +41,7 @@
     </developers>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonar.organization>arangodb-1</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.coverage.jacoco.xmlReportPaths>integration-tests/target/site/jacoco-aggregate/jacoco.xml
@@ -66,14 +64,31 @@
                 <scala.version>2.12.19</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
                 <scapegoat.version>2.1.6</scapegoat.version>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <scala.plugin.version>4.7.2</scala.plugin.version>
             </properties>
         </profile>
         <profile>
             <id>scala-2.13</id>
             <properties>
-                <scala.version>2.13.18</scala.version>
+                <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-                <scapegoat.version>3.2.4</scapegoat.version>
+                <scapegoat.version>1.4.17</scapegoat.version>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <scala.plugin.version>4.7.2</scala.plugin.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>scala-2.13.14</id>
+            <properties>
+                <scala.version>2.13.14</scala.version>
+                <scala.compat.version>2.13</scala.compat.version>
+                <scapegoat.version>3.1.2</scapegoat.version>
+                <maven.compiler.source>17</maven.compiler.source>
+                <maven.compiler.target>17</maven.compiler.target>
+                <scala.plugin.version>4.9.8</scala.plugin.version>
             </properties>
         </profile>
         <profile>
@@ -245,7 +260,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.9.8</version>
+                <version>${scala.plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -257,7 +272,6 @@
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <args>
-                        <arg>-target:jvm-1.8</arg>
                         <arg>-P:scapegoat:dataDir:${project.build.directory}/scapegoat</arg>
                         <arg>-P:scapegoat:overrideLevels:all=Warning</arg>
                         <arg>
