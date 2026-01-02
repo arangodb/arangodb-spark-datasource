@@ -372,7 +372,7 @@ workflows:
                 - 'single'
                 - 'cluster'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
   test-adb-topology:
     when: <<pipeline.parameters.docker-img>>
     jobs:
@@ -398,7 +398,7 @@ workflows:
                 - 'single'
                 - 'cluster'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
   ssl:
     jobs:
       - test:
@@ -422,7 +422,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
               ssl:
                 - 'true'
               args:
@@ -455,7 +455,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
   test-spark-versions:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -498,7 +498,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
               spark-full-version:
                 - '4.0.0'
                 - '4.0.1'
@@ -541,7 +541,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
               pyspark-version:
                 - '4.0.1'
   demo:
@@ -565,7 +565,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
   sonar:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -577,7 +577,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
   deploy:
     jobs:
       - deploy:
@@ -603,7 +603,7 @@ workflows:
               spark-version:
                 - '4.0'
               scala-version:
-                - '2.13.14'
+                - '2.13.18'
           context: java-release
           filters:
             tags:

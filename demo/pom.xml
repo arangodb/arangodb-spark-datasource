@@ -35,9 +35,9 @@
             </properties>
         </profile>
         <profile>
-            <id>scala-2.13.14</id>
+            <id>scala-2.13.18</id>
             <properties>
-                <scala.version>2.13.14</scala.version>
+                <scala.version>2.13.18</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
                 <maven.compiler.source>17</maven.compiler.source>
                 <maven.compiler.target>17</maven.compiler.target>
