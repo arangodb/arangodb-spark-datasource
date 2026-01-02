@@ -9,9 +9,7 @@
     <version>1.9.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <encoding>UTF-8</encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jpms.exports/>
     </properties>
 
@@ -21,7 +19,9 @@
             <properties>
                 <scala.version>2.12.19</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
-                <scapegoat.version>2.1.6</scapegoat.version>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <scala.plugin.version>4.7.2</scala.plugin.version>
             </properties>
         </profile>
         <profile>
@@ -29,7 +29,19 @@
             <properties>
                 <scala.version>2.13.8</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-                <scapegoat.version>1.4.17</scapegoat.version>
+                <maven.compiler.source>1.8</maven.compiler.source>
+                <maven.compiler.target>1.8</maven.compiler.target>
+                <scala.plugin.version>4.7.2</scala.plugin.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>scala-2.13.14</id>
+            <properties>
+                <scala.version>2.13.14</scala.version>
+                <scala.compat.version>2.13</scala.compat.version>
+                <maven.compiler.source>17</maven.compiler.source>
+                <maven.compiler.target>17</maven.compiler.target>
+                <scala.plugin.version>4.9.8</scala.plugin.version>
             </properties>
         </profile>
         <profile>
@@ -43,7 +55,7 @@
         <profile>
             <id>spark-3.5</id>
             <properties>
-                <spark.version>3.5.6</spark.version>
+                <spark.version>3.5.7</spark.version>
                 <spark.compat.version>3.5</spark.compat.version>
                 <jackson.version>2.15.2</jackson.version>
             </properties>
@@ -133,7 +145,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.5.1</version>
+                <version>${scala.plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -144,9 +156,6 @@
                 </executions>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
-                    <args>
-                        <arg>-target:jvm-1.8</arg>
-                    </args>
                 </configuration>
             </plugin>
             <plugin>
