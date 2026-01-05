@@ -2,13 +2,12 @@ from typing import Any, Dict, List
 
 import arango.database
 import pytest
+from pyspark.errors import SparkRuntimeException
 from py4j.protocol import Py4JJavaError
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, StructField, IntegerType, DoubleType, BooleanType
 
 from integration import test_basespark
-from integration.test_basespark import options, arango_datasource_name
-from integration.utils import combine_dicts
 
 
 content_types = ["vpack", "json"]
@@ -56,12 +55,12 @@ def check_bad_record(db: arango.database.StandardDatabase, spark: SparkSession, 
                                       "contentType": content_type,
                                       "mode": "FAILFAST"
                                   })
-    with pytest.raises(Py4JJavaError) as e:
+    with pytest.raises((Py4JJavaError, SparkRuntimeException)) as e:
         df.collect()
 
-    e.match("SparkException")
     e.match("Malformed record")
-    e.match("BadRecordException")
+    if spark.version.startswith("3"):
+        e.match("BadRecordException")
 
 
 @pytest.mark.parametrize("content_type", content_types)

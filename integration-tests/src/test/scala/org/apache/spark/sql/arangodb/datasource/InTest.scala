@@ -8,7 +8,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.{AfterAll, BeforeAll, Test}
 
 import java.sql.{Date, Timestamp}
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class InTest extends BaseSparkTest {

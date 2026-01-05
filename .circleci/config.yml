@@ -515,7 +515,7 @@ workflows:
               spark-version:
                 - '3.4'
               scala-version:
-                - '2.13'
+                - '2.12'
               pyspark-version:
                 - '3.4.4'
       - python-integration-tests:
@@ -528,7 +528,7 @@ workflows:
               spark-version:
                 - '3.5'
               scala-version:
-                - '2.13'
+                - '2.12'
               pyspark-version:
                 - '3.5.7'
       - python-integration-tests:
