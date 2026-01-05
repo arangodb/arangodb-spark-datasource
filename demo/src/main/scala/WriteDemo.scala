@@ -1,4 +1,3 @@
-import org.apache.spark.sql.catalyst.expressions.objects.AssertNotNull
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{Column, DataFrame}
@@ -18,15 +17,15 @@ object WriteDemo {
 
     println("Reading JSON files...")
     val nodesDF = Demo.spark.read.json(Demo.importPath + "/nodes.jsonl")
-      .withColumn("_key", new Column(AssertNotNull(col("_key").expr)))
+      .withColumn("_key", coalesce(col("_key"), lit("")))
       .withColumn("releaseDate", unixTsToSparkDate(col("releaseDate")))
       .withColumn("birthday", unixTsToSparkDate(col("birthday")))
       .withColumn("lastModified", unixTsToSparkTs(col("lastModified")))
       .persist()
     val edgesDF = Demo.spark.read.json(Demo.importPath + "/edges.jsonl")
-      .withColumn("_key", new Column(AssertNotNull(col("_key").expr)))
-      .withColumn("_from", new Column(AssertNotNull(concat(lit("persons/"), col("_from")).expr)))
-      .withColumn("_to", new Column(AssertNotNull(concat(lit("movies/"), col("_to")).expr)))
+      .withColumn("_key", coalesce(col("_key"), lit("")))
+      .withColumn("_from", concat(lit("persons/"), coalesce(col("_from"), lit(""))))
+      .withColumn("_to", concat(lit("movies/"), coalesce(col("_to"), lit(""))))
       .persist()
 
     val personsDF = nodesDF

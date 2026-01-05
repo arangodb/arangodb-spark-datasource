@@ -9,10 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>arangodb-spark-commons-${spark.compat.version}_${scala.compat.version}</artifactId>
+    <artifactId>arangodb-spark-datasource-4.0_${scala.compat.version}</artifactId>
 
-    <name>arangodb-spark-commons</name>
-    <description>ArangoDB Spark Datasource Commons</description>
+    <name>arangodb-spark-datasource-4.0</name>
+    <description>ArangoDB Datasource for Apache Spark 4.0</description>
     <url>https://github.com/arangodb/arangodb-spark-datasource</url>
 
     <developers>
@@ -29,35 +29,39 @@
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <sonar.coverage.jacoco.xmlReportPaths>../integration-tests/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.coverage.exclusions>src/main/scala/org/apache/spark/sql/arangodb/datasource/mapping/json/*</sonar.coverage.exclusions>
+        <sonar.exclusions>src/main/scala/org/apache/spark/sql/arangodb/datasource/mapping/json/*</sonar.exclusions>
         <scalastyle.skip>false</scalastyle.skip>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-spark-commons-${spark.compat.version}_${scala.compat.version}</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>report-aggregate</id>
-                        <phase>verify</phase>
+                        <phase>package</phase>
                         <goals>
-                            <goal>report-aggregate</goal>
+                            <goal>single</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>3.5.4</version>
-            </plugin>
-        </plugins>
-    </reporting>
 
 </project>

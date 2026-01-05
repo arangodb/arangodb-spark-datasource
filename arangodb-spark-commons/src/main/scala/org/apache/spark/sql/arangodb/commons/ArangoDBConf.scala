@@ -4,7 +4,6 @@ import com.arangodb.model.OverwriteMode
 import com.arangodb.{ArangoDB, entity}
 import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config._
-import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, DropMalformedMode, FailFastMode, ParseMode, PermissiveMode}
 
 import java.io.{ByteArrayInputStream, FileInputStream}
@@ -452,7 +451,7 @@ class ArangoDBConf(opts: Map[String, String]) extends Serializable with Logging 
     ArangoDBConf.removedArangoDBConfigs.get(key).foreach {
       case RemovedConfig(configName, version, defaultValue, comment) =>
         if (value != defaultValue) {
-          throw new AnalysisException(
+          throw new IllegalStateException(
             s"The Spark ArangoDB config '$configName' was removed in the version $version. $comment")
         }
     }

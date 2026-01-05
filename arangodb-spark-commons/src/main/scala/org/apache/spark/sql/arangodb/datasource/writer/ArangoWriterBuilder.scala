@@ -6,7 +6,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.sql.arangodb.commons.{ArangoClient, ArangoDBConf, ContentType}
 import org.apache.spark.sql.connector.write.{BatchWrite, SupportsTruncate, WriteBuilder}
 import org.apache.spark.sql.types.{DecimalType, StringType, StructType}
-import org.apache.spark.sql.{AnalysisException, SaveMode}
+import org.apache.spark.sql.SaveMode
 
 class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf)
   extends WriteBuilder with SupportsTruncate with Logging {
@@ -42,7 +42,7 @@ class ArangoWriterBuilder(schema: StructType, options: ArangoDBConf)
       client.shutdown()
       this
     } else {
-      throw new AnalysisException(
+      throw new IllegalStateException(
         "You are attempting to use overwrite mode which will truncate this collection prior to inserting data. If " +
           "you just want to change data already in the collection set save mode 'append' and " +
           s"'overwrite.mode=(replace|update)'. To actually truncate set '${ArangoDBConf.CONFIRM_TRUNCATE}=true'.")

@@ -4,7 +4,7 @@ import com.arangodb.ArangoCollection
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.{ArangoDBConf, ContentType}
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest
-import org.apache.spark.sql.{AnalysisException, SaveMode}
+import org.apache.spark.sql.SaveMode
 import org.assertj.core.api.Assertions.{assertThat, catchThrowable}
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -90,7 +90,7 @@ class SaveModeTest extends BaseSparkTest {
         .save()
     })
 
-    assertThat(thrown).isInstanceOf(classOf[AnalysisException])
+    assertThat(thrown).isInstanceOf(classOf[IllegalStateException])
     assertThat(thrown.getMessage).contains(ArangoDBConf.CONFIRM_TRUNCATE)
   }
 
@@ -149,7 +149,7 @@ class SaveModeTest extends BaseSparkTest {
         .save()
     })
 
-    assertThat(thrown).isInstanceOf(classOf[AnalysisException])
+    assertThat(thrown).isInstanceOf(classOf[IllegalStateException])
     assertThat(thrown.getMessage).contains("already exists")
   }
 

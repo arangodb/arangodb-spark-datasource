@@ -1,7 +1,6 @@
 package org.apache.spark.sql.arangodb.datasource
 
 import com.arangodb.model.OverwriteMode
-import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.arangodb.commons.ArangoDBConf
 import org.apache.spark.sql.arangodb.datasource.BaseSparkTest.arangoDatasource
 import org.apache.spark.sql.types._

@@ -15,6 +15,9 @@ executors:
   j17:
     docker:
       - image: 'cimg/openjdk:17.0'
+  j21:
+    docker:
+      - image: 'cimg/openjdk:21.0'
   p312:
     docker:
       - image: 'cimg/python:3.12'
@@ -48,10 +51,14 @@ commands:
           command: |
             curl -s "https://get.sdkman.io" | bash
             source "$HOME/.sdkman/bin/sdkman-init.sh"
+            sed -i 's/sdkman_auto_answer=false/sdkman_auto_answer=true/g' "$HOME/.sdkman/etc/config"
+            sdk selfupdate force
+            source "$HOME/.sdkman/bin/sdkman-init.sh"
             sdk version
             sdk install <<parameters.sdk>> <<parameters.version>>
             sdk default <<parameters.sdk>> <<parameters.version>>
             sdk use <<parameters.sdk>> <<parameters.version>>
+            sdk current
             echo '### SDKMAN ###' >> "$BASH_ENV"
             echo 'export SDKMAN_DIR="$HOME/.sdkman"' >> "$BASH_ENV"
             echo '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"' >> "$BASH_ENV"
@@ -77,7 +84,6 @@ commands:
           environment:
             DOCKER_IMAGE: <<parameters.docker-img>>
             STARTER_MODE: <<parameters.topology>>
-            STARTER_DOCKER_IMAGE: 'docker.io/arangodb/arangodb-starter:0.18.5'
             SSL: <<parameters.ssl>>
             COMPRESSION: <<parameters.compression>>
   report:
@@ -92,19 +98,29 @@ commands:
           command: mvn surefire-report:report-only -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>>
       - store_artifacts:
           path: integration-tests/target/site
-  load_cache:
+  load_maven_cache:
     steps:
       - run:
           name: Generate Cache Checksum
           command: find . -name 'pom.xml' | sort | xargs cat > /tmp/maven_cache_seed
       - restore_cache:
           key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
-  store_cache:
+  store_maven_cache:
     steps:
       - save_cache:
           key: maven-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
           paths:
             - ~/.m2/repository
+  load_sdkman_cache:
+    steps:
+      - restore_cache:
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+  store_sdkman_cache:
+    steps:
+      - save_cache:
+          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+          paths:
+            - ~/.sdkman
   config_gpg:
     steps:
       - run:
@@ -139,7 +155,6 @@ jobs:
         default: 'j17'
       scala-version:
         type: 'string'
-        default: '2.12'
       spark-version:
         type: 'string'
       args:
@@ -154,7 +169,7 @@ jobs:
           docker-img: <<parameters.docker-img>>
           topology: <<parameters.topology>>
           ssl: <<parameters.ssl>>
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -167,13 +182,12 @@ jobs:
       - report:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
   integration-tests:
     parameters:
       scala-version:
         type: 'string'
-        default: '2.12'
       spark-version:
         type: 'string'
       spark-full-version:
@@ -184,7 +198,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - start-db
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -205,13 +219,12 @@ jobs:
       - report:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
   python-integration-tests:
     parameters:
       scala-version:
         type: 'string'
-        default: '2.12'
       spark-version:
         type: 'string'
       python-executor:
@@ -220,29 +233,23 @@ jobs:
         type: 'string'
       jdk:
         type: 'string'
-        default: '17.0.11-tem'
+        default: '17.0.17-tem'
     executor: <<parameters.python-executor>>
     steps:
       - timeout
       - checkout
       - setup_remote_docker
-      - restore_cache:
-          name: restore SDKMAN cache
-          key: sdkman-{{ .Environment.CIRCLE_JOB }}
+      - load_sdkman_cache
       - install-sdk:
           sdk: 'java'
           version: <<parameters.jdk>>
       - install-sdk:
           sdk: 'maven'
-          version: '3.9.8'
-      - save_cache:
-          name: save SDKMAN cache
-          key: sdkman-{{ .Environment.CIRCLE_JOB }}
-          paths:
-            - ~/.sdkman
+          version: '3.9.12'
+      - store_sdkman_cache
       - start-db:
           topology: 'cluster'
-      - load_cache
+      - load_maven_cache
       - run:
           name: Install python dependencies
           command: |
@@ -257,7 +264,7 @@ jobs:
       - run:
           name: Test
           command: pytest python-integration-tests/integration --adb-datasource-jar ./arangodb-spark-datasource-under-test.jar --adb-hostname 172.28.0.1
-      - store_cache
+      - store_maven_cache
 
   demo:
     parameters:
@@ -273,7 +280,7 @@ jobs:
       - start-db:
           topology: 'cluster'
           ssl: 'true'
-      - load_cache
+      - load_maven_cache
       - run:
           name: mvn version
           command: mvn --version
@@ -286,7 +293,7 @@ jobs:
       - run:
           name: Deployment Test
           command: mvn -f ./demo/pom.xml -Pscala-<<parameters.scala-version>> -Pspark-<<parameters.spark-version>> -DimportPath=docker/import test
-      - store_cache
+      - store_maven_cache
 
   sonar:
     parameters:
@@ -302,7 +309,7 @@ jobs:
       - setup_remote_docker
       - start-db:
           topology: 'cluster'
-      - load_cache
+      - load_maven_cache
       - restore_cache:
           name: Restore Sonar cache
           key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
@@ -314,7 +321,7 @@ jobs:
           key: sonar-{{ .Environment.CIRCLE_JOB }}-{{ checksum "/tmp/maven_cache_seed" }}
           paths:
             - ~/.sonar/cache
-      - store_cache
+      - store_maven_cache
 
   deploy:
     parameters:
@@ -327,12 +334,12 @@ jobs:
       - timeout:
           duration: '20m'
       - checkout
-      - load_cache
+      - load_maven_cache
       - config_gpg
       - deploy:
           scala-version: <<parameters.scala-version>>
           spark-version: <<parameters.spark-version>>
-      - store_cache
+      - store_maven_cache
 
 workflows:
   test-adb-version:
@@ -351,6 +358,21 @@ workflows:
               topology:
                 - 'single'
                 - 'cluster'
+              scala-version:
+                - '2.13'
+      - test:
+          name: test-spark<<matrix.spark-version>>-<<matrix.topology>>-<<matrix.docker-img>>
+          matrix:
+            parameters:
+              docker-img:
+                - 'docker.io/arangodb/enterprise:3.12'
+              spark-version:
+                - '4.0'
+              topology:
+                - 'single'
+                - 'cluster'
+              scala-version:
+                - '2.13.18'
   test-adb-topology:
     when: <<pipeline.parameters.docker-img>>
     jobs:
@@ -364,6 +386,19 @@ workflows:
               topology:
                 - 'single'
                 - 'cluster'
+              scala-version:
+                - '2.13'
+      - test:
+          name: test-spark<<matrix.spark-version>>-<<matrix.topology>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              topology:
+                - 'single'
+                - 'cluster'
+              scala-version:
+                - '2.13.18'
   ssl:
     jobs:
       - test:
@@ -376,6 +411,18 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
+              ssl:
+                - 'true'
+              args:
+                - '-am -pl integration-tests -Dtest=org.apache.spark.sql.arangodb.datasource.SslTest -DSslTest=true -Dsurefire.failIfNoSpecifiedTests=false'
+      - test:
+          name: ssl-<<matrix.scala-version>>-spark<<matrix.spark-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
               ssl:
                 - 'true'
               args:
@@ -398,6 +445,17 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
+      - test:
+          name: test-<<matrix.jdk>>-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              jdk:
+                - 'j17'
+                - 'j21'
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
   test-spark-versions:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -433,6 +491,17 @@ workflows:
                 - '3.5.5'
                 - '3.5.6'
                 - '3.5.7'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
+              spark-full-version:
+                - '4.0.0'
+                - '4.0.1'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -445,6 +514,8 @@ workflows:
                 - 'p312'
               spark-version:
                 - '3.4'
+              scala-version:
+                - '2.12'
               pyspark-version:
                 - '3.4.4'
       - python-integration-tests:
@@ -456,8 +527,23 @@ workflows:
                 - 'p313'
               spark-version:
                 - '3.5'
+              scala-version:
+                - '2.12'
               pyspark-version:
                 - '3.5.7'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p312'
+                - 'p313'
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
+              pyspark-version:
+                - '4.0.1'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -472,6 +558,14 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
+      - demo:
+          name: demo-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
   sonar:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -481,9 +575,9 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.5'
+                - '4.0'
               scala-version:
-                - '2.12'
+                - '2.13.18'
   deploy:
     jobs:
       - deploy:
@@ -496,6 +590,20 @@ workflows:
               scala-version:
                 - '2.12'
                 - '2.13'
+          context: java-release
+          filters:
+            tags:
+              only: /^deploy.*/
+            branches:
+              ignore: /.*/
+      - deploy:
+          name: deploy-spark<<matrix.spark-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.0'
+              scala-version:
+                - '2.13.18'
           context: java-release
           filters:
             tags:
