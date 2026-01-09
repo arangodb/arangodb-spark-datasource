@@ -368,6 +368,7 @@ workflows:
                 - 'docker.io/arangodb/enterprise:3.12'
               spark-version:
                 - '4.0'
+                - '4.1'
               topology:
                 - 'single'
                 - 'cluster'
@@ -394,6 +395,7 @@ workflows:
             parameters:
               spark-version:
                 - '4.0'
+                - '4.1'
               topology:
                 - 'single'
                 - 'cluster'
@@ -421,6 +423,7 @@ workflows:
             parameters:
               spark-version:
                 - '4.0'
+                - '4.1'
               scala-version:
                 - '2.13.18'
               ssl:
@@ -454,6 +457,7 @@ workflows:
                 - 'j21'
               spark-version:
                 - '4.0'
+                - '4.1'
               scala-version:
                 - '2.13.18'
   test-spark-versions:
@@ -502,6 +506,16 @@ workflows:
               spark-full-version:
                 - '4.0.0'
                 - '4.0.1'
+      - integration-tests:
+          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
+          matrix:
+            parameters:
+              spark-version:
+                - '4.1'
+              scala-version:
+                - '2.13.18'
+              spark-full-version:
+                - '4.1.0'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -544,6 +558,19 @@ workflows:
                 - '2.13.18'
               pyspark-version:
                 - '4.0.1'
+      - python-integration-tests:
+          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
+          matrix:
+            parameters:
+              python-executor:
+                - 'p312'
+                - 'p313'
+              spark-version:
+                - '4.1'
+              scala-version:
+                - '2.13.18'
+              pyspark-version:
+                - '4.1.0'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -564,6 +591,7 @@ workflows:
             parameters:
               spark-version:
                 - '4.0'
+                - '4.1'
               scala-version:
                 - '2.13.18'
   sonar:
@@ -575,7 +603,7 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '4.0'
+                - '4.1'
               scala-version:
                 - '2.13.18'
   deploy:
@@ -602,6 +630,7 @@ workflows:
             parameters:
               spark-version:
                 - '4.0'
+                - '4.1'
               scala-version:
                 - '2.13.18'
           context: java-release
