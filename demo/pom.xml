@@ -69,6 +69,14 @@
             </properties>
         </profile>
         <profile>
+            <id>spark-4.1</id>
+            <properties>
+                <spark.version>4.1.0</spark.version>
+                <spark.compat.version>4.1</spark.compat.version>
+                <jackson.version>2.20.0</jackson.version>
+            </properties>
+        </profile>
+        <profile>
             <id>jdk17</id>
             <activation>
                 <jdk>[17,)</jdk>
