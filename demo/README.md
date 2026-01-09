@@ -27,7 +27,7 @@ For the python demo, you will also need
 Set environment variables:
 
 ```shell
-export ARANGO_SPARK_VERSION=1.9.0-SNAPSHOT
+export ARANGO_SPARK_VERSION=1.9.0
 ```
 
 Start ArangoDB cluster with docker:
