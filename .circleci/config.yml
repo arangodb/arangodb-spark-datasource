@@ -353,7 +353,6 @@ workflows:
               docker-img:
                 - 'docker.io/arangodb/enterprise:3.12'
               spark-version:
-                - '3.4'
                 - '3.5'
               topology:
                 - 'single'
@@ -382,7 +381,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.4'
                 - '3.5'
               topology:
                 - 'single'
@@ -408,7 +406,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.4'
                 - '3.5'
               scala-version:
                 - '2.12'
@@ -443,7 +440,6 @@ workflows:
                 - 'j11'
                 - 'j17'
               spark-version:
-                - '3.4'
                 - '3.5'
               scala-version:
                 - '2.12'
@@ -464,19 +460,6 @@ workflows:
     when:
       not: <<pipeline.parameters.docker-img>>
     jobs:
-      - integration-tests:
-          name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
-          matrix:
-            parameters:
-              spark-version:
-                - '3.4'
-              scala-version:
-                - '2.12'
-                - '2.13'
-              spark-full-version:
-                - '3.4.2'
-                - '3.4.3'
-                - '3.4.4'
       - integration-tests:
           name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
@@ -526,18 +509,6 @@ workflows:
             parameters:
               python-executor:
                 - 'p312'
-              spark-version:
-                - '3.4'
-              scala-version:
-                - '2.12'
-              pyspark-version:
-                - '3.4.4'
-      - python-integration-tests:
-          name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
-          matrix:
-            parameters:
-              python-executor:
-                - 'p312'
                 - 'p313'
               spark-version:
                 - '3.5'
@@ -580,7 +551,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.4'
                 - '3.5'
               scala-version:
                 - '2.12'
@@ -613,7 +583,6 @@ workflows:
           matrix:
             parameters:
               spark-version:
-                - '3.4'
                 - '3.5'
               scala-version:
                 - '2.12'
