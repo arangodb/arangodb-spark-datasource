@@ -499,6 +499,7 @@ workflows:
                 - '2.13.18'
               spark-full-version:
                 - '4.1.0'
+                - '4.1.1'
   test-python:
     when:
       not: <<pipeline.parameters.docker-img>>
@@ -541,7 +542,7 @@ workflows:
               scala-version:
                 - '2.13.18'
               pyspark-version:
-                - '4.1.0'
+                - '4.1.1'
   demo:
     when:
       not: <<pipeline.parameters.docker-img>>
