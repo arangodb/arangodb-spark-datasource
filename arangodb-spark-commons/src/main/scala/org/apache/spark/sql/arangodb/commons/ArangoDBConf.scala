@@ -6,12 +6,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.internal.config._
 import org.apache.spark.sql.catalyst.util.{CaseInsensitiveMap, DropMalformedMode, FailFastMode, ParseMode, PermissiveMode}
 
-import java.io.{ByteArrayInputStream, FileInputStream}
-import java.security.KeyStore
-import java.security.cert.CertificateFactory
 import java.util
-import java.util.Base64
-import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.collection.JavaConverters.{mapAsJavaMapConverter, mapAsScalaMapConverter}
 
 object ArangoDBConf {
@@ -521,7 +516,12 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
     if (sslEnabled) {
       builder
         .useSsl(true)
-        .sslContext(getSslContext)
+        .sslCertValue(sslCertValue.orNull)
+        .sslProtocol(sslProtocol)
+        .sslAlgorithm(sslAlgorithm)
+        .sslTrustStorePath(sslTrustStorePath.orNull)
+        .sslTrustStorePassword(sslTrustStorePassword.orNull)
+        .sslTrustStoreType(sslKeystoreType)
         .verifyHost(verifyHost)
     }
 
@@ -529,36 +529,6 @@ class ArangoDBDriverConf(opts: Map[String, String]) extends ArangoDBConf(opts) {
       .map(_.split(":"))
       .foreach(host => builder.host(host(0), host(1).toInt))
     builder
-  }
-
-  def getSslContext: SSLContext = {
-    if (sslCertValue.isDefined) {
-      val is = new ByteArrayInputStream(Base64.getDecoder.decode(sslCertValue.get))
-      val cert = CertificateFactory.getInstance(sslCertType).generateCertificate(is)
-      val ks = KeyStore.getInstance(sslKeystoreType)
-      ks.load(null) // scalastyle:ignore null
-      ks.setCertificateEntry(sslCertAlias, cert)
-      createSslContext(ks)
-    } else if (sslTrustStorePath.isDefined) {
-      val ks = KeyStore.getInstance(sslKeystoreType)
-      val is = new FileInputStream(sslTrustStorePath.get)
-      try {
-        ks.load(is, sslTrustStorePassword.map(_.toCharArray).orNull)
-      } finally {
-        is.close()
-      }
-      createSslContext(ks)
-    } else {
-      SSLContext.getDefault
-    }
-  }
-
-  private def createSslContext(ks: KeyStore): SSLContext = {
-    val tmf = TrustManagerFactory.getInstance(sslAlgorithm)
-    tmf.init(ks)
-    val sc = SSLContext.getInstance(sslProtocol)
-    sc.init(null, tmf.getTrustManagers, null) // scalastyle:ignore null
-    sc
   }
 
 }
