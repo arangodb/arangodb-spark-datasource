@@ -352,6 +352,7 @@ workflows:
             parameters:
               docker-img:
                 - 'docker.io/arangodb/enterprise:3.12'
+                - 'docker.io/arangodb/enterprise-preview:4.0-nightly'
               spark-version:
                 - '3.5'
               topology:
@@ -365,6 +366,7 @@ workflows:
             parameters:
               docker-img:
                 - 'docker.io/arangodb/enterprise:3.12'
+                - 'docker.io/arangodb/enterprise-preview:4.0-nightly'
               spark-version:
                 - '4.0'
                 - '4.1'
