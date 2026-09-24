@@ -1,0 +1,4 @@
+interface:
+  display_name: "ArangoDB Spark Connector Development"
+  short_description: "Maintain and test the ArangoDB Spark connector"
+  default_prompt: "Use $spark-connector-development to implement and validate a change in this repository."
