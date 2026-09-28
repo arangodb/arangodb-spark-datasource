@@ -34,6 +34,7 @@ Reports:
 - [arangodb-spark-datasource-3.5](arangodb-spark-datasource-3.5/target/scalastyle-output.xml)
 - [arangodb-spark-datasource-4.0](arangodb-spark-datasource-4.0/target/scalastyle-output.xml)
 - [arangodb-spark-datasource-4.1](arangodb-spark-datasource-4.1/target/scalastyle-output.xml)
+- [arangodb-spark-datasource-4.2](arangodb-spark-datasource-4.2/target/scalastyle-output.xml)
 
 ### scapegoat
 ```shell
@@ -44,6 +45,7 @@ Reports:
 - [arangodb-spark-datasource-3.5](arangodb-spark-datasource-3.5/target/scapegoat/scapegoat.html)
 - [arangodb-spark-datasource-4.0](arangodb-spark-datasource-4.0/target/scapegoat/scapegoat.html)
 - [arangodb-spark-datasource-4.1](arangodb-spark-datasource-4.1/target/scapegoat/scapegoat.html)
+- [arangodb-spark-datasource-4.2](arangodb-spark-datasource-4.2/target/scapegoat/scapegoat.html)
 
 ### JaCoCo
 ```shell

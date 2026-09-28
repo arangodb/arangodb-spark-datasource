@@ -14,8 +14,8 @@ can open these Markdown files directly.
 Neither command needs a database (example profile pair):
 
 ```sh
-mvn test-compile -Pscala-2.13.18 -Pspark-4.1                        # all modules, no tests
-mvn test -Pscala-2.13.18 -Pspark-4.1 -pl arangodb-spark-commons -am  # commons unit tests
+mvn test-compile -Pscala-2.13.18 -Pspark-4.2                        # all modules, no tests
+mvn test -Pscala-2.13.18 -Pspark-4.2 -pl arangodb-spark-commons -am  # commons unit tests
 ```
 
 ## Boundaries

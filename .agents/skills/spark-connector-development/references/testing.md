@@ -21,12 +21,13 @@ JDK 17 runs every pair. The `test-jdk` workflow covers:
 | `spark-3.5` | `scala-2.13` | 8, 11, 17 |
 | `spark-4.0` | `scala-2.13.18` | 17, 21 |
 | `spark-4.1` | `scala-2.13.18` | 17, 21 |
+| `spark-4.2` | `scala-2.13.18` | 17, 21 |
 
 `scala-2.13` (Scala 2.13.8, Java 8 target) and `scala-2.13.18` (Java 17 target)
 are distinct profiles. The commands below use these variables:
 
 ```sh
-spark=4.1
+spark=4.2
 scala=2.13.18
 ```
 
@@ -106,7 +107,7 @@ mvn test -Pscala-"$scala" -Pspark-"$spark"
 Where the workflows run it:
 
 - `test-adb-version`: each server image above, on single and cluster. Spark
-  3.5 runs with Scala 2.13; Spark 4.0 and 4.1 with Scala 2.13.18.
+  3.5 runs with Scala 2.13; Spark 4.0, 4.1 and 4.2 with Scala 2.13.18.
 - `test-adb-topology`: the same matrix, used instead of `test-adb-version` when
   a `docker-img` pipeline parameter is set.
 - `test-jdk`: the JDK table above, on a non-TLS cluster.
@@ -133,14 +134,15 @@ against a non-TLS **single** server. It builds the connector with the profile's
 default Spark version, then runs the test module alone against a different
 Spark runtime:
 
-| Spark profile | Scala profiles | `spark-full-version` |
-| --- | --- | --- |
-| `spark-3.5` | `scala-2.12`, `scala-2.13` | `3.5.0` to `3.5.9` |
-| `spark-4.0` | `scala-2.13.18` | `4.0.0` to `4.0.4` |
-| `spark-4.1` | `scala-2.13.18` | `4.1.0` to `4.1.3` |
+| Spark profile | Scala profiles             | `spark-full-version` |
+|---------------|----------------------------|----------------------|
+| `spark-3.5`   | `scala-2.12`, `scala-2.13` | `3.5.0` to `3.5.9`   |
+| `spark-4.0`   | `scala-2.13.18`            | `4.0.0` to `4.0.4`   |
+| `spark-4.1`   | `scala-2.13.18`            | `4.1.0` to `4.1.3`   |
+| `spark-4.2`   | `scala-2.13.18`            | `4.2.0`              |
 
 ```sh
-spark_full=4.1.0
+spark_full=4.2.0
 mvn install -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true \
   -Pscala-"$scala" -Pspark-"$spark"
 (
@@ -159,16 +161,17 @@ against the test runtime, which defeats this check.
 The `test-python` workflow's `python-integration-tests` job runs on Python 3.12
 and 3.13 with JDK `17.0.17-tem` and Maven `3.9.12`, against a non-TLS cluster:
 
-| Spark profile | Scala profile | PySpark |
-| --- | --- | --- |
-| `spark-3.5` | `scala-2.12` | `3.5.9` |
-| `spark-4.0` | `scala-2.13.18` | `4.0.4` |
-| `spark-4.1` | `scala-2.13.18` | `4.1.3` |
+| Spark profile | Scala profile   | PySpark |
+|---------------|-----------------|---------|
+| `spark-3.5`   | `scala-2.12`    | `3.5.9` |
+| `spark-4.0`   | `scala-2.13.18` | `4.0.4` |
+| `spark-4.1`   | `scala-2.13.18` | `4.1.3` |
+| `spark-4.2`   | `scala-2.13.18` | `4.2.0` |
 
-In an isolated Python environment (example: the 4.1 row):
+In an isolated Python environment (example: the 4.2 row):
 
 ```sh
-python -m pip install "pyspark==4.1.3" -r python-integration-tests/test-requirements.txt
+python -m pip install "pyspark==4.2.0" -r python-integration-tests/test-requirements.txt
 mvn package -Dmaven.test.skip=true -Dgpg.skip=true -Dmaven.javadoc.skip=true \
   -Pscala-"$scala" -Pspark-"$spark"
 cp arangodb-spark-datasource-"$spark"/target/arangodb-spark-datasource-"$spark"_*-jar-with-dependencies.jar \
@@ -205,12 +208,12 @@ Scapegoat runs during Scala compilation and ignores test sources. The adapted
 `mapping/json/` sources are excluded from both (`// scalastyle:off` headers,
 Scapegoat `ignoredFiles`) and from JaCoCo/Sonar; do not widen these exclusions.
 
-The `sonar` job runs Spark 4.1 / Scala 2.13.18 on JDK 17 against a non-TLS
+The `sonar` job runs Spark 4.2 / Scala 2.13.18 on JDK 17 against a non-TLS
 cluster, then publishes with the Sonar scanner. The local build and coverage
 part, without publishing:
 
 ```sh
-mvn -Pscala-2.13.18 -Pspark-4.1 -Dgpg.skip=true -B verify
+mvn -Pscala-2.13.18 -Pspark-4.2 -Dgpg.skip=true -B verify
 ```
 
 This runs the tests and writes `integration-tests/target/site/jacoco-aggregate/`.

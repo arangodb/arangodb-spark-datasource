@@ -5,6 +5,8 @@ to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- added support for Spark 4.2 (DE-1195)
+
 ## [1.9.0] - 2026-01-09
 
 - updated Java Driver to version `7.24.2`
