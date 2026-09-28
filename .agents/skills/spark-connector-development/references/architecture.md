@@ -8,7 +8,7 @@ read the affected source rather than treating the map as an exhaustive contract.
 | Path | Responsibility |
 | --- | --- |
 | `arangodb-spark-commons/` | DataSource V2 entry point, table, scans, writers, configuration, AQL translation, driver calls and mapping interfaces; pure tests in `src/test/scala`. |
-| `arangodb-spark-datasource-3.5/`, `-4.0/`, `-4.1/` | Spark-specific JSON/VelocyPack parsers and generators, adapted Spark JSON code, service descriptors and `jar-with-dependencies` assembly. |
+| `arangodb-spark-datasource-3.5/`, `-4.0/`, `-4.1/`, `-4.2/` | Spark-specific JSON/VelocyPack parsers and generators, adapted Spark JSON code, service descriptors and `jar-with-dependencies` assembly. |
 | `integration-tests/` | Shared JVM integration suite, selected against one adapter through Maven profiles. Included by the root's `no-deploy` profile unless the `deploy` property is set. |
 | `python-integration-tests/` | PySpark/pytest consumer tests using the assembled connector JAR. |
 | `demo/` | Standalone Maven consumer with its own profiles, Scala demos and `DemoTest`; also Python examples and Docker demo setup. Not a root reactor module. |
