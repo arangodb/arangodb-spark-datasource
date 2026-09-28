@@ -61,9 +61,9 @@
         <profile>
             <id>scala-2.12</id>
             <properties>
-                <scala.version>2.12.19</scala.version>
+                <scala.version>2.12.21</scala.version>
                 <scala.compat.version>2.12</scala.compat.version>
-                <scapegoat.version>2.1.6</scapegoat.version>
+                <scapegoat.version>3.4.0</scapegoat.version>
                 <maven.compiler.source>1.8</maven.compiler.source>
                 <maven.compiler.target>1.8</maven.compiler.target>
                 <scala.plugin.version>4.7.2</scala.plugin.version>
