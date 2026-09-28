@@ -5,7 +5,7 @@
     <groupId>com.arangodb</groupId>
     <artifactId>arangodb-spark-datasource</artifactId>
     <packaging>pom</packaging>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 
     <name>${project.artifactId}</name>
     <description>ArangoDB Datasource for Apache Spark</description>
@@ -85,7 +85,7 @@
             <properties>
                 <scala.version>2.13.18</scala.version>
                 <scala.compat.version>2.13</scala.compat.version>
-                <scapegoat.version>3.2.4</scapegoat.version>
+                <scapegoat.version>3.4.0</scapegoat.version>
                 <maven.compiler.source>17</maven.compiler.source>
                 <maven.compiler.target>17</maven.compiler.target>
                 <scala.plugin.version>4.9.8</scala.plugin.version>
@@ -152,7 +152,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver-shaded</artifactId>
-            <version>7.25.0</version>
+            <version>7.28.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -164,7 +164,7 @@
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>jackson-dataformat-velocypack</artifactId>
-            <version>4.6.3</version>
+            <version>4.6.4</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -210,7 +210,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.27.1</version>
+            <version>3.27.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -242,7 +242,7 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>5.14.1</version>
+                <version>5.14.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
