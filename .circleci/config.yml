@@ -493,6 +493,9 @@ workflows:
               spark-full-version:
                 - '4.0.0'
                 - '4.0.1'
+                - '4.0.2'
+                - '4.0.3'
+                - '4.0.4'
       - integration-tests:
           name: integration-spark<<matrix.spark-full-version>>-scala<<matrix.scala-version>>
           matrix:
@@ -533,7 +536,7 @@ workflows:
               scala-version:
                 - '2.13.18'
               pyspark-version:
-                - '4.0.1'
+                - '4.0.4'
       - python-integration-tests:
           name: test-pyspark-<<matrix.pyspark-version>>-<<matrix.python-executor>>
           matrix:

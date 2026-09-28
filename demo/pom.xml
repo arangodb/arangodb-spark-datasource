@@ -55,7 +55,7 @@
         <profile>
             <id>spark-4.0</id>
             <properties>
-                <spark.version>4.0.1</spark.version>
+                <spark.version>4.0.4</spark.version>
                 <spark.compat.version>4.0</spark.compat.version>
                 <jackson.version>2.18.2</jackson.version>
             </properties>

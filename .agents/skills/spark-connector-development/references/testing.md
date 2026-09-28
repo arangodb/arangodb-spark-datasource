@@ -136,7 +136,7 @@ Spark runtime:
 | Spark profile | Scala profiles | `spark-full-version` |
 | --- | --- | --- |
 | `spark-3.5` | `scala-2.12`, `scala-2.13` | `3.5.0` to `3.5.9` |
-| `spark-4.0` | `scala-2.13.18` | `4.0.0`, `4.0.1` |
+| `spark-4.0` | `scala-2.13.18` | `4.0.0` to `4.0.4` |
 | `spark-4.1` | `scala-2.13.18` | `4.1.0`, `4.1.1` |
 
 ```sh
@@ -162,7 +162,7 @@ and 3.13 with JDK `17.0.17-tem` and Maven `3.9.12`, against a non-TLS cluster:
 | Spark profile | Scala profile | PySpark |
 | --- | --- | --- |
 | `spark-3.5` | `scala-2.12` | `3.5.9` |
-| `spark-4.0` | `scala-2.13.18` | `4.0.1` |
+| `spark-4.0` | `scala-2.13.18` | `4.0.4` |
 | `spark-4.1` | `scala-2.13.18` | `4.1.1` |
 
 In an isolated Python environment (example: the 4.1 row):
